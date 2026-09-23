@@ -59,11 +59,14 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"),
                     "proguard-rules.pro"
             signingConfig signingConfigs.release
+            manifestPlaceholders = [crashlyticsEnabled: "true"]
         }
         debug {
             minifyEnabled false
             debuggable true
             signingConfig signingConfigs.debug
+            // Keep test runs out of the Crashlytics dashboard
+            manifestPlaceholders = [crashlyticsEnabled: "false"]
         }
     }
 
