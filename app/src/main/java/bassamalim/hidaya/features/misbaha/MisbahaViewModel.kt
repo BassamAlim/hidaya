@@ -20,6 +20,7 @@ class MisbahaViewModel @Inject constructor(
 ): ViewModel() {
 
     private var numeralsLanguage: Language? = null
+    private var target: Int? = TARGETS.first()
     var count = 0
         private set
 
@@ -34,39 +35,60 @@ class MisbahaViewModel @Inject constructor(
 
     private fun initializeData() {
         viewModelScope.launch {
-            val numeralsLanguage = domain.getNumeralsLanguage().first()
-            this@MisbahaViewModel.numeralsLanguage = numeralsLanguage
-            _uiState.update { it.copy(
-                isLoading = false,
-                countText = translateNums(
-                    string = count.toString(),
-                    numeralsLanguage = numeralsLanguage
-                )
-            )}
+            numeralsLanguage = domain.getNumeralsLanguage().first()
+            _uiState.update { it.copy(isLoading = false) }
+            updateState()
         }
     }
 
-    fun onIncrementClick() {
+    /** Returns true when this tap completed a round, so the screen can give stronger feedback. */
+    fun onIncrementClick(): Boolean {
         count++
+        updateState()
 
-        updateCountText()
+        val target = target ?: return false
+        return count % target == 0
     }
 
     fun onResetClick() {
         count = 0
-
-        updateCountText()
+        updateState()
     }
 
-    private fun updateCountText() {
+    fun onTargetChange(target: Int?) {
+        this.target = target
+        count = 0
+        updateState()
+    }
+
+    private fun updateState() {
         val numeralsLanguage = numeralsLanguage ?: return
+        val target = target
+
+        // In a round the count runs 1..target (showing the target itself on completion),
+        // then starts over at 1 on the next tap
+        val countInRound =
+            if (target == null || count == 0) count
+            else (count - 1) % target + 1
+        val rounds = if (target == null) 0 else count / target
 
         _uiState.update { it.copy(
             countText = translateNums(
-                string = count.toString(),
+                string = countInRound.toString(),
                 numeralsLanguage = numeralsLanguage
-            )
+            ),
+            roundsText =
+                if (rounds == 0) ""
+                else translateNums(string = "× $rounds", numeralsLanguage = numeralsLanguage),
+            progress = if (target == null) 0f else countInRound.toFloat() / target,
+            target = target,
+            numeralsLanguage = numeralsLanguage
         )}
+    }
+
+    companion object {
+        /** Selectable round sizes; null means counting without a target. */
+        val TARGETS = listOf(33, 100, null)
     }
 
 }
