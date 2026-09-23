@@ -25,6 +25,7 @@ import bassamalim.hidaya.core.enums.LocationType
 import bassamalim.hidaya.core.helpers.Alarm
 import bassamalim.hidaya.core.utils.DbUtils
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
+import bassamalim.hidaya.core.utils.report
 import bassamalim.hidaya.core.widgets.PrayersWidget
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,6 +35,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Calendar
 import java.util.Random
 import javax.inject.Inject
@@ -80,7 +83,10 @@ class DailyUpdateReceiver : BroadcastReceiver() {
                 if ((intent.action == "daily" && notUpdatedToday(now)) || intent.action == "boot") {
                     val location = locationRepository.getLocation().first() ?: return@launch
                     when (location.type) {
-                        LocationType.AUTO -> locate(context, now, this)
+                        // Awaited, so alarms are set before goAsync() finishes and the process
+                        // can be killed. No fresh fix still updates, from the stored location.
+                        LocationType.AUTO ->
+                            update(context = context, location = lastLocation(context), now = now)
                         LocationType.MANUAL -> update(context = context, location = null, now = now)
                         LocationType.NONE -> return@launch
                     }
@@ -88,10 +94,14 @@ class DailyUpdateReceiver : BroadcastReceiver() {
                     pickWerd()
                 }
                 else Log.i(Globals.TAG, "dead intent in daily update receiver")
-
-                setTomorrow(context)
             } finally {
-                pendingResult.finish()
+                // Every path, including early returns and failures, or the daily chain stops
+                // until the app is opened again, and with it the athan alarms
+                try {
+                    setTomorrow(context)
+                } finally {
+                    pendingResult.finish()
+                }
             }
         }
     }
@@ -99,22 +109,27 @@ class DailyUpdateReceiver : BroadcastReceiver() {
     private suspend fun notUpdatedToday(now: Calendar): Boolean {
         val lastUpdate = Calendar.getInstance()
         lastUpdate.timeInMillis = appStateRepository.getLastDailyUpdateMillis().first()
-        return lastUpdate[Calendar.DATE] != now[Calendar.DATE]
+        return !isSameDay(lastUpdate, now)
     }
 
-    private fun locate(context: Context, now: Calendar, scope: CoroutineScope) {
-        if (ActivityCompat.checkSelfPermission(
-                context, Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+    /** Null without permission or on failure (e.g. no background location access). */
+    private suspend fun lastLocation(context: Context): Location? {
+        val hasPermission = ActivityCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
             && ActivityCompat.checkSelfPermission(
-                context, Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            LocationServices.getFusedLocationProviderClient(context)
-                .lastLocation.addOnSuccessListener {
-                    location: Location? ->
-                    scope.launch { update(context = context, location = location, now = now) }
+            context, Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!hasPermission) return null
+
+        return try {
+            // goAsync() has a time budget; on timeout the stored location is used instead
+            withTimeoutOrNull(5_000) {
+                LocationServices.getFusedLocationProviderClient(context).lastLocation.await()
             }
+        } catch (e: Exception) {
+            e.report()
+            null
         }
     }
 
@@ -169,10 +184,7 @@ class DailyUpdateReceiver : BroadcastReceiver() {
         val intent = Intent(context.applicationContext, DailyUpdateReceiver::class.java)
         intent.action = "daily"
 
-        val time = Calendar.getInstance()
-        time[Calendar.DATE]++
-        time[Calendar.HOUR_OF_DAY] = Globals.DAILY_UPDATE_HOUR
-        time[Calendar.MINUTE] = Globals.DAILY_UPDATE_MINUTE
+        val time = nextDailyUpdateTime(Calendar.getInstance())
 
         val pendIntent = PendingIntent.getBroadcast(
             context.applicationContext, 1210, intent,
@@ -184,4 +196,17 @@ class DailyUpdateReceiver : BroadcastReceiver() {
         alarm.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time.timeInMillis, pendIntent)
     }
 
+}
+
+/** Same calendar day. Comparing only the day of month took a month-old update for today's. */
+internal fun isSameDay(a: Calendar, b: Calendar) =
+    a[Calendar.YEAR] == b[Calendar.YEAR] && a[Calendar.DAY_OF_YEAR] == b[Calendar.DAY_OF_YEAR]
+
+/** The next day's update time, in [now]'s time zone. */
+internal fun nextDailyUpdateTime(now: Calendar): Calendar = (now.clone() as Calendar).apply {
+    add(Calendar.DATE, 1)
+    set(Calendar.HOUR_OF_DAY, Globals.DAILY_UPDATE_HOUR)
+    set(Calendar.MINUTE, Globals.DAILY_UPDATE_MINUTE)
+    set(Calendar.SECOND, 0)
+    set(Calendar.MILLISECOND, 0)
 }

@@ -111,10 +111,7 @@ class NotificationReceiver : BroadcastReceiver() {
         showNotification(context, reminder)
     }
 
-    private fun isOnTime(time: Long): Boolean {
-        val max = time + 120000
-        return System.currentTimeMillis() <= max
-    }
+    private fun isOnTime(time: Long) = isOnTime(time, now = System.currentTimeMillis())
 
     private suspend fun isAlreadyNotified(reminder: Reminder): Boolean {
         val lastDate = notificationsRepository.getLastNotificationDates().first()[reminder]
@@ -346,3 +343,9 @@ class NotificationReceiver : BroadcastReceiver() {
     }
 
 }
+
+/**
+ * An alarm delivered more than 2 minutes late (e.g. after the device was off) is stale and
+ * dropped, so a missed athan doesn't sound at a random later time.
+ */
+internal fun isOnTime(time: Long, now: Long) = now <= time + 120_000
