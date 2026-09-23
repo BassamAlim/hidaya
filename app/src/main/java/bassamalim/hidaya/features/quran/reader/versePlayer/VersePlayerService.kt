@@ -462,7 +462,8 @@ class VersePlayerService : MediaBrowserServiceCompat(), OnAudioFocusChangeListen
             .setColor(
                 getThemeColor(
                     color = ThemeColor.SURFACE_CONTAINER,
-                    theme = appSettingsRepository.getTheme().first()
+                    theme = appSettingsRepository.getTheme().first(),
+                    context = this
                 ).toArgb()
             )
             .addAction(prevAction).addAction(pauseAction).addAction(nextAction)

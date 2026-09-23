@@ -206,7 +206,8 @@ class NotificationReceiver : BroadcastReceiver() {
             setOnlyAlertOnce(true)
             this.color = getThemeColor(
                 color = ThemeColor.SURFACE_CONTAINER,
-                theme = appSettingsRepository.getTheme().first()
+                theme = appSettingsRepository.getTheme().first(),
+                context = context
             ).toArgb()
             setContentIntent(onClick(context, reminder))
 

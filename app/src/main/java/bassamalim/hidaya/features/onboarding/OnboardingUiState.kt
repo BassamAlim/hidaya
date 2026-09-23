@@ -11,7 +11,7 @@ data class OnboardingUiState(
     val language: Language = Language.ARABIC,
     val numeralsLanguage: Language = Language.ARABIC,
     val timeFormat: TimeFormat = TimeFormat.TWELVE,
-    val theme: Theme = Theme.LIGHT,
+    val theme: Theme = Theme.SYSTEM,
     val calculationMethod: PrayerTimeCalculationMethod = PrayerTimeCalculationMethod.MECCA,
     val juristicMethod: PrayerTimeJuristicMethod = PrayerTimeJuristicMethod.SHAFII,
     val highLatitudesAdjustment: HighLatitudesAdjustmentMethod = HighLatitudesAdjustmentMethod.NONE

@@ -69,6 +69,8 @@
     <string-array name="themes_entries">
         <item>الفاتح</item>
         <item>الغامق</item>
+        <item>حسب النظام</item>
+        <item>ألوان الجهاز</item>
     </string-array>
 
     <integer-array name="searcher_matches_items">

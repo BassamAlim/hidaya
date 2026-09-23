@@ -521,7 +521,8 @@ class RecitationPlayerService : MediaBrowserServiceCompat(),
             .setColor(
                 getThemeColor(
                     color = ThemeColor.SURFACE_CONTAINER,
-                    theme = appSettingsRepository.getTheme().first()
+                    theme = appSettingsRepository.getTheme().first(),
+                    context = this
                 ).toArgb()
             )
             // Add buttons

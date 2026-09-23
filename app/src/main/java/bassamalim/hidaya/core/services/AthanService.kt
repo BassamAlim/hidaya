@@ -142,7 +142,8 @@ class AthanService : Service() {
             setOnlyAlertOnce(true)
             color = getThemeColor(
                 color = ThemeColor.SURFACE_CONTAINER,
-                theme = appSettingsRepository.getTheme().first()
+                theme = appSettingsRepository.getTheme().first(),
+                context = this@AthanService
             ).toArgb()
         }.build()
     }

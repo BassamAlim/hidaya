@@ -256,7 +256,8 @@ class RadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
             .setColor(
                 getThemeColor(
                     color = ThemeColor.SURFACE_CONTAINER,
-                    theme = appSettingsRepository.getTheme().first()
+                    theme = appSettingsRepository.getTheme().first(),
+                    context = this
                 ).toArgb()
             )
             .setContentIntent(controller.sessionActivity)

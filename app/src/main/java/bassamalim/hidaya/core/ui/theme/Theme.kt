@@ -1,9 +1,17 @@
 package bassamalim.hidaya.core.ui.theme
 
+import android.content.Context
+import android.content.res.Configuration
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import bassamalim.hidaya.core.enums.Theme
@@ -11,7 +19,7 @@ import bassamalim.hidaya.core.enums.ThemeColor
 
 @Composable
 fun AppTheme(
-    theme: Theme = Theme.LIGHT,
+    theme: Theme = Theme.SYSTEM,
     direction: LayoutDirection = LayoutDirection.Rtl,
     content: @Composable () -> Unit
 ) {
@@ -21,7 +29,7 @@ fun AppTheme(
         LocalTypography provides AppTypography(),
     ) {
         MaterialTheme(
-            colorScheme = getColorScheme(theme),
+            colorScheme = getColorScheme(theme, LocalContext.current, isSystemInDarkTheme()),
             shapes = shapes,
         ) {
             content()
@@ -29,13 +37,25 @@ fun AppTheme(
     }
 }
 
-fun getColorScheme(theme: Theme) = when (theme) {
-    Theme.LIGHT -> lightColorScheme
-    Theme.DARK -> darkColorScheme
+fun Context.isSystemDark() =
+    (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+
+fun getColorScheme(
+    theme: Theme,
+    context: Context,
+    isSystemDark: Boolean = context.isSystemDark()
+): ColorScheme {
+    val isDark = theme.isDark(isSystemDark)
+    return if (theme == Theme.DYNAMIC && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+    }
+    else if (isDark) darkColorScheme
+    else lightColorScheme
 }
 
-fun getThemeColor(color: ThemeColor, theme: Theme): Color {
-    val colorScheme = getColorScheme(theme)
+fun getThemeColor(color: ThemeColor, theme: Theme, context: Context): Color {
+    val colorScheme = getColorScheme(theme, context)
 
     return when (color) {
         ThemeColor.PRIMARY -> colorScheme.primary

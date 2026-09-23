@@ -151,10 +151,12 @@ fun AppearanceSettings(
         MyHorizontalDivider(Modifier.padding(horizontal = 16.dp))
 
         // Theme
-        MenuSetting(  // TODO: should be a map instead of entries and items
-            selection = selectedTheme,
-            items = Theme.entries.toTypedArray(),
-            entries = stringArrayResource(R.array.themes_entries),
+        val themeNames = stringArrayResource(R.array.themes_entries)
+        MenuSetting(
+            // DYNAMIC can be restored from a backup onto an older device, where it acts as SYSTEM
+            selection = if (selectedTheme in Theme.available) selectedTheme else Theme.SYSTEM,
+            items = Theme.available.toTypedArray(),
+            entries = Theme.available.map { themeNames[it.ordinal] }.toTypedArray(),
             title = stringResource(R.string.theme),
             icon = Icons.Default.Contrast,
             onSelection = onThemeChange
