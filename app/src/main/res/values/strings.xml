@@ -68,7 +68,7 @@
     <string name="prayers_tutorial_report">اضغط هنا للإبلاغ عن أوقات صلاة غير صحيحة.</string>
     <string name="prayers_tutorial_notification">اضغط على هذا الزر لتبديل نوع التنبيه لكل صلاة: أذان، إشعار، صامت، أو إيقاف.</string>
     <string name="prayers_tutorial_reminder">اضبط تذكيرًا إضافيًا قبل وقت الصلاة أو بعده.</string>
-    <string name="quran_suras_tutorial_bookmarks">اضغط هنا لفتح علاماتك المحفوظة والانتقال مباشرةً إلى الآية المعلَّمة.</string>
+    <string name="quran_suras_tutorial_bookmarks">علاماتك المحفوظة تظهر هنا، اضغط على أيٍّ منها للانتقال مباشرةً إلى الآية.</string>
     <string name="tutorial_skip">تخطّي</string>
     <string name="tutorial_done">تم</string>
     <string name="quran_search_hint">ابحث عن سورة أو صفحة أو آية</string>
@@ -265,4 +265,9 @@
     <string name="accuracy_moderate">متوسطة</string>
     <string name="accuracy_low">ضعيفة · اضغط للمعايرة</string>
     <string name="set_location">تحديد الموقع</string>
+
+    <string name="meccan">مكية</string>
+    <string name="medinan">مدنية</string>
+    <string name="start_page">ص %1$s</string>
+    <string name="bookmark_label">%1$s · آية %2$s</string>
 </resources>

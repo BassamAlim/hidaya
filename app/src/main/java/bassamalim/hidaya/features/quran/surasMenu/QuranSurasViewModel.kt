@@ -1,6 +1,5 @@
 package bassamalim.hidaya.features.quran.surasMenu
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.graphics.Color
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
@@ -45,7 +44,9 @@ class QuranSurasViewModel @Inject constructor(
         val suraNames: List<String>,
         val allSurasFlow: Flow<List<Sura>>,
         val allSuras: List<Sura>,
-        val allVerses: List<Verse>
+        val allVerses: List<Verse>,
+        /** Keyed by 0-based sura id */
+        val suraStartPages: Map<Int, Int>
     )
 
     private var data: LoadedData? = null
@@ -55,8 +56,28 @@ class QuranSurasViewModel @Inject constructor(
         _uiState.asStateFlow(),
         domain.getBookmarks()
     ) { state, bookmarks ->
-        if (state.isLoading) state
-        else state.copy(bookmarks = bookmarks)
+        val data = data
+        if (state.isLoading || data == null) state
+        else state.copy(
+            bookmarks = listOf(
+                bookmarks.bookmark1VerseId,
+                bookmarks.bookmark2VerseId,
+                bookmarks.bookmark3VerseId,
+                bookmarks.bookmark4VerseId
+            ).mapIndexedNotNull { index, verseId ->
+                val verse = data.allVerses.firstOrNull { it.id == verseId }
+                    ?: return@mapIndexedNotNull null
+                BookmarkItem(
+                    index = index,
+                    verseId = verse.id,
+                    suraName = data.suraNames[verse.suraNum - 1],
+                    verseNumText = translateNums(
+                        string = verse.num.toString(),
+                        numeralsLanguage = data.numeralsLanguage
+                    )
+                )
+            }
+        )
     }.onStart {
         initializeData()
     }.stateIn(
@@ -69,12 +90,15 @@ class QuranSurasViewModel @Inject constructor(
         viewModelScope.launch {
             val language = domain.getLanguage()
             val allSurasFlow = domain.getAllSuras(language)
+            val allVerses = domain.getAllVerses()
             data = LoadedData(
                 numeralsLanguage = domain.getNumeralsLanguage(),
                 suraNames = domain.getSuraNames(language),
                 allSurasFlow = allSurasFlow,
                 allSuras = allSurasFlow.first(),
-                allVerses = domain.getAllVerses()
+                allVerses = allVerses,
+                suraStartPages = allVerses.groupBy { it.suraNum - 1 }
+                    .mapValues { (_, verses) -> verses.minOf { it.pageNum } }
             )
 
             _uiState.update { it.copy(
@@ -111,30 +135,13 @@ class QuranSurasViewModel @Inject constructor(
         )
     }
 
-    fun onBookmarksClick() {
-        _uiState.update { it.copy(
-            isBookmarksExpanded = !it.isBookmarksExpanded
-        )}
-    }
-
-    fun onBookmarkOptionClick(
-        verseId: Int?,
-        snackbarHostState: SnackbarHostState,
-        message: String
-    ) {
-        if (verseId == null) {
-            viewModelScope.launch {
-                snackbarHostState.showSnackbar(message)
-            }
-        }
-        else {
-            navigator.navigate(
-                Screen.QuranReader(
-                    targetType = QuranTarget.VERSE.name,
-                    targetValue = verseId.toString()
-                )
+    fun onBookmarkClick(verseId: Int) {
+        navigator.navigate(
+            Screen.QuranReader(
+                targetType = QuranTarget.VERSE.name,
+                targetValue = verseId.toString()
             )
-        }
+        )
     }
 
     fun onFavoriteClick(itemId: Int, oldState: Boolean) {
@@ -143,7 +150,7 @@ class QuranSurasViewModel @Inject constructor(
         }
     }
 
-    fun getItems(page: Int): Flow<List<Sura>> {
+    fun getItems(page: Int): Flow<List<SuraItem>> {
         val data = data ?: return flowOf(emptyList())
         val menuType = MenuType.entries[page]
 
@@ -151,11 +158,19 @@ class QuranSurasViewModel @Inject constructor(
             suras.filter { sura ->
                 !(menuType == MenuType.FAVORITES && !sura.isFavorite)
             }.map { sura ->
-                Sura(
+                SuraItem(
                     id = sura.id,
-                    decoratedName = data.suraNames[sura.id],
-                    plainName = sura.plainName,
-                    revelation = sura.revelation,
+                    name = data.suraNames[sura.id],
+                    numberText = translateNums(
+                        string = (sura.id + 1).toString(),
+                        numeralsLanguage = data.numeralsLanguage
+                    ),
+                    // Revelation 0 is Meccan, 1 is Medinan
+                    isMeccan = sura.revelation == 0,
+                    startPageText = translateNums(
+                        string = data.suraStartPages.getValue(sura.id).toString(),
+                        numeralsLanguage = data.numeralsLanguage
+                    ),
                     isFavorite = sura.isFavorite
                 )
             }

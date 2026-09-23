@@ -130,10 +130,7 @@ private fun NavigationGraph(
             popEnterTransition = TabPopEnter,
             popExitTransition = TabPopExit
         ) {
-            QuranSurasMenuScreen(
-                viewModel = hiltViewModel(),
-                snackbarHostState = snackbarHostState
-            )
+            QuranSurasMenuScreen(hiltViewModel())
         }
 
         composable(
