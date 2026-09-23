@@ -14,4 +14,15 @@ data class RemembrancePassage(
     val isTranslationAvailable: Boolean = false,
     val isVirtueAvailable: Boolean,
     val isReferenceAvailable: Boolean,
-)
+) {
+    val isRepetitionComplete: Boolean
+        get() = repetitionTotal != null && repetitionCurrent == repetitionTotal
+}
+
+enum class RepetitionResult {
+    /** Not countable, or already complete */
+    IGNORED,
+    COUNTED,
+    /** This tap reached the target */
+    COMPLETED
+}

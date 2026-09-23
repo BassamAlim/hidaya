@@ -117,23 +117,26 @@ class RemembranceReaderViewModel @Inject constructor(
         }
     }
 
-    fun onRepetitionClick(passageId: Int) {
-        val item = _uiState.value.items.first { it.id == passageId }
-        if (item.repetitionTotal != null && item.repetitionCurrent != item.repetitionTotal) {
-            val newCurrentRepetition = item.repetitionCurrent?.plus(1)
-            _uiState.update { it.copy(
-                items = it.items.map { item ->
-                    if (item.id == passageId) item.copy(
-                        repetitionCurrent = newCurrentRepetition,
-                        repetitionText = translateNums(
-                            string = "${newCurrentRepetition}/${item.repetitionTotal}",
-                            numeralsLanguage = numeralsLanguage
-                        )
+    fun onRepetitionClick(passageId: Int): RepetitionResult {
+        val passage = _uiState.value.items.first { it.id == passageId }
+        val total = passage.repetitionTotal ?: return RepetitionResult.IGNORED
+        if (passage.isRepetitionComplete) return RepetitionResult.IGNORED
+
+        val newCurrent = (passage.repetitionCurrent ?: 0) + 1
+        _uiState.update { it.copy(
+            items = it.items.map { item ->
+                if (item.id == passageId) item.copy(
+                    repetitionCurrent = newCurrent,
+                    repetitionText = translateNums(
+                        string = "$newCurrent/$total",
+                        numeralsLanguage = numeralsLanguage
                     )
-                    else item
-                }
-            )}
-        }
+                )
+                else item
+            }
+        )}
+
+        return if (newCurrent == total) RepetitionResult.COMPLETED else RepetitionResult.COUNTED
     }
 
     private fun isTitleAvailable(title: String?) = !title.isNullOrEmpty()
