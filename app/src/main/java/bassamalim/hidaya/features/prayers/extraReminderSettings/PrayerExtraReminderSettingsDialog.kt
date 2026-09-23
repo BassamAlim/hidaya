@@ -9,14 +9,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.ui.components.DialogDismissButton
 import bassamalim.hidaya.core.ui.components.DialogSubmitButton
+import bassamalim.hidaya.core.ui.components.DialogTitle
 import bassamalim.hidaya.core.ui.components.MyText
 import bassamalim.hidaya.core.ui.components.MyValuedSlider
 
@@ -37,14 +36,14 @@ fun PrayerExtraReminderSettingsDialog(viewModel: PrayerExtraReminderSettingsView
             }
         },
         title = {
-            MyText(
-                text = String.format(
+            DialogTitle(
+                String.format(
                     stringResource(R.string.reminder_of),
+                    // Arabic grammar, not a bug: the string ends in "ل", and "ل" + "الفجر"
+                    // is written "للفجر", so the name's leading alef is dropped. English
+                    // names don't start with "ا", so they pass through unchanged.
                     state.prayerName.removePrefix("ا")
-                ),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 5.dp, bottom = 20.dp)
+                )
             )
         },
         text = {
