@@ -13,7 +13,7 @@ import org.junit.Test
 import java.util.Calendar
 import java.util.TimeZone
 
-/** What [Alarm.setAll] schedules for a day, via [planPrayerAlarms]. */
+/** When [Alarm] schedules prayer, extra and remembrance reminders. */
 class AlarmPlanTest {
 
     private val zone = TimeZone.getTimeZone("Asia/Riyadh")
@@ -121,6 +121,38 @@ class AlarmPlanTest {
 
         assertEquals(null, plan[Maghrib])
         assertEquals(millis(17, 50), plan[Reminder.PrayerExtra.Maghrib])
+    }
+
+    // nextTimeAfterPrayer (morning/evening remembrances, 30 minutes after Fajr/Asr)
+
+    private val fajrToday = at(4, 30)
+    private val fajrTomorrow = (at(4, 31)).apply { add(Calendar.DATE, 1) }
+
+    private fun remembrance(now: Long, today: Calendar? = fajrToday) =
+        nextTimeAfterPrayer(today, fajrTomorrow, minutesAfter = 30, now = now)?.timeInMillis
+
+    @Test
+    fun `before the prayer, the reminder is 30 minutes after today's prayer`() {
+        assertEquals(millis(5, 0), remembrance(now = millis(0, 10)))
+    }
+
+    @Test
+    fun `between the prayer and the reminder, today's reminder is kept`() {
+        // Used to roll over to tomorrow here, because it checked the prayer time, not the reminder's
+        assertEquals(millis(5, 0), remembrance(now = millis(4, 45)))
+        assertEquals(millis(5, 0), remembrance(now = millis(5, 0)))
+    }
+
+    @Test
+    fun `after today's reminder, it's 30 minutes after tomorrow's prayer`() {
+        val expected = (at(5, 1)).apply { add(Calendar.DATE, 1) }.timeInMillis
+        assertEquals(expected, remembrance(now = millis(5, 1)))
+    }
+
+    @Test
+    fun `no prayer time today falls back to tomorrow's`() {
+        val expected = (at(5, 1)).apply { add(Calendar.DATE, 1) }.timeInMillis
+        assertEquals(expected, remembrance(now = millis(0, 10), today = null))
     }
 
 }

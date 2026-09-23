@@ -21,6 +21,7 @@ import bassamalim.hidaya.core.di.ApplicationScope
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.enums.Prayer
 import bassamalim.hidaya.core.enums.Reminder
+import bassamalim.hidaya.core.helpers.Alarm
 import bassamalim.hidaya.core.models.Location
 import bassamalim.hidaya.core.receivers.NotificationReceiver
 import bassamalim.hidaya.core.utils.LangUtils
@@ -49,6 +50,7 @@ class PrayersNotificationService : Service() {
     @Inject lateinit var locationRepository: LocationRepository
     @Inject lateinit var appSettingsRepository: AppSettingsRepository
     @Inject lateinit var notificationsRepository: NotificationsRepository
+    @Inject lateinit var alarm: Alarm
     private val _serviceState = MutableStateFlow(ServiceState())
     private var countdownJob: Job? = null
     private var initializationJob: Job? = null
@@ -185,66 +187,12 @@ class PrayersNotificationService : Service() {
             if (enabled) {
                 if (devotion is Reminder.Devotional.FridayKahf) {
                     if (today[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY)
-                        devotionReminderTimes[devotion] = getDevotionalReminderTime(devotion)
+                        devotionReminderTimes[devotion] = alarm.getDevotionalReminderTime(devotion)
                 }
-                else devotionReminderTimes[devotion] = getDevotionalReminderTime(devotion)
+                else devotionReminderTimes[devotion] = alarm.getDevotionalReminderTime(devotion)
             }
         }
         return devotionReminderTimes.toMap()
-    }
-
-    suspend fun getDevotionalReminderTime(devotion: Reminder.Devotional): Calendar {
-        val time = when (devotion) {
-            Reminder.Devotional.MorningRemembrances, Reminder.Devotional.EveningRemembrances -> {
-                val referencePrayer =
-                    if (devotion == Reminder.Devotional.MorningRemembrances) Prayer.FAJR
-                    else Prayer.ASR
-                val prayerTime = getPrayerTime(referencePrayer)
-                    ?: return Calendar.getInstance()
-                Calendar.getInstance().apply {
-                    timeInMillis = prayerTime.timeInMillis
-                    add(Calendar.MINUTE, 30)
-                }
-            }
-            Reminder.Devotional.DailyWerd, Reminder.Devotional.FridayKahf -> {
-                val timeOfDay =
-                    notificationsRepository.getDevotionalReminderTimes().first()[devotion]!!
-                Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, timeOfDay.hour)
-                    set(Calendar.MINUTE, timeOfDay.minute)
-                }
-            }
-        }
-
-        time[Calendar.SECOND] = 0
-        time[Calendar.MILLISECOND] = 0
-
-        return time
-    }
-
-    suspend fun getPrayerTime(prayer: Prayer): Calendar? {
-        val location = locationRepository.getLocation().first()!!
-
-        var prayerTime = PrayerTimeUtils.getPrayerTimes(
-            settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
-            selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
-            location = location,
-            calendar = Calendar.getInstance()
-        )[prayer] ?: return null
-
-        // if prayer time passed
-        if (prayerTime.timeInMillis < System.currentTimeMillis()) {
-            prayerTime = PrayerTimeUtils.getPrayerTimes(
-                settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
-                selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
-                location = location,
-                calendar = Calendar.getInstance().apply {
-                    add(Calendar.DAY_OF_MONTH, 1)
-                }
-            )[prayer] ?: return null
-        }
-
-        return prayerTime
     }
 
     private fun startCountdown(prayerData: PrayerData) {

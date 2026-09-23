@@ -133,12 +133,12 @@ class Alarm(
                 val referencePrayer =
                     if (devotion == Reminder.Devotional.MorningRemembrances) Prayer.FAJR
                     else Prayer.ASR
-                val prayerTime = getPrayerTime(referencePrayer)
-                    ?: return Calendar.getInstance()
-                Calendar.getInstance().apply {
-                    timeInMillis = prayerTime.timeInMillis
-                    add(Calendar.MINUTE, 30)
-                }
+                nextTimeAfterPrayer(
+                    todayPrayer = getPrayerTime(referencePrayer, dayOffset = 0),
+                    tomorrowPrayer = getPrayerTime(referencePrayer, dayOffset = 1),
+                    minutesAfter = 30,
+                    now = System.currentTimeMillis()
+                ) ?: return Calendar.getInstance()
             }
             Reminder.Devotional.DailyWerd, Reminder.Devotional.FridayKahf -> {
                 val timeOfDay =
@@ -187,29 +187,14 @@ class Alarm(
         is Reminder.Devotional -> "devotion"
     }
 
-    suspend fun getPrayerTime(prayer: Prayer): Calendar? {
-        val location = locationRepository.getLocation().first()!!
-
-        var prayerTime = PrayerTimeUtils.getPrayerTimes(
+    private suspend fun getPrayerTime(prayer: Prayer, dayOffset: Int): Calendar? {
+        val location = locationRepository.getLocation().first() ?: return null
+        return PrayerTimeUtils.getPrayerTimes(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = Calendar.getInstance()
-        )[prayer] ?: return null
-
-        // if prayer time passed
-        if (prayerTime.timeInMillis < System.currentTimeMillis()) {
-            prayerTime = PrayerTimeUtils.getPrayerTimes(
-                settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
-                selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
-                location = location,
-                calendar = Calendar.getInstance().apply {
-                    add(Calendar.DAY_OF_MONTH, 1)
-                }
-            )[prayer] ?: return null
-        }
-
-        return prayerTime
+            calendar = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, dayOffset) }
+        )[prayer]
     }
 
 }
@@ -243,3 +228,20 @@ internal fun planPrayerAlarms(
 /** [offsetMinutes] is negative for a reminder before the prayer. */
 internal fun extraReminderMillis(prayerMillis: Long, offsetMinutes: Int) =
     prayerMillis + offsetMinutes * 60_000L
+
+/**
+ * [minutesAfter] today's prayer, or after tomorrow's once today's has passed. Deciding by the
+ * prayer time instead skipped today's reminder when set between the prayer and the reminder.
+ */
+internal fun nextTimeAfterPrayer(
+    todayPrayer: Calendar?,
+    tomorrowPrayer: Calendar?,
+    minutesAfter: Int,
+    now: Long
+): Calendar? {
+    fun after(prayer: Calendar?) =
+        (prayer?.clone() as Calendar?)?.apply { add(Calendar.MINUTE, minutesAfter) }
+
+    val today = after(todayPrayer)
+    return if (today != null && today.timeInMillis >= now) today else after(tomorrowPrayer)
+}
