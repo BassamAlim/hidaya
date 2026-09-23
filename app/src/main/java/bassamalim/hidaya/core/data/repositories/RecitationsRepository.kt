@@ -3,6 +3,10 @@ package bassamalim.hidaya.core.data.repositories
 import android.app.Application
 import android.app.DownloadManager
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
+import bassamalim.hidaya.R
 import bassamalim.hidaya.core.data.dataSources.preferences.dataSources.RecitationsPreferencesDataSource
 import bassamalim.hidaya.core.data.dataSources.room.daos.RecitationNarrationsDao
 import bassamalim.hidaya.core.data.dataSources.room.daos.SuraRecitersDao
@@ -79,6 +83,11 @@ class RecitationsRepository @Inject constructor(
             (app.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
         } catch (e: SecurityException) {
             FirebaseCrashlytics.getInstance().recordException(e)
+            // Callers enqueue from background threads
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(app, app.getString(R.string.download_failed), Toast.LENGTH_LONG)
+                    .show()
+            }
             null
         }
 

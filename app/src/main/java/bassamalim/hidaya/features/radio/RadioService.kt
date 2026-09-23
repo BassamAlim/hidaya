@@ -38,10 +38,12 @@ import bassamalim.hidaya.core.ui.theme.getThemeColor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -68,7 +70,8 @@ class RadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
     private lateinit var wifiLock: WifiManager.WifiLock
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var staticUrl: String? = null
-    private lateinit var dynamicUrl: String
+    private var dynamicUrl: String? = null
+    private var resolveUrlJob: Job? = null
 
     companion object {
         private const val MY_MEDIA_ROOT_ID = "media_root_id"
@@ -130,9 +133,10 @@ class RadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
             Log.i(Globals.TAG, "In onPlayFromMediaId of RadioClient")
             super.onPlayFromMediaId(mediaId, extras)
 
-            if (staticUrl == null) {
-                staticUrl = mediaId
-                thread.start()    // get final URL
+            staticUrl = mediaId
+            // Retry if an earlier attempt failed (e.g. offline), else play would hit a null url
+            if (dynamicUrl == null) {
+                if (resolveUrlJob?.isActive != true) resolveUrlJob = resolveDynamicUrl()
             }
             else if (player.isPlaying)
                 updatePbState(PlaybackStateCompat.STATE_PLAYING, player.currentPosition)
@@ -419,6 +423,8 @@ class RadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
     }
 
     private fun startPlaying() {
+        val dynamicUrl = dynamicUrl ?: return
+
         player.reset()
         player.setDataSource(applicationContext, dynamicUrl.toUri())
         player.prepareAsync()
@@ -428,14 +434,17 @@ class RadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
     // https://www.aloula.sa/83c0bda5-18e7-4c80-9c0a-21e764537d47
     // https://m.live.net.sa:1935/live/quransa/playlist.m3u8
 
-    private val thread = Thread {
-        try {    // A mechanism to handle redirects and get the final dynamic link
-            val url = URL(staticUrl)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.instanceFollowRedirects = false
-            val secondURL = URL(connection.getHeaderField("Location"))
-            dynamicUrl = secondURL.toString().replaceFirst("http:".toRegex(), "https:")
-            Log.i(Globals.TAG, "Dynamic Quran Radio URL: ${this.dynamicUrl}")
+    // Follows the static link's redirect to get the final dynamic link
+    private fun resolveDynamicUrl() = serviceScope.launch {
+        try {
+            val resolved = withContext(Dispatchers.IO) {
+                val connection = URL(staticUrl).openConnection() as HttpURLConnection
+                connection.instanceFollowRedirects = false
+                URL(connection.getHeaderField("Location")).toString()
+                    .replaceFirst("http:".toRegex(), "https:")
+            }
+            dynamicUrl = resolved
+            Log.i(Globals.TAG, "Dynamic Quran Radio URL: $resolved")
 
             updatePbState(PlaybackStateCompat.STATE_STOPPED, 0)
         } catch (e: IOException) {

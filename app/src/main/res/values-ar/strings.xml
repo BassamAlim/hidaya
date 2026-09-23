@@ -101,6 +101,7 @@
     <string name="wait_for_download">انتظر حتى يكتمل التحميل</string>
     <string name="feature_not_supported">جهازك لا يدعم هذه الميزة</string>
     <string name="playback_failed">فشل التشغيل</string>
+    <string name="download_failed">تعذر بدء التحميل على هذا الجهاز</string>
     <string name="choose_allow_all_the_time">اختر \"السماح طوال الوقت\" لإبقاء أوقات الصلاة وإتجاه القبلة دقيقة</string>
     <string name="no_downloaded_books">لم يتم تحميل أي كتب بعد، حمل كتبا للبحث فيها</string>
     <string name="prayer_notification_channel">إشعارات الصلاة</string>
