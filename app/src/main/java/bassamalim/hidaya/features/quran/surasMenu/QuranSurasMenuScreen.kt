@@ -259,7 +259,8 @@ private fun SuraRow(sura: SuraItem, onClick: () -> Unit, onFavoriteClick: () -> 
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(Modifier.width(dims.spaceXs))
+                // Wide enough that the icon and the page read as two separate facts
+                Spacer(Modifier.width(dims.spaceMd))
 
                 Text(
                     text = stringResource(R.string.start_page, sura.startPageText),
