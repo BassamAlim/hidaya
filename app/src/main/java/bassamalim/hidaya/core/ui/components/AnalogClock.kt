@@ -29,8 +29,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import bassamalim.hidaya.R
+import bassamalim.hidaya.core.ui.theme.tajwal
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.models.TimeOfDay
 import java.util.Calendar
@@ -165,13 +165,19 @@ private fun DrawScope.drawNumbers(
         Language.ENGLISH -> context.resources.getStringArray(R.array.numerals_en)
     }
     val radius = fullRadius * 0.82f
-    val textSize = radius * 0.07f
+    // A fixed share of the radius in real pixels, so the numbers keep the same proportion to
+    // the face on every screen density and system font size
+    val textStyle = TextStyle(
+        fontFamily = tajwal,
+        fontSize = (radius * 0.2f).toSp(),
+        color = color
+    )
 
     for (number in numerals) {
         val angle = Math.PI / 6 * (number.toInt() - 3)
-        val textStyle = TextStyle(fontSize = textSize.sp, color = color)
-        val numberWidth = textMeasurer.measure(number, style = textStyle).size.width
-        val numberHeight = textMeasurer.measure(number, style = textStyle).size.height
+        val size = textMeasurer.measure(number, style = textStyle).size
+        val numberWidth = size.width
+        val numberHeight = size.height
 
         drawText(
             textMeasurer = textMeasurer,
