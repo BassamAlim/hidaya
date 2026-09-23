@@ -26,6 +26,7 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.helpers.ReceiverWrapper
 import bassamalim.hidaya.core.helpers.Searcher
 import bassamalim.hidaya.core.utils.FileUtils
+import bassamalim.hidaya.features.recitations.RecitationMediaId
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.features.quran.surasMenu.RecitationInfo
 import bassamalim.hidaya.features.recitations.player.RecitationPlayerService
@@ -117,7 +118,6 @@ class RecitationRecitersMenuDomain @Inject constructor(
         val language = getLanguage()
         val reciterNames = recitationsRepository.getSuraReciterNames(language)
         Thread {
-            val downloadManager = app.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             var request: DownloadManager.Request
             var posted = false
             for (i in 0..113) {
@@ -142,7 +142,8 @@ class RecitationRecitersMenuDomain @Inject constructor(
                         DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
                     )
 
-                    val downloadId = downloadManager.enqueue(request)
+                    // All suras share the same path, so if one is refused the rest will be too
+                    val downloadId = recitationsRepository.enqueueDownload(request) ?: break
                     if (!posted) {
                         recitationsRepository.addToDownloading(downloadId, reciterId, narration.id)
                         posted = true
@@ -169,12 +170,7 @@ class RecitationRecitersMenuDomain @Inject constructor(
     }
 
     suspend fun getLastPlayedMedia(mediaId: String): RecitationInfo? {
-        if (mediaId.isEmpty() || mediaId == "00000000") return null  // added the second part to prevent errors due to change in db
-        Log.d("RecitationsRecitersMenuViewModel", "continueListeningMediaId: $mediaId")
-
-        val reciterId = mediaId.substring(0, 3).toInt()
-        val narrationId = mediaId.substring(3, 6).toInt()
-        val suraId = mediaId.substring(6).toInt()
+        val (reciterId, narrationId, suraId) = RecitationMediaId.decode(mediaId) ?: return null
         Log.d(
             "RecitationsRecitersMenuViewModel",
             "reciterId: $reciterId, narrationId: $narrationId, suraIndex: $suraId"

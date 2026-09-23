@@ -18,7 +18,9 @@ import bassamalim.hidaya.core.models.Narration
 import bassamalim.hidaya.core.models.Recitation
 import bassamalim.hidaya.core.models.Reciter
 import bassamalim.hidaya.core.utils.FileUtils
+import bassamalim.hidaya.features.recitations.RecitationMediaId
 import bassamalim.hidaya.features.recitations.recitersMenu.LastPlayedMedia
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.Gson
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CoroutineDispatcher
@@ -66,11 +68,19 @@ class RecitationsRepository @Inject constructor(
             request.setDestinationInExternalFilesDir(app, "$prefix/$reciterId/$narrationId/", "$suraId.mp3")
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
 
-            val downloadId = (app.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager)
-                .enqueue(request)
+            val downloadId = enqueueDownload(request) ?: return@Thread
             addToDownloading(downloadId, narrationId, suraId)
         }.start()
     }
+
+    /** Null if the system refuses (some ROMs reject the app's own external files path). */
+    fun enqueueDownload(request: DownloadManager.Request): Long? =
+        try {
+            (app.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
+        } catch (e: SecurityException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+            null
+        }
 
     fun deleteSura(reciterId: Int, narrationId: Int, suraId: Int) {
         FileUtils.deleteFile(context = app, path = "$prefix$reciterId/$narrationId/$suraId.mp3")
@@ -235,11 +245,12 @@ class RecitationsRepository @Inject constructor(
 
     fun getLastPlayedMedia(): Flow<LastPlayedMedia?> {
         return recitationsPreferencesDataSource.getLastPlayedMedia().map {
-            it?.let {
-                // TODO: remove after a while, added to handle migrating from 8 to 9 digit mediaId
-                if (it.mediaId.length < 9) setLastPlayedMedia(null)
-                it
+            // Drop ids an older version saved corrupted, so nothing downstream has to cope
+            if (it != null && RecitationMediaId.decode(it.mediaId) == null) {
+                setLastPlayedMedia(null)
+                null
             }
+            else it
         }
     }
 

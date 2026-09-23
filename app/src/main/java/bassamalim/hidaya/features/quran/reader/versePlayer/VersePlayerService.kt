@@ -541,6 +541,9 @@ class VersePlayerService : MediaBrowserServiceCompat(), OnAudioFocusChangeListen
     }
 
     private fun abandonAudioFocus(): Boolean {
+        // Set up async after onCreate; stop/destroy can arrive first, and then no focus was held
+        if (!::audioFocusRequest.isInitialized) return true
+
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             AudioManager.AUDIOFOCUS_REQUEST_GRANTED ==
                     audioManager.abandonAudioFocusRequest(audioFocusRequest)

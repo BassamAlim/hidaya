@@ -2,7 +2,6 @@ package bassamalim.hidaya.features.recitations.player
 
 import android.app.Application
 import android.app.DownloadManager
-import android.content.Context
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
@@ -74,7 +73,7 @@ class RecitationPlayerDomain @Inject constructor(
         request.setDestinationInExternalFilesDir(app, path, "${suraIdx}.mp3")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
 
-        (app.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
+        recitationsRepository.enqueueDownload(request)
     }
 
     fun deleteRecitation() {

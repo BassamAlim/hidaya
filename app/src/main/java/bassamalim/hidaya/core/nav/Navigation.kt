@@ -2,8 +2,14 @@ package bassamalim.hidaya.core.nav
 
 import android.os.Build
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -57,11 +63,14 @@ import bassamalim.hidaya.features.tv.TvScreen
 fun Navigation(navigator: Navigator, thenTo: String? = null, shouldOnboard: Boolean = false) {
     val navController = rememberNavController()
 
-    LaunchedEffect(key1 = navController) {  // maybe should be DisposableEffect
+    // Rebind on every start, not just first composition: with several Activity instances
+    // the singleton Navigator must follow the visible one or it navigates a destroyed controller
+    LifecycleStartEffect(navController) {
         navigator.setController(navController)
-//        onDispose {
-//            navigator.clear()
-//        }
+        onStopOrDispose {}
+    }
+    DisposableEffect(navController) {
+        onDispose { navigator.clearController(navController) }
     }
 
     val startDest =
@@ -70,7 +79,12 @@ fun Navigation(navigator: Navigator, thenTo: String? = null, shouldOnboard: Bool
 
     NavGraph(navController = navController, startDest = startDest)
 
-    if (thenTo != null) navController.navigate(thenTo)
+    // Once per Activity, not per recomposition or recreation (back stack is restored then)
+    var handledThenTo by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (thenTo != null && !handledThenTo) navController.navigate(thenTo)
+        handledThenTo = true
+    }
 }
 
 @Composable

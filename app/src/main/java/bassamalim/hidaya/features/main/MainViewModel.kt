@@ -36,10 +36,7 @@ class MainViewModel @Inject constructor(
     )
 
     fun onDateClick() {
-        navigator.navigateForResult(
-            destination = Screen.DateEditor,
-            onResult = {}
-        )
+        navigator.navigate(Screen.DateEditor)
     }
 
     private fun getHijriDate(dateOffset: Int, numeralsLanguage: Language): String {

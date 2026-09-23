@@ -84,7 +84,7 @@ private fun Tab(
             items(suras, key = { it.id }) { sura ->
                 SuraCard(
                     sura = sura,
-                    downloadState = downloadStates[sura.id]!!,
+                    downloadState = downloadStates[sura.id] ?: DownloadState.NOT_DOWNLOADED,
                     onClick = onSuraClick,
                     onFavoriteClick = onFavoriteClick,
                     onDownloadClick = onDownloadClick

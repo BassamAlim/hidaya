@@ -35,6 +35,7 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.helpers.ReceiverWrapper
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
+import bassamalim.hidaya.features.recitations.RecitationMediaId
 import bassamalim.hidaya.features.recitations.recitersMenu.Recitation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,9 +62,11 @@ class RecitationPlayerViewModel @Inject constructor(
     private val mediaId = savedStateHandle.get<String>("media_id") ?: ""
 
     private lateinit var language: Language
-    var reciterId = mediaId.substring(0, 3).toInt()
-    private var narrationId = mediaId.substring(3, 6).toInt()
-    private var suraIdx = mediaId.substring(6).toInt()
+    // Every source (suras menu, notification, last played) is validated upstream
+    private val mediaIdParts = checkNotNull(RecitationMediaId.decode(mediaId)) { "Bad media id: $mediaId" }
+    var reciterId = mediaIdParts.reciterId
+    private var narrationId = mediaIdParts.narrationId
+    private var suraIdx = mediaIdParts.suraIdx
     private lateinit var narration: Recitation.Narration
     private lateinit var suraNames: List<String>
     var duration = 0L

@@ -7,9 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
+import bassamalim.hidaya.core.nav.navResults
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,6 +29,13 @@ class LocatorViewModel @Inject constructor(
         shouldShowSkipLocationButton = isInitialLocation
     ))
     val uiState = _uiState.asStateFlow()
+
+    init {
+        savedStateHandle.navResults().onEach { result ->
+            domain.setManualLocation(result.getInt("city_id"))
+            launch()
+        }.launchIn(viewModelScope)
+    }
 
     fun provide(
         locationRequestLauncher: ManagedActivityResultLauncher<Array<String>, Map<String, Boolean>>,
@@ -48,16 +58,7 @@ class LocatorViewModel @Inject constructor(
     }
 
     fun onSelectLocationClick() {
-        navigator.navigateForResult(Screen.LocationPicker) { result ->
-            if (result != null) {
-                val cityId = result.getInt("city_id")
-                viewModelScope.launch {
-                    domain.setManualLocation(cityId)
-                }
-
-                launch()
-            }
-        }
+        navigator.navigate(Screen.LocationPicker)
     }
 
     fun onSkipLocationClick() {

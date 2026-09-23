@@ -12,6 +12,7 @@ import bassamalim.hidaya.core.models.Recitation
 import bassamalim.hidaya.core.models.ReciterSura
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
+import bassamalim.hidaya.features.recitations.RecitationMediaId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +23,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -132,10 +132,7 @@ class RecitationSurasViewModel @Inject constructor(
     }
 
     fun onSuraClick(suraId: Int) {
-        val formattedReciterId = String.format(Locale.US, "%03d", reciterId)
-        val formattedNarrationId = String.format(Locale.US, "%03d", narrationId)
-        val formattedSuraId = String.format(Locale.US, "%03d", suraId)
-        val mediaId = formattedReciterId + formattedNarrationId + formattedSuraId
+        val mediaId = RecitationMediaId.encode(reciterId, narrationId, suraId)
 
         navigator.navigate(Screen.RecitationPlayer(action = "start", mediaId = mediaId))
 

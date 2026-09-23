@@ -1,16 +1,20 @@
 package bassamalim.hidaya.features.dateConverter
 
 import android.os.Build
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
+import bassamalim.hidaya.core.nav.navResults
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import com.github.msarhan.ummalqura.calendar.UmmalquraCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -20,6 +24,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DateConverterViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val domain: DateConverterDomain,
     private val navigator: Navigator
 ): ViewModel() {
@@ -38,6 +43,22 @@ class DateConverterViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
         initialValue = DateConverterUiState()
     )
+
+    init {
+        savedStateHandle.navResults().onEach { result ->
+            val date =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                    result.getSerializable("selected_date", UmmalquraCalendar::class.java)
+                else
+                    result.getSerializable("selected_date") as UmmalquraCalendar?
+            if (date == null) return@onEach
+
+            hijriCalendar = date
+            gregorianCalendar = domain.hijriToGregorian(date)
+
+            updateDates()
+        }.launchIn(viewModelScope)
+    }
 
     private fun initializeData() {
         viewModelScope.launch {
@@ -85,22 +106,7 @@ class DateConverterViewModel @Inject constructor(
                 "-${hijriCalendar[Calendar.MONTH] + 1}" +
                 "-${hijriCalendar[Calendar.DATE]}"
 
-        navigator.navigateForResult(
-            Screen.HijriDatePicker(initialDate = dateStr)
-        ) { result ->
-            if (result != null) {
-                val date =
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                        result.getSerializable("selected_date", UmmalquraCalendar::class.java)
-                    else
-                        result.getSerializable("selected_date") as UmmalquraCalendar
-
-                hijriCalendar = date!!
-                gregorianCalendar = domain.hijriToGregorian(date)
-
-                updateDates()
-            }
-        }
+        navigator.navigate(Screen.HijriDatePicker(initialDate = dateStr))
     }
 
     private fun updateDates() {

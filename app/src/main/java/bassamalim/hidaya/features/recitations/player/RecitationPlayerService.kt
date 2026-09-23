@@ -44,6 +44,7 @@ import bassamalim.hidaya.core.enums.ThemeColor
 import bassamalim.hidaya.core.helpers.ReceiverWrapper
 import bassamalim.hidaya.core.ui.theme.getThemeColor
 import bassamalim.hidaya.core.utils.LangUtils
+import bassamalim.hidaya.features.recitations.RecitationMediaId
 import bassamalim.hidaya.features.recitations.recitersMenu.LastPlayedMedia
 import bassamalim.hidaya.features.recitations.recitersMenu.Recitation
 import dagger.hilt.android.AndroidEntryPoint
@@ -90,7 +91,8 @@ class RecitationPlayerService : MediaBrowserServiceCompat(),
     private lateinit var prevAction: NotificationCompat.Action
     private var mediaSession: MediaSessionCompat? = null
     private lateinit var stateBuilder: PlaybackStateCompat.Builder
-    private lateinit var controller: MediaControllerCompat
+    // Callbacks only reach us after initSession() created mediaSession
+    private val controller: MediaControllerCompat get() = mediaSession!!.controller
     private lateinit var mediaMetadata: MediaMetadataCompat
     private lateinit var playType: String
     private lateinit var narration: Recitation.Narration
@@ -185,11 +187,12 @@ class RecitationPlayerService : MediaBrowserServiceCompat(),
 
             playType = extras.getString("play_type")!!
             if (givenMediaId != mediaId || playType == "continue") {
+                val parts = RecitationMediaId.decode(givenMediaId) ?: return
                 mediaId = givenMediaId
 
-                reciterId = givenMediaId.substring(0, 3).toInt()
-                versionId = givenMediaId.substring(3, 6).toInt()
-                suraIndex = givenMediaId.substring(6).toInt()
+                reciterId = parts.reciterId
+                versionId = parts.narrationId
+                suraIndex = parts.suraIdx
                 reciterName = extras.getString("reciter_name")!!
                 narration =
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
@@ -482,7 +485,6 @@ class RecitationPlayerService : MediaBrowserServiceCompat(),
 
     private suspend fun buildNotification() {
         // Get the session's metadata
-        controller = mediaSession!!.controller
         mediaMetadata = controller.metadata
         val description = mediaMetadata.description
 
