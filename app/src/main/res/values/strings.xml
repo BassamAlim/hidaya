@@ -250,4 +250,10 @@
     <string name="report_submitting">جارٍ الإرسال…</string>
     <string name="report_submitted">تم إرسال البلاغ. شكرًا لك!</string>
     <string name="report_submit_failed">تعذر إرسال البلاغ. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.</string>
+
+    <string name="in_time">بعد %1$s</string>
+    <string name="today_prayers">صلوات اليوم</string>
+    <string name="morning_remembrances">أذكار الصباح</string>
+    <string name="evening_remembrances">أذكار المساء</string>
+    <string name="your_progress">إنجازك</string>
 </resources>

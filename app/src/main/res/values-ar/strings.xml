@@ -232,4 +232,10 @@
     <string name="filtered">مفلترة</string>
     <string name="continue_listening">متابعة الاستماع</string>
     <string name="no_recitations_found">لا توجد تلاوات</string>
+
+    <string name="in_time">بعد %1$s</string>
+    <string name="today_prayers">صلوات اليوم</string>
+    <string name="morning_remembrances">أذكار الصباح</string>
+    <string name="evening_remembrances">أذكار المساء</string>
+    <string name="your_progress">إنجازك</string>
 </resources>

@@ -14,6 +14,8 @@ data class HomeUiState(
     val remaining: String = "",
     val previousPrayerTime: TimeOfDay? = null,
     val nextPrayerTime: TimeOfDay? = null,
+    val todayPrayers: List<TodayPrayer> = emptyList(),
+    val isMorning: Boolean = true,
     val werdPage: String = "",
     val isWerdDone: Boolean = false,
     val quranRecord: String = "",
@@ -22,3 +24,7 @@ data class HomeUiState(
     val language: Language = Language.ARABIC,
     val numeralsLanguage: Language = Language.ARABIC
 )
+
+data class TodayPrayer(val name: String, val timeText: String, val status: Status) {
+    enum class Status { PASSED, NEXT, UPCOMING }
+}

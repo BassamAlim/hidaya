@@ -23,7 +23,7 @@
     <string name="calculation_method_title">Calculation method</string>
     <string name="juristic_method_title">Juristic method</string>
     <string name="high_lat_adjustment_title">High latitude adjustment</string>
-    <string name="recitations_time_record_title">Recitations Listening \nDuration</string>
+    <string name="recitations_time_record_title">Recitations listening time</string>
     <string name="quran_pages_record_title">Read Quran Pages</string>
     <string name="contact">Contact me</string>
     <string name="day_and_night_remembrances">Day and Night Remembrances</string>
@@ -247,4 +247,10 @@
     <string name="report_submitting">Submitting…</string>
     <string name="report_submitted">Report submitted. Thank you!</string>
     <string name="report_submit_failed">Could not submit. Check your connection and try again.</string>
+
+    <string name="in_time">in %1$s</string>
+    <string name="today_prayers">Today\'s prayers</string>
+    <string name="morning_remembrances">Morning remembrances</string>
+    <string name="evening_remembrances">Evening remembrances</string>
+    <string name="your_progress">Your progress</string>
 </resources>

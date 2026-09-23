@@ -105,29 +105,14 @@ class HomeViewModel @Inject constructor(
             formattedTomorrowFajr = domain.getStrTomorrowFajr(location)
         }
 
-        val previousPrayer = getPreviousPrayer()
-        val nextPrayer = getNextPrayer()
-
         shouldCount = location != null && times.isNotEmpty()
 
         val leaderboardConnected = domain.syncRecords()
 
-        _uiState.update { it.copy(
+        _uiState.update { it.withPrayers().copy(
             isLoading = false,
             pendingPermissions = pendingPermissions,
-            isLeaderboardEnabled = leaderboardConnected,
-            previousPrayerName = prayerNames[previousPrayer]!!,
-            previousPrayerTimeText = translateNums(
-                string = if (previousPrayerWasYesterday) formattedYesterdayIshaa
-                else formattedTimes[previousPrayer]!!,
-                numeralsLanguage = it.numeralsLanguage
-            ),
-            nextPrayerName = prayerNames[nextPrayer]!!,
-            nextPrayerTimeText = translateNums(
-                string = if (nextPrayerIsTomorrow) formattedTomorrowFajr
-                else formattedTimes[nextPrayer]!!,
-                numeralsLanguage = it.numeralsLanguage
-            )
+            isLeaderboardEnabled = leaderboardConnected
         )}
     }
 
@@ -175,8 +160,52 @@ class HomeViewModel @Inject constructor(
         domain.trackDailyWerdViewed()
     }
 
+    fun onRemembranceClick() {
+        // Ids 0 and 1 are the morning and evening remembrances (same ids the reminders open)
+        val id = if (_uiState.value.isMorning) 0 else 1
+        navigator.navigate(Screen.RemembranceReader(id.toString()))
+    }
+
     fun onLeaderboardClick() {
         navigator.navigate(Screen.Leaderboard)
+    }
+
+    private fun HomeUiState.withPrayers(): HomeUiState {
+        val previousPrayer = getPreviousPrayer()
+        val nextPrayer = getNextPrayer()
+        val now = System.currentTimeMillis()
+
+        return copy(
+            previousPrayerName = prayerNames[previousPrayer]!!,
+            previousPrayerTimeText = translateNums(
+                string = if (previousPrayerWasYesterday) formattedYesterdayIshaa
+                else formattedTimes[previousPrayer]!!,
+                numeralsLanguage = numeralsLanguage
+            ),
+            nextPrayerName = prayerNames[nextPrayer]!!,
+            nextPrayerTimeText = translateNums(
+                string = if (nextPrayerIsTomorrow) formattedTomorrowFajr
+                else formattedTimes[nextPrayer]!!,
+                numeralsLanguage = numeralsLanguage
+            ),
+            todayPrayers = listOf(
+                Prayer.FAJR, Prayer.SUNRISE, Prayer.DHUHR, Prayer.ASR, Prayer.MAGHRIB, Prayer.ISHAA
+            ).map { prayer ->
+                TodayPrayer(
+                    name = prayerNames[prayer]!!,
+                    timeText = formattedTimes[prayer].orEmpty(),
+                    status = when {
+                        !nextPrayerIsTomorrow && prayer == nextPrayer -> TodayPrayer.Status.NEXT
+                        (times[prayer]?.timeInMillis ?: Long.MAX_VALUE) < now ->
+                            TodayPrayer.Status.PASSED
+                        else -> TodayPrayer.Status.UPCOMING
+                    }
+                )
+            },
+            // Morning remembrances from Fajr until Asr, evening ones from Asr until the next Fajr
+            isMorning = !nextPrayerIsTomorrow &&
+                    nextPrayer in setOf(Prayer.SUNRISE, Prayer.DHUHR, Prayer.ASR)
+        )
     }
 
     private fun getPreviousPrayer(): Prayer? {
@@ -272,23 +301,7 @@ class HomeViewModel @Inject constructor(
 
             shouldCount = location != null && times.isNotEmpty()
 
-            val previousPrayer = getPreviousPrayer()
-            val nextPrayer = getNextPrayer()
-
-            _uiState.update { it.copy(
-                previousPrayerName = prayerNames[previousPrayer]!!,
-                previousPrayerTimeText = translateNums(
-                    string = if (previousPrayerWasYesterday) formattedYesterdayIshaa
-                    else formattedTimes[previousPrayer]!!,
-                    numeralsLanguage = it.numeralsLanguage
-                ),
-                nextPrayerName = prayerNames[nextPrayer]!!,
-                nextPrayerTimeText = translateNums(
-                    string = if (nextPrayerIsTomorrow) formattedTomorrowFajr
-                    else formattedTimes[nextPrayer]!!,
-                    numeralsLanguage = it.numeralsLanguage
-                )
-            )}
+            _uiState.update { it.withPrayers() }
 
             count()
         }
