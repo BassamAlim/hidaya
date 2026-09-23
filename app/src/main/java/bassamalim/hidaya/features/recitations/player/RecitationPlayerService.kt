@@ -45,6 +45,7 @@ import bassamalim.hidaya.core.helpers.ReceiverWrapper
 import bassamalim.hidaya.core.ui.theme.getThemeColor
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
+import bassamalim.hidaya.core.utils.report
 import bassamalim.hidaya.features.recitations.RecitationMediaId
 import bassamalim.hidaya.features.recitations.recitersMenu.LastPlayedMedia
 import bassamalim.hidaya.features.recitations.recitersMenu.Recitation
@@ -753,6 +754,7 @@ class RecitationPlayerService : MediaBrowserServiceCompat(),
             player.setDataSource(applicationContext, text.toUri())
             player.prepareAsync()
         } catch (e: IOException) {
+            e.report()
             e.printStackTrace()
             Log.e(Globals.TAG, "Problem in RecitationsPlayerService player")
         }
@@ -771,6 +773,7 @@ class RecitationPlayerService : MediaBrowserServiceCompat(),
             Log.i(Globals.TAG, "Not available offline")
             false
         } catch (e: IOException) {
+            e.report()
             e.printStackTrace()
             Log.e(Globals.TAG, "Problem in RecitationsPlayerService player")
             false

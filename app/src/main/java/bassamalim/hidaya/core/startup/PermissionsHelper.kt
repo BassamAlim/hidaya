@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import bassamalim.hidaya.core.Globals
+import bassamalim.hidaya.core.utils.report
 import javax.inject.Inject
 
 class PermissionsHelper @Inject constructor() {
@@ -39,6 +40,7 @@ class PermissionsHelper @Inject constructor() {
                     val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
                     activity.startActivity(intent)
                 } catch (e: Exception) {
+                    e.report()
                     Log.e(Globals.TAG, "Failed to request exact alarm permission", e)
                 }
             }

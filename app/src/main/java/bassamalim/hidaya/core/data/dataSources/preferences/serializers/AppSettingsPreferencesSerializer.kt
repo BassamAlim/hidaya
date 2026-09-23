@@ -2,6 +2,7 @@ package bassamalim.hidaya.core.data.dataSources.preferences.serializers
 
 import androidx.datastore.core.Serializer
 import bassamalim.hidaya.core.data.dataSources.preferences.objects.AppSettingsPreferences
+import bassamalim.hidaya.core.utils.report
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
@@ -21,6 +22,7 @@ object AppSettingsPreferencesSerializer: Serializer<AppSettingsPreferences> {
                 string = input.readBytes().decodeToString()
             )
         } catch (e: SerializationException) {
+            e.report()
             e.printStackTrace()
             defaultValue
         }

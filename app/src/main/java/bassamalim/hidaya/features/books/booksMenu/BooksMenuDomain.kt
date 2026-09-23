@@ -8,6 +8,7 @@ import bassamalim.hidaya.core.enums.DownloadState
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.models.AnalyticsEvent
 import bassamalim.hidaya.core.utils.LangUtils
+import bassamalim.hidaya.core.utils.report
 import javax.inject.Inject
 
 class BooksMenuDomain @Inject constructor(
@@ -41,8 +42,9 @@ class BooksMenuDomain @Inject constructor(
 
                 onDownloadedCallback()
             }
-            .addOnFailureListener {
+            .addOnFailureListener { e ->
                 Log.e(Globals.TAG, "File download failed")
+                e.report()
 
                 onFailedCallback()
             }

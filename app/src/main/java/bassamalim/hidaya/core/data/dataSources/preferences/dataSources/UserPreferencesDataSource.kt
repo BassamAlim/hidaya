@@ -5,6 +5,7 @@ import androidx.datastore.core.IOException
 import bassamalim.hidaya.core.data.dataSources.preferences.objects.UserPreferences
 import bassamalim.hidaya.core.models.Location
 import bassamalim.hidaya.core.models.UserRecord
+import bassamalim.hidaya.core.utils.report
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -15,7 +16,10 @@ class UserPreferencesDataSource(
 
     private val flow: Flow<UserPreferences> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) emit(UserPreferences())
+            if (exception is IOException) {
+                exception.report()
+                emit(UserPreferences())
+            }
             else throw exception
         }
 

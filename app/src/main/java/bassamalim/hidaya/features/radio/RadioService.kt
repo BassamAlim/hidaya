@@ -36,6 +36,7 @@ import bassamalim.hidaya.core.enums.ThemeColor
 import bassamalim.hidaya.core.helpers.ReceiverWrapper
 import bassamalim.hidaya.core.ui.theme.getThemeColor
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
+import bassamalim.hidaya.core.utils.report
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -454,6 +455,7 @@ class RadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
 
             updatePbState(PlaybackStateCompat.STATE_STOPPED, 0)
         } catch (e: IOException) {
+            e.report()
             Log.e(Globals.TAG, "Problem in RadioService player")
             e.printStackTrace()
         }

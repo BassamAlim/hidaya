@@ -19,6 +19,7 @@ import bassamalim.hidaya.core.receivers.DeviceBootReceiver
 import bassamalim.hidaya.core.services.PrayersNotificationService
 import bassamalim.hidaya.core.utils.OsUtils
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
+import bassamalim.hidaya.core.utils.report
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import kotlinx.coroutines.flow.first
@@ -47,6 +48,7 @@ class PostLaunchInitializer @Inject constructor(
             startPrayerServiceIfNeeded(activity)
             registerLeaderboardUser()
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Error during post-launch initialization", e)
         }
     }
@@ -61,6 +63,7 @@ class PostLaunchInitializer @Inject constructor(
             remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
             Log.d(Globals.TAG, "Firebase initialized successfully")
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Failed to initialize Firebase", e)
         }
     }
@@ -76,6 +79,7 @@ class PostLaunchInitializer @Inject constructor(
                     Log.e(Globals.TAG, "RemoteConfig update failed", e)
                 }
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Error fetching remote config", e)
         }
     }
@@ -89,6 +93,7 @@ class PostLaunchInitializer @Inject constructor(
             )
             Log.d(Globals.TAG, "Daily update broadcast sent")
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Failed to send daily update broadcast", e)
         }
     }
@@ -110,6 +115,7 @@ class PostLaunchInitializer @Inject constructor(
                 Log.w(Globals.TAG, "Cannot set alarms - location is null")
             }
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Failed to set prayer alarms", e)
         }
     }
@@ -133,6 +139,7 @@ class PostLaunchInitializer @Inject constructor(
             }
             Log.d(Globals.TAG, "Prayer reminder service started")
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Failed to start prayer reminder service", e)
         }
     }
@@ -145,6 +152,7 @@ class PostLaunchInitializer @Inject constructor(
                 runPrayerReminderService(activity)
             }
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Failed to check prayer notification settings", e)
         }
     }

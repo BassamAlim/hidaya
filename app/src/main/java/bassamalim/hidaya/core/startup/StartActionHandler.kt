@@ -7,6 +7,7 @@ import bassamalim.hidaya.core.Globals
 import bassamalim.hidaya.core.enums.StartAction
 import bassamalim.hidaya.core.nav.Screen
 import bassamalim.hidaya.core.services.AthanService
+import bassamalim.hidaya.core.utils.report
 import javax.inject.Inject
 
 data class StartActionResult(val overrideRoute: String? = null)
@@ -42,8 +43,10 @@ class StartActionHandler @Inject constructor(
                 }
             }
         } catch (e: IllegalArgumentException) {
+            e.report()
             Log.e(Globals.TAG, "Unknown start action: $action", e)
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Error handling action: $action", e)
         }
 

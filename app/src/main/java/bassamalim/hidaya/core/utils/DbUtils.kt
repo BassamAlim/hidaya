@@ -23,10 +23,12 @@ object DbUtils {
                 test().isEmpty()
             }
         } catch (e: IllegalStateException) {
+            e.report()
             Log.e(Globals.TAG, "DB Error: ${e.message}")
             e.printStackTrace()
             true
         } catch (e: SQLiteException) {
+            e.report()
             Log.e(Globals.TAG, "DB Error: ${e.message}")
             e.printStackTrace()
             false

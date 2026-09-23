@@ -32,6 +32,7 @@ import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.models.Verse
 import bassamalim.hidaya.core.nav.Screen
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
+import bassamalim.hidaya.core.utils.report
 import bassamalim.hidaya.features.quran.reader.versePlayer.VersePlayerService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -165,6 +166,7 @@ class QuranReaderViewModel @Inject constructor(
                 // Create a MediaControllerCompat
                 mediaController = MediaControllerCompat(activity, mediaBrowser!!.sessionToken)
             } catch (e: IllegalStateException) {
+                e.report()
                 Log.e(Globals.TAG, "Error in QuranReader: ${e.message}")
                 return
             }

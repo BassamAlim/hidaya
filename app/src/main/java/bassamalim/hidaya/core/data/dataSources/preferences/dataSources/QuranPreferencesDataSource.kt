@@ -5,6 +5,7 @@ import androidx.datastore.core.IOException
 import bassamalim.hidaya.core.data.dataSources.preferences.objects.QuranPreferences
 import bassamalim.hidaya.core.models.QuranBookmarks
 import bassamalim.hidaya.core.enums.QuranViewType
+import bassamalim.hidaya.core.utils.report
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -16,7 +17,10 @@ class QuranPreferencesDataSource(
 
     private val flow: Flow<QuranPreferences> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) emit(QuranPreferences())
+            if (exception is IOException) {
+                exception.report()
+                emit(QuranPreferences())
+            }
             else throw exception
         }
 

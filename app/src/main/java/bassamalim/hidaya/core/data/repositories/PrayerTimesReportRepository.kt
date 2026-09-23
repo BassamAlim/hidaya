@@ -6,6 +6,7 @@ import android.util.Log
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.Globals
 import bassamalim.hidaya.core.utils.OsUtils
+import bassamalim.hidaya.core.utils.report
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
@@ -25,6 +26,7 @@ class PrayerTimesReportRepository @Inject constructor(
                 .await()
             true
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Failed to submit prayer times report: $e")
             false
         }

@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
 import bassamalim.hidaya.core.data.dataSources.preferences.objects.PrayersPreferences
 import bassamalim.hidaya.core.models.PrayerTimeCalculatorSettings
+import bassamalim.hidaya.core.utils.report
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -14,7 +15,10 @@ class PrayersPreferencesDataSource(
 
     private val flow: Flow<PrayersPreferences> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) emit(PrayersPreferences())
+            if (exception is IOException) {
+                exception.report()
+                emit(PrayersPreferences())
+            }
             else throw exception
         }
 

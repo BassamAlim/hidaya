@@ -23,9 +23,9 @@ import bassamalim.hidaya.core.models.Recitation
 import bassamalim.hidaya.core.models.Reciter
 import bassamalim.hidaya.core.utils.FileUtils
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
+import bassamalim.hidaya.core.utils.report
 import bassamalim.hidaya.features.recitations.RecitationMediaId
 import bassamalim.hidaya.features.recitations.recitersMenu.LastPlayedMedia
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.Gson
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CoroutineDispatcher
@@ -83,7 +83,7 @@ class RecitationsRepository @Inject constructor(
         try {
             (app.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
         } catch (e: SecurityException) {
-            FirebaseCrashlytics.getInstance().recordException(e)
+            e.report()
             // Callers enqueue from background threads
             Handler(Looper.getMainLooper()).post {
                 val context = app.withAppLocale()

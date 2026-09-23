@@ -3,6 +3,7 @@ package bassamalim.hidaya.core.data.dataSources.preferences.dataSources
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
 import bassamalim.hidaya.core.data.dataSources.preferences.objects.AppStatePreferences
+import bassamalim.hidaya.core.utils.report
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -13,7 +14,10 @@ class AppStatePreferencesDataSource(
 
     private val flow: Flow<AppStatePreferences> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) emit(AppStatePreferences())
+            if (exception is IOException) {
+                exception.report()
+                emit(AppStatePreferences())
+            }
             else throw exception
         }
 

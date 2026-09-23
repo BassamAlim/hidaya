@@ -31,6 +31,7 @@ import bassamalim.hidaya.core.startup.StartActionHandler
 import bassamalim.hidaya.core.startup.ThemeApplier
 import bassamalim.hidaya.core.ui.theme.AppTheme
 import bassamalim.hidaya.core.utils.LangUtils
+import bassamalim.hidaya.core.utils.report
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -65,6 +66,7 @@ class Activity : AppCompatActivity() {
             try {
                 initializeApp(splashScreen = splashScreen, savedInstanceState = savedInstanceState)
             } catch (e: Exception) {
+                e.report()
                 Log.e(Globals.TAG, "Error during app initialization", e)
                 // Fallback to basic app launch
                 launchApp()
@@ -118,6 +120,7 @@ class Activity : AppCompatActivity() {
                 getLocationAndLaunch()
             }
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Error in startup flow", e)
             launchApp()
             postLaunch()

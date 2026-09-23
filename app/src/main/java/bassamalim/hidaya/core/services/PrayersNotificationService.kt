@@ -27,6 +27,7 @@ import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.LangUtils.translateTimeNums
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
+import bassamalim.hidaya.core.utils.report
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -101,6 +102,7 @@ class PrayersNotificationService : Service() {
             try {
                 initializeService()
             } catch (e: Exception) {
+                e.report()
                 handleError("Initialization failed: ${e.message}")
             }
         }
@@ -138,6 +140,7 @@ class PrayersNotificationService : Service() {
             startCountdown(prayerData)
             Log.d(TAG, "Service initialized successfully")
         } catch (e: Exception) {
+            e.report()
             handleError("Service initialization failed: ${e.message}")
         }
     }
@@ -250,6 +253,7 @@ class PrayersNotificationService : Service() {
             try {
                 runCountdown(prayerData)
             } catch (e: Exception) {
+                e.report()
                 handleError("Countdown failed: ${e.message}")
                 // Retry after delay
                 delay(5000)
@@ -394,6 +398,7 @@ class PrayersNotificationService : Service() {
                 handleError("Location not available for restart")
             }
         } catch (e: Exception) {
+            e.report()
             Log.e(TAG, "Failed to restart service", e)
             handleError("Restart failed: ${e.message}")
         }

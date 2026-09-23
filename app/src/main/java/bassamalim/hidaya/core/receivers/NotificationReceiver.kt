@@ -32,6 +32,7 @@ import bassamalim.hidaya.core.nav.Screen
 import bassamalim.hidaya.core.services.AthanService
 import bassamalim.hidaya.core.ui.theme.getThemeColor
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
+import bassamalim.hidaya.core.utils.report
 import bassamalim.hidaya.features.quran.reader.QuranTarget
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -183,6 +184,7 @@ class NotificationReceiver : BroadcastReceiver() {
             markAsNotified(reminder)
             true
         } catch (e: Exception) {
+            e.report()
             // ForegroundServiceStartNotAllowedException (Android 12+) or any other failure while
             // starting the service from the background. Degrade gracefully to a notification.
             Log.e(Globals.TAG, "Failed to start AthanService", e)

@@ -22,6 +22,7 @@ object ActivityUtils {
         try {
             context.getSystemService(ActivityManager::class.java).clearApplicationUserData()
         } catch (e: Exception) {
+            e.report()
             e.printStackTrace()
         }
     }

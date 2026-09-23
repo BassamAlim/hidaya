@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
 import bassamalim.hidaya.core.data.dataSources.preferences.objects.RecitationsPreferences
 import bassamalim.hidaya.core.enums.VerseRepeatMode
+import bassamalim.hidaya.core.utils.report
 import bassamalim.hidaya.features.recitations.recitersMenu.LastPlayedMedia
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +17,10 @@ class RecitationsPreferencesDataSource(
 
     private val flow: Flow<RecitationsPreferences> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) emit(RecitationsPreferences())
+            if (exception is IOException) {
+                exception.report()
+                emit(RecitationsPreferences())
+            }
             else throw exception
         }
 

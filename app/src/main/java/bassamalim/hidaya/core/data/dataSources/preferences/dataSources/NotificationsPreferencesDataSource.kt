@@ -6,6 +6,7 @@ import bassamalim.hidaya.core.data.dataSources.preferences.objects.Notifications
 import bassamalim.hidaya.core.enums.NotificationType
 import bassamalim.hidaya.core.enums.Reminder
 import bassamalim.hidaya.core.models.TimeOfDay
+import bassamalim.hidaya.core.utils.report
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -17,7 +18,10 @@ class NotificationsPreferencesDataSource(
 
     private val flow: Flow<NotificationsPreferences> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) emit(NotificationsPreferences())
+            if (exception is IOException) {
+                exception.report()
+                emit(NotificationsPreferences())
+            }
             else throw exception
         }
 

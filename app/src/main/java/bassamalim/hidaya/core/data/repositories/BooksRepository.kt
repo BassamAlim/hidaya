@@ -10,6 +10,7 @@ import bassamalim.hidaya.core.models.Book
 import bassamalim.hidaya.core.models.BookContent
 import bassamalim.hidaya.core.models.BookInfo
 import bassamalim.hidaya.core.utils.FileUtils
+import bassamalim.hidaya.core.utils.report
 import com.google.firebase.Firebase
 import com.google.firebase.storage.FileDownloadTask
 import com.google.firebase.storage.storage
@@ -87,7 +88,8 @@ class BooksRepository @Inject constructor(
         val jsonStr = FileUtils.getJsonFromDownloads("$dir$bookId.json")
         return try {
             gson.fromJson(jsonStr, BookContent::class.java)
-        } catch (_: JsonParseException) {
+        } catch (e: JsonParseException) {
+            e.report()
             null
         }
     }

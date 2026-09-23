@@ -8,6 +8,7 @@ import bassamalim.hidaya.core.di.ApplicationScope
 import bassamalim.hidaya.core.models.Response
 import bassamalim.hidaya.core.models.UserRecord
 import bassamalim.hidaya.core.utils.OsUtils
+import bassamalim.hidaya.core.utils.report
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -137,6 +138,7 @@ class UserRepository @Inject constructor(
                 )
             }.await()
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Transaction failed: $e")
             null
         }
@@ -169,6 +171,7 @@ class UserRepository @Inject constructor(
                         }
                     )
                 } catch (e: Exception) {
+                    e.report()
                     Log.i(Globals.TAG, "Error getting documents: ${e.message}")
                     Response.Error("Error fetching data")
                 }
@@ -203,6 +206,7 @@ class UserRepository @Inject constructor(
                         }
                     )
                 } catch (e: Exception) {
+                    e.report()
                     Log.i(Globals.TAG, "Error getting documents: ${e.message}")
                     Response.Error("Error fetching data")
                 }
@@ -225,6 +229,7 @@ class UserRepository @Inject constructor(
 
             if (userIndex != -1) userIndex + 1 else null
         } catch (e: Exception) {
+            e.report()
             Log.i(Globals.TAG, "Error getting documents: ${e.message}")
             null
         }
@@ -245,6 +250,7 @@ class UserRepository @Inject constructor(
 
             if (userIndex != -1) userIndex + 1 else null
         } catch (e: Exception) {
+            e.report()
             Log.i(Globals.TAG, "Error getting documents: ${e.message}")
             null
         }

@@ -12,6 +12,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import bassamalim.hidaya.core.Globals
+import bassamalim.hidaya.core.utils.report
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -145,6 +146,7 @@ class TvViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                e.report()
                 Log.e(Globals.TAG, "Failed to get TV stream url for $channel", e)
                 onPlaybackFailed()
             }

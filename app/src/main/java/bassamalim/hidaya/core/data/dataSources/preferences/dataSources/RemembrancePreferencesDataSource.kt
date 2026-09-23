@@ -3,6 +3,7 @@ package bassamalim.hidaya.core.data.dataSources.preferences.dataSources
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
 import bassamalim.hidaya.core.data.dataSources.preferences.objects.RemembrancesPreferences
+import bassamalim.hidaya.core.utils.report
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -14,7 +15,10 @@ class RemembrancePreferencesDataSource(
 
     private val flow: Flow<RemembrancesPreferences> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) emit(RemembrancesPreferences())
+            if (exception is IOException) {
+                exception.report()
+                emit(RemembrancesPreferences())
+            }
             else throw exception
         }
 

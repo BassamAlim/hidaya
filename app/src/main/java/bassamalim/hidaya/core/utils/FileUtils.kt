@@ -41,6 +41,7 @@ object FileUtils {
 
             String(buffer, StandardCharsets.UTF_8)
         } catch (e: IOException) {
+            e.report()
             e.printStackTrace()
             return null
         }
@@ -61,6 +62,7 @@ object FileUtils {
 
             jsonStr = Charset.defaultCharset().decode(bb).toString()
         } catch (e: Exception) {
+            e.report()
             e.printStackTrace()
         } finally {
             try {

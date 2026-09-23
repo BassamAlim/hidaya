@@ -18,6 +18,7 @@ import bassamalim.hidaya.core.Globals
 import bassamalim.hidaya.core.data.dataSources.room.entities.Verse
 import bassamalim.hidaya.core.data.dataSources.room.entities.VerseRecitation
 import bassamalim.hidaya.core.enums.VerseRepeatMode
+import bassamalim.hidaya.core.utils.report
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -314,6 +315,7 @@ class AlternatingPlayersManager(
                 aps[playerIdx].mp.setDataSource(context, uri)
                 aps[playerIdx].mp.prepareAsync()
             } catch (e: Exception) {
+                e.report()
                 e.printStackTrace()
                 Log.e(Globals.TAG, "Reciter not found in verse recitations")
             }

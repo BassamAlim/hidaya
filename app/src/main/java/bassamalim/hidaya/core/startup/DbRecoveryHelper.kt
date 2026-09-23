@@ -11,6 +11,7 @@ import bassamalim.hidaya.core.data.repositories.RemembrancesRepository
 import bassamalim.hidaya.core.di.IoDispatcher
 import bassamalim.hidaya.core.utils.ActivityUtils
 import bassamalim.hidaya.core.utils.DbUtils
+import bassamalim.hidaya.core.utils.report
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -42,6 +43,7 @@ class DbRecoveryHelper @Inject constructor(
                 Log.d(Globals.TAG, "Database is up to date")
             }
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Error during database test", e)
         }
     }
@@ -58,6 +60,7 @@ class DbRecoveryHelper @Inject constructor(
             )
             Log.d(Globals.TAG, "Database data restored successfully")
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Failed to restore database data", e)
         }
     }

@@ -6,6 +6,7 @@ import bassamalim.hidaya.core.data.dataSources.preferences.objects.AppSettingsPr
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.enums.Theme
 import bassamalim.hidaya.core.enums.TimeFormat
+import bassamalim.hidaya.core.utils.report
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -16,7 +17,10 @@ class AppSettingsPreferencesDataSource(
 
     private val flow: Flow<AppSettingsPreferences> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) emit(AppSettingsPreferences())
+            if (exception is IOException) {
+                exception.report()
+                emit(AppSettingsPreferences())
+            }
             else throw exception
         }
 

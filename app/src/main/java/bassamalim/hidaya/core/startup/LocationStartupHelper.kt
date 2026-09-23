@@ -10,6 +10,7 @@ import androidx.core.app.ActivityCompat
 import bassamalim.hidaya.core.Globals
 import bassamalim.hidaya.core.data.repositories.LocationRepository
 import bassamalim.hidaya.core.enums.LocationType
+import bassamalim.hidaya.core.utils.report
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -44,6 +45,7 @@ class LocationStartupHelper @Inject constructor(
                     onResult(null)
                 }
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Error during location request", e)
             onResult(null)
         }
@@ -55,6 +57,7 @@ class LocationStartupHelper @Inject constructor(
             Log.d(Globals.TAG, "Location stored: lat=${location.latitude}, " +
                     "lng=${location.longitude}")
         } catch (e: Exception) {
+            e.report()
             Log.e(Globals.TAG, "Failed to store location", e)
         }
     }

@@ -32,6 +32,7 @@ import bassamalim.hidaya.core.enums.StartAction
 import bassamalim.hidaya.core.enums.ThemeColor
 import bassamalim.hidaya.core.ui.theme.getThemeColor
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
+import bassamalim.hidaya.core.utils.report
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -76,6 +77,7 @@ class AthanService : Service() {
         val reminder = try {
             Reminder.getById(intent.getIntExtra("id", -1))
         } catch (e: IllegalArgumentException) {
+            e.report()
             Log.e(Globals.TAG, "Invalid reminder id in athan service intent", e)
             stopSelf()
             return START_NOT_STICKY
@@ -108,6 +110,7 @@ class AthanService : Service() {
 
                 play(reminder, athanAudio)
             } catch (e: Exception) {
+                e.report()
                 Log.e(Globals.TAG, "Error in AthanService", e)
                 stopSelf()
             }
