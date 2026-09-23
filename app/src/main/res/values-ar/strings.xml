@@ -266,4 +266,8 @@
         <item quantity="many">%1$s سورة</item>
         <item quantity="other">%1$s سورة</item>
     </plurals>
+
+    <string name="quick_quiz">اختبار سريع</string>
+    <string name="quick_quiz_description">أسئلة عشوائية من كل التصنيفات</string>
+    <string name="question_progress">السؤال %1$s من %2$s</string>
 </resources>

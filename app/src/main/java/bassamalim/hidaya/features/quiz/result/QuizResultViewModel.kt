@@ -3,7 +3,6 @@ package bassamalim.hidaya.features.quiz.result
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import bassamalim.hidaya.core.enums.Language
-import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.features.quiz.QuizResultHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,10 +54,8 @@ class QuizResultViewModel @Inject constructor(
                         chosenAnswerId = result.chosenAnswers[i]
                     )
                 },
-                score = LangUtils.translateNums(
-                    numeralsLanguage = numeralsLanguage,
-                    string = (result.score * 10).toString()
-                )
+                scorePercent = result.score * 10,
+                numeralsLanguage = numeralsLanguage
             )}
         }
     }

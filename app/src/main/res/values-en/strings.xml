@@ -273,4 +273,8 @@
         <item quantity="one">%1$s sura</item>
         <item quantity="other">%1$s suras</item>
     </plurals>
+
+    <string name="quick_quiz">Quick quiz</string>
+    <string name="quick_quiz_description">Random questions from all categories</string>
+    <string name="question_progress">Question %1$s of %2$s</string>
 </resources>

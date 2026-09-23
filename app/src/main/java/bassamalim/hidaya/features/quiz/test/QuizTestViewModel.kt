@@ -11,6 +11,7 @@ import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.features.quiz.QuizResult
 import bassamalim.hidaya.features.quiz.QuizResultHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
@@ -71,19 +72,30 @@ class QuizTestViewModel @Inject constructor(
     }
 
     fun onAnswerSelected(answerIndex: Int) {
-        chosenAs[_uiState.value.questionIdx] = answerIndex
+        val questionIdx = _uiState.value.questionIdx
+        chosenAs[questionIdx] = answerIndex
 
         _uiState.update { it.copy(
-            allAnswered = !chosenAs.contains(-1)
+            selection = answerIndex,
+            allAnswered = !chosenAs.contains(-1),
+            answeredQuestions = chosenAs.map { chosen -> chosen != -1 }
+        )}
+        _uiState.update { it.copy(
+            nextButtonEnabled = !(it.questionIdx == totalQuestions-1 && !it.allAnswered)
         )}
 
-        if (_uiState.value.questionIdx == totalQuestions-1) {
-            _uiState.update { it.copy(
-                selection = answerIndex,
-                nextButtonEnabled = !(it.questionIdx == totalQuestions-1 && !it.allAnswered),
-            )}
+        if (questionIdx != totalQuestions-1) {
+            viewModelScope.launch {
+                // Let the chosen answer show as selected before moving on
+                delay(ADVANCE_DELAY_MILLIS)
+                // Skip if the user already moved to another question meanwhile
+                if (_uiState.value.questionIdx == questionIdx) onNextQuestionClick()
+            }
         }
-        else onNextQuestionClick()
+    }
+
+    fun onQuestionClick(questionIdx: Int) {
+        ask(questionIdx)
     }
 
     private fun ask(num: Int) {
@@ -117,9 +129,14 @@ class QuizTestViewModel @Inject constructor(
             question = question.question,
             answers = question.answers.map { answer -> answer.text },
             selection = chosenAs[it.questionIdx],
+            answeredQuestions = chosenAs.map { chosen -> chosen != -1 },
             previousButtonEnabled = it.questionIdx != 0,
             nextButtonEnabled = !(it.questionIdx == totalQuestions-1 && !it.allAnswered),
         )}
+    }
+
+    private companion object {
+        const val ADVANCE_DELAY_MILLIS = 300L
     }
 
 }

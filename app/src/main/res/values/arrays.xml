@@ -312,4 +312,11 @@
         <item>https://folderat.com/Reference/1649/%D8%A3%D8%B3%D8%A6%D9%84%D8%A9-%D8%AF%D9%8A%D9%86%D9%8A%D8%A9-%D9%85%D8%B9-%D8%AE%D9%8A%D8%A7%D8%B1%D8%A7%D8%AA</item>
     </string-array>
 
+
+    <string-array name="answer_letters">
+        <item>أ</item>
+        <item>ب</item>
+        <item>ج</item>
+        <item>د</item>
+    </string-array>
 </resources>
