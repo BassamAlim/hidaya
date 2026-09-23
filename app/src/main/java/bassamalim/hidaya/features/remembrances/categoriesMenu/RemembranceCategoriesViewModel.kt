@@ -24,6 +24,11 @@ class RemembranceCategoriesViewModel @Inject constructor(
         )
     }
 
+    /** Opens a remembrance directly; 0 and 1 are morning and evening (same ids the reminders use) */
+    fun onRemembranceClick(remembranceId: Int) {
+        navigator.navigate(Screen.RemembranceReader(remembranceId.toString()))
+    }
+
     fun onCategoryClick(categoryId: Int) {
         navigator.navigate(
             Screen.RemembrancesMenu(

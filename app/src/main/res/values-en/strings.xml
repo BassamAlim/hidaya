@@ -291,4 +291,6 @@
     <string name="today">Today</string>
 
     <string name="prayers_no_location">Set your location to see prayer times</string>
+
+    <string name="categories">Categories</string>
 </resources>
