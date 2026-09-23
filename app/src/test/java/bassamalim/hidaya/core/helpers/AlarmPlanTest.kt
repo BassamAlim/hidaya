@@ -99,14 +99,14 @@ class AlarmPlanTest {
 
     @Test
     fun `a zero offset means no extra reminder`() {
-        val offsets = mapOf(Reminder.PrayerExtra.Dhuhr to 0)
+        val offsets = mapOf<Reminder.PrayerExtra, Int>(Reminder.PrayerExtra.Dhuhr to 0)
         assertEquals(null, plan(now = millis(0, 10), offsets = offsets)[Reminder.PrayerExtra.Dhuhr])
     }
 
     @Test
     fun `an extra reminder already passed is skipped even if its prayer is ahead`() {
         // 12:50 now: Asr at 15:20 is ahead, but its 3-hours-before reminder (12:20) passed
-        val offsets = mapOf(Reminder.PrayerExtra.Asr to -180)
+        val offsets = mapOf<Reminder.PrayerExtra, Int>(Reminder.PrayerExtra.Asr to -180)
         val plan = plan(now = millis(12, 50), offsets = offsets)
 
         assertEquals(millis(15, 20), plan[Asr])
@@ -116,7 +116,7 @@ class AlarmPlanTest {
     @Test
     fun `extra reminders don't depend on the prayer's own notification`() {
         val types = allOn + (Maghrib to NotificationType.OFF)
-        val offsets = mapOf(Reminder.PrayerExtra.Maghrib to -10)
+        val offsets = mapOf<Reminder.PrayerExtra, Int>(Reminder.PrayerExtra.Maghrib to -10)
         val plan = plan(now = millis(0, 10), types = types, offsets = offsets)
 
         assertEquals(null, plan[Maghrib])
