@@ -277,4 +277,9 @@
     <string name="quick_quiz">Quick quiz</string>
     <string name="quick_quiz_description">Random questions from all categories</string>
     <string name="question_progress">Question %1$s of %2$s</string>
+
+    <string name="radio_live">Live</string>
+    <string name="radio_connecting">Connecting…</string>
+    <string name="radio_paused">Paused</string>
+    <string name="radio_error">Couldn\'t connect to the radio. Tap to try again</string>
 </resources>

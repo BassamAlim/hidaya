@@ -288,4 +288,9 @@
     <string name="quick_quiz">اختبار سريع</string>
     <string name="quick_quiz_description">أسئلة عشوائية من كل التصنيفات</string>
     <string name="question_progress">السؤال %1$s من %2$s</string>
+
+    <string name="radio_live">مباشر</string>
+    <string name="radio_connecting">جارٍ الاتصال…</string>
+    <string name="radio_paused">متوقف</string>
+    <string name="radio_error">تعذّر الاتصال بالإذاعة. اضغط لإعادة المحاولة</string>
 </resources>

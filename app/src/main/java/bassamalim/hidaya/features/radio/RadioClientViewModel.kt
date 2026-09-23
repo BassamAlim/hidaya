@@ -118,7 +118,9 @@ class RadioClientViewModel @Inject constructor(
             PlaybackStateCompat.STATE_PLAYING,
             PlaybackStateCompat.STATE_STOPPED,
             PlaybackStateCompat.STATE_PAUSED,
-            PlaybackStateCompat.STATE_CONNECTING ->
+            PlaybackStateCompat.STATE_CONNECTING,
+            PlaybackStateCompat.STATE_BUFFERING,
+            PlaybackStateCompat.STATE_ERROR ->
                 _uiState.update { it.copy(
                     btnState = state
                 )}
@@ -136,6 +138,11 @@ class RadioClientViewModel @Inject constructor(
             PlaybackStateCompat.STATE_PAUSED -> {
                 tc?.play()
                 updatePbState(PlaybackStateCompat.STATE_PLAYING)
+            }
+            PlaybackStateCompat.STATE_ERROR -> {
+                // Same request as on first connect; the service re-resolves the stream if needed
+                updatePbState(PlaybackStateCompat.STATE_CONNECTING)
+                tc?.playFromMediaId(domain.getUrl(), null)
             }
             else -> {}
         }

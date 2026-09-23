@@ -405,6 +405,7 @@ class RadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
 
         player.setOnErrorListener { _: MediaPlayer?, what: Int, _: Int ->
             Log.e(Globals.TAG, "Error in RadioService player: $what")
+            updatePbState(PlaybackStateCompat.STATE_ERROR, 0)
             true
         }
     }
@@ -459,6 +460,8 @@ class RadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
             e.report()
             Log.e(Globals.TAG, "Problem in RadioService player")
             e.printStackTrace()
+            // Lets the screen stop showing "connecting" and offer a retry
+            updatePbState(PlaybackStateCompat.STATE_ERROR, 0)
         }
     }
 
