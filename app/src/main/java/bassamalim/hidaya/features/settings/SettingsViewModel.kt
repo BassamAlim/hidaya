@@ -56,7 +56,7 @@ class SettingsViewModel @Inject constructor(
         state.copy(
             devotionalReminderTimes = devotionReminderTimeOfDayMap,
             devotionalReminderSummaries = devotionReminderTimeOfDayMap.mapValues {
-                if (!state.devotionalReminderEnabledStatuses[it.key]!!) ""
+                if (state.devotionalReminderEnabledStatuses[it.key] != true) ""
                 else formatTime(it.value, state.language, state.numeralsLanguage, state.timeFormat)
             }.toMutableMap()
         )

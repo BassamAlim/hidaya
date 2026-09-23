@@ -44,7 +44,7 @@ fun <V> MyDropDownMenu(
             verticalAlignment = Alignment.CenterVertically
         ) {
             MyText(
-                text = entries[items.indexOf(selection)],
+                text = entries.getOrElse(items.indexOf(selection)) { "" },
                 fontSize = 22.sp,
                 modifier = Modifier.padding(horizontal = 5.dp)
             )

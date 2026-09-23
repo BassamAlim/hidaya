@@ -1,14 +1,17 @@
 package bassamalim.hidaya.features.settings
 
 import androidx.activity.compose.LocalActivity
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Contrast
+import androidx.compose.material.icons.filled.Numbers
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -21,11 +24,12 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.enums.Reminder
 import bassamalim.hidaya.core.enums.Theme
 import bassamalim.hidaya.core.enums.TimeFormat
-import bassamalim.hidaya.core.ui.components.ExpandableCard
-import bassamalim.hidaya.core.ui.components.MyFatColumn
+import bassamalim.hidaya.core.ui.components.MyCard
 import bassamalim.hidaya.core.ui.components.MyHorizontalDivider
 import bassamalim.hidaya.core.ui.components.MyScaffold
+import bassamalim.hidaya.core.ui.components.MySectionHeader
 import bassamalim.hidaya.core.ui.components.TimePickerDialog
+import bassamalim.hidaya.core.ui.theme.dimensions
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
 
 @Composable
@@ -34,56 +38,47 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     val activity = LocalActivity.current!!
 
     MyScaffold(title = stringResource(R.string.settings)) { padding ->
-        Box(
-            Modifier
+        // Everything visible at once: there are few enough settings that folding them only
+        // costs taps
+        Column(
+            modifier = Modifier
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
+                .padding(
+                    horizontal = MaterialTheme.dimensions.screenPaddingHorizontal,
+                    vertical = MaterialTheme.dimensions.spaceSm
+                )
         ) {
-            MyFatColumn {
-                ExpandableCard(
-                    title = stringResource(R.string.appearance),
-                    modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
-                    expandedContent = {
-                        AppearanceSettings(
-                            selectedLanguage = state.language,
-                            onLanguageChange = {
-                                viewModel.onLanguageChange(newLanguage = it, activity = activity)
-                            },
-                            selectedNumeralsLanguage = state.numeralsLanguage,
-                            onNumeralsLanguageChange = viewModel::onNumeralsLanguageChange,
-                            selectedTimeFormat = state.timeFormat,
-                            onTimeFormatChange = viewModel::onTimeFormatChange,
-                            selectedTheme = state.theme,
-                            onThemeChange = viewModel::onThemeChange,
-                            numeralsLanguage = state.numeralsLanguage
-                        )
-                    }
+            SettingsSection(title = stringResource(R.string.appearance)) {
+                AppearanceSettings(
+                    selectedLanguage = state.language,
+                    onLanguageChange = {
+                        viewModel.onLanguageChange(newLanguage = it, activity = activity)
+                    },
+                    selectedNumeralsLanguage = state.numeralsLanguage,
+                    onNumeralsLanguageChange = viewModel::onNumeralsLanguageChange,
+                    selectedTimeFormat = state.timeFormat,
+                    onTimeFormatChange = viewModel::onTimeFormatChange,
+                    selectedTheme = state.theme,
+                    onThemeChange = viewModel::onThemeChange,
+                    numeralsLanguage = state.numeralsLanguage
                 )
+            }
 
-                ExpandableCard(
-                    title = stringResource(R.string.extra_notifications),
-                    modifier = Modifier.padding(vertical = 2.dp),
-                    expandedContent = {
-                        DevotionReminderSettings(
-                            devotionReminderEnabledStatuses =
-                                state.devotionalReminderEnabledStatuses,
-                            devotionReminderSummaries = state.devotionalReminderSummaries,
-                            onDevotionReminderSwitch = viewModel::onDevotionReminderSwitch,
-                            morningAndEveningRemembrancesEnabled =
-                                state.morningAndEveningRemembrancesEnabled
-                        )
-                    }
+            SettingsSection(title = stringResource(R.string.extra_notifications)) {
+                DevotionReminderSettings(
+                    devotionReminderEnabledStatuses = state.devotionalReminderEnabledStatuses,
+                    devotionReminderSummaries = state.devotionalReminderSummaries,
+                    onDevotionReminderSwitch = viewModel::onDevotionReminderSwitch,
+                    morningAndEveningRemembrancesEnabled =
+                        state.morningAndEveningRemembrancesEnabled
                 )
+            }
 
-                ExpandableCard(
-                    title = stringResource(R.string.athan_settings),
-                    modifier = Modifier.padding(vertical = 2.dp),
-                    expandedContent = {
-                        AthanSettings(
-                            athanAudioId = state.athanAudioId,
-                            onAthanAudioIdChange = viewModel::onAthanAudioIdChange
-                        )
-                    }
+            SettingsSection(title = stringResource(R.string.athan_settings)) {
+                AthanSettings(
+                    athanAudioId = state.athanAudioId,
+                    onAthanAudioIdChange = viewModel::onAthanAudioIdChange
                 )
             }
         }
@@ -96,6 +91,21 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             onConfirm = viewModel::onTimePicked,
             onDismiss = viewModel::onTimePickerDismiss
         )
+    }
+}
+
+@Composable
+private fun SettingsSection(title: String, content: @Composable () -> Unit) {
+    MySectionHeader(
+        title = title,
+        modifier = Modifier.padding(top = MaterialTheme.dimensions.spaceMd)
+    )
+
+    MyCard(
+        shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg),
+        contentPadding = PaddingValues(vertical = MaterialTheme.dimensions.spaceXs)
+    ) {
+        content()
     }
 }
 
@@ -130,7 +140,7 @@ fun AppearanceSettings(
             items = Language.entries.toTypedArray(),
             entries = stringArrayResource(R.array.numerals_language_entries),
             title = stringResource(R.string.numerals_language),
-            icon = R.drawable.ic_translation,
+            icon = Icons.Default.Numbers,
             onSelection = onNumeralsLanguageChange
         )
 
@@ -171,9 +181,11 @@ private fun DevotionReminderSettings(
     onDevotionReminderSwitch: (Reminder.Devotional, Boolean) -> Unit,
     morningAndEveningRemembrancesEnabled: Boolean
 ) {
+    // The maps are empty until the settings load, so rows fall back to off / no summary
     Column(Modifier.padding(bottom = 10.dp)) {
         SwitchSetting(
-            value = devotionReminderEnabledStatuses[Reminder.Devotional.MorningRemembrances]!!,
+            value =
+                devotionReminderEnabledStatuses[Reminder.Devotional.MorningRemembrances] ?: false,
             title = stringResource(R.string.morning_remembrance_title),
             summary = stringResource(R.string.thirty_minutes_after_fajr),
             enabled = morningAndEveningRemembrancesEnabled,
@@ -183,7 +195,8 @@ private fun DevotionReminderSettings(
         MyHorizontalDivider(Modifier.padding(horizontal = 16.dp))
 
         SwitchSetting(
-            value = devotionReminderEnabledStatuses[Reminder.Devotional.EveningRemembrances]!!,
+            value =
+                devotionReminderEnabledStatuses[Reminder.Devotional.EveningRemembrances] ?: false,
             title = stringResource(R.string.evening_remembrance_title),
             summary = stringResource(R.string.thirty_minutes_after_asr),
             enabled = morningAndEveningRemembrancesEnabled,
@@ -193,18 +206,18 @@ private fun DevotionReminderSettings(
         MyHorizontalDivider(Modifier.padding(horizontal = 16.dp))
 
         SwitchSetting(
-            value = devotionReminderEnabledStatuses[Reminder.Devotional.DailyWerd]!!,
+            value = devotionReminderEnabledStatuses[Reminder.Devotional.DailyWerd] ?: false,
             title = stringResource(R.string.daily_werd_title),
-            summary = devotionReminderSummaries[Reminder.Devotional.DailyWerd]!!,
+            summary = devotionReminderSummaries[Reminder.Devotional.DailyWerd].orEmpty(),
             onSwitch = { onDevotionReminderSwitch(Reminder.Devotional.DailyWerd, it) }
         )
 
         MyHorizontalDivider(Modifier.padding(horizontal = 16.dp))
 
         SwitchSetting(
-            value = devotionReminderEnabledStatuses[Reminder.Devotional.FridayKahf]!!,
+            value = devotionReminderEnabledStatuses[Reminder.Devotional.FridayKahf] ?: false,
             title = stringResource(R.string.friday_kahf_title),
-            summary = devotionReminderSummaries[Reminder.Devotional.FridayKahf]!!,
+            summary = devotionReminderSummaries[Reminder.Devotional.FridayKahf].orEmpty(),
             onSwitch = { onDevotionReminderSwitch(Reminder.Devotional.FridayKahf, it) }
         )
     }

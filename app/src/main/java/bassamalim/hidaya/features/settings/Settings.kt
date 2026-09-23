@@ -39,6 +39,7 @@ import bassamalim.hidaya.R
 import bassamalim.hidaya.core.ui.components.MyText
 import bassamalim.hidaya.core.ui.components.MyTextButton
 import bassamalim.hidaya.core.ui.components.MyValuedSlider
+import bassamalim.hidaya.core.ui.theme.dimensions
 
 @Composable
 fun <V> MenuSetting(
@@ -70,8 +71,8 @@ fun <V> MenuSetting(
                         imageVector = icon,
                         contentDescription = title,
                         modifier = Modifier
-                            .size(56.dp)
-                            .padding(end = 20.dp),
+                            .padding(end = MaterialTheme.dimensions.spaceLg)
+                            .size(MaterialTheme.dimensions.iconMd),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -80,8 +81,8 @@ fun <V> MenuSetting(
                         painter = icon,
                         contentDescription = title,
                         modifier = Modifier
-                            .size(56.dp)
-                            .padding(end = 20.dp),
+                            .padding(end = MaterialTheme.dimensions.spaceLg)
+                            .size(MaterialTheme.dimensions.iconMd),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -90,8 +91,8 @@ fun <V> MenuSetting(
                         painter = painterResource(icon),
                         contentDescription = title,
                         modifier = Modifier
-                            .size(56.dp)
-                            .padding(end = 20.dp),
+                            .padding(end = MaterialTheme.dimensions.spaceLg)
+                            .size(MaterialTheme.dimensions.iconMd),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -100,7 +101,9 @@ fun <V> MenuSetting(
             Column {
                 PreferenceTitle(title)
 
-                SummaryText(entries[items.indexOf(selection)])
+                // The selection can be outside [items] before the real value loads (e.g. an id
+                // of 0 while the options start at 1), so a missing match shows no summary
+                SummaryText(entries.getOrElse(items.indexOf(selection)) { "" })
             }
         }
 
