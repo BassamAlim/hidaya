@@ -275,4 +275,9 @@
     <string name="radio_connecting">جارٍ الاتصال…</string>
     <string name="radio_paused">متوقف</string>
     <string name="radio_error">تعذّر الاتصال بالإذاعة. اضغط لإعادة المحاولة</string>
+
+    <string name="book_sections">الأبواب</string>
+    <string name="previous_section">السابق</string>
+    <string name="next_section">التالي</string>
+    <string name="continue_reading">متابعة القراءة</string>
 </resources>

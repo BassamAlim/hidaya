@@ -18,6 +18,8 @@ class BookChaptersDomain @Inject constructor(
         booksRepository.setChapterFavorite(bookId, chapterNum, newValue)
     }
 
+    fun getReadingPosition(bookId: Int) = booksRepository.getReadingPosition(bookId)
+
     fun getLanguage() = LangUtils.getAppLanguage()
 
 }

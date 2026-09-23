@@ -15,4 +15,15 @@ data class BooksPreferences(
     val searchSelections: PersistentMap<Int, Boolean> = persistentMapOf(),
     val searchMaxMatches: Int = 10,
     val shouldShowTutorial: Boolean = true,
+    /** Where the user last stopped reading, keyed by book id */
+    val readingPositions: Map<Int, BookReadingPosition> = emptyMap(),
+)
+
+@Serializable
+data class BookReadingPosition(
+    val chapterId: Int,
+    /** Index of the first visible door in the chapter */
+    val doorIndex: Int = 0,
+    /** Pixel offset into that door, as reported by the list */
+    val scrollOffset: Int = 0
 )

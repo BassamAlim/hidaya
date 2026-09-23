@@ -2,6 +2,7 @@ package bassamalim.hidaya.core.data.dataSources.preferences.dataSources
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
+import bassamalim.hidaya.core.data.dataSources.preferences.objects.BookReadingPosition
 import bassamalim.hidaya.core.data.dataSources.preferences.objects.BooksPreferences
 import bassamalim.hidaya.core.utils.report
 import kotlinx.collections.immutable.PersistentMap
@@ -47,6 +48,13 @@ class BooksPreferencesDataSource(
     suspend fun updateSearchMaxMatches(maxMatches: Int) {
         dataStore.updateData { preferences ->
             preferences.copy(searchMaxMatches = maxMatches)
+        }
+    }
+
+    fun getReadingPositions() = flow.map { it.readingPositions }
+    suspend fun updateReadingPosition(bookId: Int, position: BookReadingPosition) {
+        dataStore.updateData { preferences ->
+            preferences.copy(readingPositions = preferences.readingPositions + (bookId to position))
         }
     }
 

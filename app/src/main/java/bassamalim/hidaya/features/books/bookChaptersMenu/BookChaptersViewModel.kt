@@ -9,11 +9,15 @@ import bassamalim.hidaya.core.models.Book
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -31,6 +35,7 @@ class BookChaptersViewModel @Inject constructor(
 
     private lateinit var language: Language
     private lateinit var book: Flow<Book>
+    private var continueReadingJob: Job? = null
 
     private val _uiState = MutableStateFlow(BookChaptersUiState())
     val uiState = _uiState.onStart {
@@ -50,7 +55,29 @@ class BookChaptersViewModel @Inject constructor(
                 isLoading = false,
                 title = book.first().title
             )}
+
+            // initializeData reruns on each resubscription, so replace rather than stack collectors
+            continueReadingJob?.cancel()
+            continueReadingJob = combine(
+                book,
+                domain.getReadingPosition(bookId)
+            ) { book, position ->
+                position?.let {
+                    book.chapters.getOrNull(it.chapterId)?.let { chapter ->
+                        ContinueReading(chapterId = chapter.id, chapterTitle = chapter.title)
+                    }
+                }
+            }.onEach { continueReading ->
+                _uiState.update { it.copy(continueReading = continueReading) }
+            }.launchIn(viewModelScope)
         }
+    }
+
+    fun onContinueReadingClick() {
+        val chapterId = _uiState.value.continueReading?.chapterId ?: return
+        navigator.navigate(
+            Screen.BookReader(bookId = bookId.toString(), chapterId = chapterId.toString())
+        )
     }
 
     fun getItems(page: Int): Flow<List<Book.Chapter>> {

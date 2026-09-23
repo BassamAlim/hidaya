@@ -2,6 +2,7 @@ package bassamalim.hidaya.core.data.repositories
 
 import android.app.Application
 import bassamalim.hidaya.core.data.dataSources.preferences.dataSources.BooksPreferencesDataSource
+import bassamalim.hidaya.core.data.dataSources.preferences.objects.BookReadingPosition
 import bassamalim.hidaya.core.data.dataSources.room.daos.BooksDao
 import bassamalim.hidaya.core.di.ApplicationScope
 import bassamalim.hidaya.core.di.DefaultDispatcher
@@ -172,6 +173,16 @@ class BooksRepository @Inject constructor(
                 }
             )
         }
+    }
+
+    fun getChapterTitles(bookId: Int) =
+        getBookContent(bookId)?.chapters?.map { it.title } ?: emptyList()
+
+    fun getReadingPosition(bookId: Int) =
+        booksPreferencesDataSource.getReadingPositions().map { it[bookId] }
+
+    suspend fun setReadingPosition(bookId: Int, position: BookReadingPosition) {
+        booksPreferencesDataSource.updateReadingPosition(bookId, position)
     }
 
     fun getTextSize() = booksPreferencesDataSource.getTextSize()
