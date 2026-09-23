@@ -4,30 +4,54 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Update
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
-import bassamalim.hidaya.core.ui.components.MyFilledTonalButton
-import bassamalim.hidaya.core.ui.components.MyHorizontalButton
-import bassamalim.hidaya.core.ui.components.MyOutlinedButton
-import bassamalim.hidaya.core.ui.components.MyText
-import bassamalim.hidaya.core.ui.theme.nsp
+import bassamalim.hidaya.core.ui.components.MyTopBar
+import bassamalim.hidaya.core.ui.theme.appTypography
+import bassamalim.hidaya.core.ui.theme.dimensions
+
+// Taller than the default button: these are the screen's main decision
+private val ActionButtonHeight = 56.dp
 
 @Composable
 fun LocatorScreen(viewModel: LocatorViewModel) {
@@ -44,60 +68,141 @@ fun LocatorScreen(viewModel: LocatorViewModel) {
         viewModel.provide(requestLauncher, snackbarHostState, snackbarMessage)
     }
 
+    val dims = MaterialTheme.dimensions
+
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        // Reached from Prayers or Qibla it needs a way back; on first launch there's none
+        topBar = {
+            if (!state.isInitial) MyTopBar(title = stringResource(R.string.location_screen_title))
+        },
+        // The actions stay pinned at the bottom; only the explanation scrolls if space is short
+        bottomBar = {
+            Actions(
+                isInitial = state.isInitial,
+                onLocateClick = viewModel::onLocateClick,
+                onChooseManuallyClick = viewModel::onSelectLocationClick,
+                onDeclineClick = viewModel::onSkipLocationClick
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.surface),
-            verticalArrangement = Arrangement.SpaceEvenly,
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = dims.spaceXl, vertical = dims.spaceXxl),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Disclaimer
-            MyText(
-                text = stringResource(R.string.disclaimer),
-                fontSize = 26.nsp,
-                modifier = Modifier.padding(horizontal = 15.dp)
+            Box(
+                modifier = Modifier
+                    .size(dims.iconXl * 2)
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = null,
+                    modifier = Modifier.size(dims.iconXl),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+
+            Spacer(Modifier.height(dims.spaceXl))
+
+            Text(
+                text = stringResource(R.string.location_title),
+                style = MaterialTheme.appTypography.display,
+                textAlign = TextAlign.Center
             )
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Locate button
-                MyHorizontalButton(
-                    text = stringResource(R.string.locate),
-                    fontSize = 22.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp, horizontal = 30.dp),
-                    onClick = viewModel::onLocateClick,
-                )
+            Spacer(Modifier.height(dims.spaceXl))
 
-                // Choose manually button
-                MyFilledTonalButton(
-                    text = stringResource(R.string.choose_manually),
-                    fontSize = 22.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp, horizontal = 30.dp),
-                    onClick = viewModel::onSelectLocationClick
-                )
+            Column(verticalArrangement = Arrangement.spacedBy(dims.spaceMd)) {
+                Point(Icons.Default.AccessTime, stringResource(R.string.location_point_prayers))
+                Point(Icons.Default.Explore, stringResource(R.string.location_point_qibla))
+                Point(Icons.Default.Update, stringResource(R.string.location_point_background))
+                Point(Icons.Default.Lock, stringResource(R.string.location_point_privacy))
+            }
+        }
+    }
+}
 
-                if (state.shouldShowSkipLocationButton) {
-                    // Skip button
-                    MyOutlinedButton(
-                        text = stringResource(R.string.rejected),
-                        fontSize = 22.sp,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp, horizontal = 30.dp),
-                        onClick = viewModel::onSkipLocationClick
+@Composable
+private fun Actions(
+    isInitial: Boolean,
+    onLocateClick: () -> Unit,
+    onChooseManuallyClick: () -> Unit,
+    onDeclineClick: () -> Unit
+) {
+    val dims = MaterialTheme.dimensions
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = dims.spaceXl, vertical = dims.spaceLg),
+        verticalArrangement = Arrangement.spacedBy(dims.spaceSm)
+    ) {
+        Button(
+            onClick = onLocateClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = ActionButtonHeight)
+        ) {
+            Text(
+                text = stringResource(R.string.locate),
+                modifier = Modifier.padding(vertical = dims.spaceXs),
+                style = MaterialTheme.appTypography.title
+            )
+        }
+
+        FilledTonalButton(
+            onClick = onChooseManuallyClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = ActionButtonHeight)
+        ) {
+            Text(
+                text = stringResource(R.string.choose_manually),
+                modifier = Modifier.padding(vertical = dims.spaceXs),
+                style = MaterialTheme.appTypography.title
+            )
+        }
+
+        if (isInitial) {
+            // Kept deliberately quiet: declining is allowed but costs the main features
+            TextButton(onClick = onDeclineClick, modifier = Modifier.fillMaxWidth()) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = stringResource(R.string.decline_location),
+                        style = MaterialTheme.appTypography.button
+                    )
+
+                    Text(
+                        text = stringResource(R.string.decline_location_hint),
+                        style = MaterialTheme.appTypography.caption,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun Point(icon: ImageVector, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(MaterialTheme.dimensions.iconMd),
+            tint = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(Modifier.width(MaterialTheme.dimensions.spaceMd))
+
+        Text(text = text, style = MaterialTheme.appTypography.body)
     }
 }

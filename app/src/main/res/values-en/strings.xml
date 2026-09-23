@@ -43,7 +43,6 @@
     <string name="share_app">Share</string>
     <string name="locate">Locate</string>
     <string name="choose_manually">Choose location manually</string>
-    <string name="rejected">Decline\nUse the app without prayer times and qibla direction</string>
     <string name="shuffle_description">Shuffle</string>
     <string name="download_description">Download</string>
     <string name="repeat_description">Repeat</string>
@@ -119,7 +118,6 @@
     <string name="recitations">Recitations</string>
     <string name="stop_on_sura_end">Stop at sura end</string>
     <string name="stop_on_page_end">Stop at page end</string>
-    <string name="disclaimer">Hidaya app uses your location to calculate prayer times and qibla direction. \n And uses background location to daily update prayer times.\n Note that your location is stored only on your device.</string>
     <string name="quiz_title">Religious quiz</string>
     <string name="start_quiz">Start the quiz</string>
     <string name="quiz_result">Quiz result</string>
@@ -293,4 +291,15 @@
     <string name="prayers_no_location">Set your location to see prayer times</string>
 
     <string name="categories">Categories</string>
+
+    <string name="location_title">Your location, for prayer times</string>
+    <string name="location_point_prayers">Accurate prayer times for your city</string>
+    <string name="location_point_qibla">The Qibla direction</string>
+    <string name="location_point_background">Prayer times updated daily in the background</string>
+    <string name="location_point_privacy">Your location stays on your device</string>
+    <string name="decline_location">Continue without location</string>
+    <string name="decline_location_hint">Prayer times and Qibla won\'t be available</string>
+    <string name="location_screen_title">Location</string>
+    <string name="prayer_settings_hint">Pick what your local mosque follows; the defaults suit most people</string>
+    <string name="continue_action">Continue</string>
 </resources>

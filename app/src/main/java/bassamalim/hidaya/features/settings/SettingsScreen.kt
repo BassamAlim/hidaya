@@ -2,10 +2,8 @@ package bassamalim.hidaya.features.settings
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
@@ -24,10 +22,8 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.enums.Reminder
 import bassamalim.hidaya.core.enums.Theme
 import bassamalim.hidaya.core.enums.TimeFormat
-import bassamalim.hidaya.core.ui.components.MyCard
 import bassamalim.hidaya.core.ui.components.MyHorizontalDivider
 import bassamalim.hidaya.core.ui.components.MyScaffold
-import bassamalim.hidaya.core.ui.components.MySectionHeader
 import bassamalim.hidaya.core.ui.components.TimePickerDialog
 import bassamalim.hidaya.core.ui.theme.dimensions
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
@@ -91,21 +87,6 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             onConfirm = viewModel::onTimePicked,
             onDismiss = viewModel::onTimePickerDismiss
         )
-    }
-}
-
-@Composable
-private fun SettingsSection(title: String, content: @Composable () -> Unit) {
-    MySectionHeader(
-        title = title,
-        modifier = Modifier.padding(top = MaterialTheme.dimensions.spaceMd)
-    )
-
-    MyCard(
-        shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg),
-        contentPadding = PaddingValues(vertical = MaterialTheme.dimensions.spaceXs)
-    ) {
-        content()
     }
 }
 

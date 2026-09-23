@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,9 +37,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import bassamalim.hidaya.R
+import bassamalim.hidaya.core.ui.components.MyCard
+import bassamalim.hidaya.core.ui.components.MySectionHeader
 import bassamalim.hidaya.core.ui.components.MyText
 import bassamalim.hidaya.core.ui.components.MyTextButton
 import bassamalim.hidaya.core.ui.components.MyValuedSlider
+import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
 
 @Composable
@@ -286,4 +290,36 @@ private fun SummaryText(text: String) {
         textAlign = TextAlign.Start,
         color = MaterialTheme.colorScheme.onSurface
     )
+}
+
+/** A titled group of settings rows on a card, shared by Settings and onboarding. */
+@Composable
+fun SettingsSection(
+    title: String,
+    description: String? = null,
+    content: @Composable () -> Unit
+) {
+    val dims = MaterialTheme.dimensions
+
+    MySectionHeader(title = title, modifier = Modifier.padding(top = dims.spaceMd))
+
+    if (description != null) {
+        Text(
+            text = description,
+            modifier = Modifier.padding(
+                start = dims.spaceLg,
+                end = dims.spaceLg,
+                bottom = dims.spaceSm
+            ),
+            style = MaterialTheme.appTypography.caption,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+
+    MyCard(
+        shape = RoundedCornerShape(dims.radiusLg),
+        contentPadding = PaddingValues(vertical = dims.spaceXs)
+    ) {
+        content()
+    }
 }

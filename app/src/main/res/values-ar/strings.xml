@@ -46,7 +46,6 @@
     <string name="share_app">شارك التطبيق</string>
     <string name="locate">حدد الموقع</string>
     <string name="choose_manually">اختر الموقع يدوياً</string>
-    <string name="rejected">غير موافق\nاستخدام التطبيق بدون أوقات الصلاة والقِبلة</string>
     <string name="shuffle_description">تشغيل عشوائي</string>
     <string name="download_description">تحميل</string>
     <string name="repeat_description">تكرار</string>
@@ -124,7 +123,6 @@
     <string name="stop_on_sura_end">توقف عند نهاية السورة</string>
     <string name="stop_on_page_end">توقف عند نهاية الصفحة</string>
     <string name="welcome_message" translatable="false">أهلا بك في تطبيق هِداية \n Welcome to Hidaya app</string>
-    <string name="disclaimer">تطبيق هِداية يستخدم موقعك لحساب أوقات الصلاة واتجاه القِبلة. \n ويستخدم الموقع في الخلفية لتحديث أوقات الصلاة يومياً.\n مع العلم أن موقعك يسجل فقط على جهازك.</string>
     <string name="quiz_title">اختبر معلوماتك</string>
     <string name="start_quiz">ابدأ الاختبار</string>
     <string name="quiz_result">نتيجة الاختبار</string>
@@ -286,4 +284,15 @@
     <string name="prayers_no_location">حدد موقعك لعرض مواقيت الصلاة</string>
 
     <string name="categories">التصنيفات</string>
+
+    <string name="location_title">موقعك لمواقيت الصلاة</string>
+    <string name="location_point_prayers">مواقيت صلاة دقيقة لمدينتك</string>
+    <string name="location_point_qibla">تحديد اتجاه القبلة</string>
+    <string name="location_point_background">تحديث المواقيت يومياً في الخلفية</string>
+    <string name="location_point_privacy">يبقى موقعك على جهازك فقط</string>
+    <string name="decline_location">المتابعة بدون موقع</string>
+    <string name="decline_location_hint">لن تتوفر أوقات الصلاة والقبلة</string>
+    <string name="location_screen_title">الموقع</string>
+    <string name="prayer_settings_hint">اختر ما يتبعه مسجدك المحلي، والإعدادات الافتراضية تناسب معظم المستخدمين</string>
+    <string name="continue_action">متابعة</string>
 </resources>
