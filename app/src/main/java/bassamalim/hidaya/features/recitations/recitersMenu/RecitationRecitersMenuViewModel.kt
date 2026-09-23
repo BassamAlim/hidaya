@@ -57,8 +57,10 @@ class RecitationRecitersMenuViewModel @Inject constructor(
             narrationSelections = domain.getNarrationSelections(language)
 
             val lastPlayed = domain.getLastPlayed().first()
+            val numeralsLanguage = domain.getNumeralsLanguage()
             _uiState.update { it.copy(
                 isLoading = false,
+                numeralsLanguage = numeralsLanguage,
                 playbackRecitationInfo = lastPlayed?.let {
                     domain.getLastPlayedMedia(lastPlayed.mediaId)
                 },

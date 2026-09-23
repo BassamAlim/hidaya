@@ -262,8 +262,14 @@ object DomainModule {
     fun provideRecitationRecitersMenuDomain(
         app: Application,
         recitationsRepository: RecitationsRepository,
-        quranRepository: QuranRepository
-    ) = RecitationRecitersMenuDomain(app, recitationsRepository, quranRepository)
+        quranRepository: QuranRepository,
+        appSettingsRepository: AppSettingsRepository
+    ) = RecitationRecitersMenuDomain(
+        app,
+        recitationsRepository,
+        quranRepository,
+        appSettingsRepository
+    )
 
     @Provides @Singleton
     fun provideRecitationRecitersMenuFilterDomain(recitationsRepository: RecitationsRepository) =

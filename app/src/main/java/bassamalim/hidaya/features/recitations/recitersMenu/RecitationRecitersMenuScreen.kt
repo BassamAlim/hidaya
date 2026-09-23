@@ -5,7 +5,6 @@ import androidx.activity.compose.LocalActivity
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -23,10 +22,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,35 +40,40 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
-import bassamalim.hidaya.core.enums.DownloadState
+import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.ui.components.CustomSearchBar
 import bassamalim.hidaya.core.ui.components.MyDownloadButton
 import bassamalim.hidaya.core.ui.components.MyFavoriteButton
-import bassamalim.hidaya.core.ui.components.MyIconButton
 import bassamalim.hidaya.core.ui.components.MyIconPlayerButton
 import bassamalim.hidaya.core.ui.components.MyLazyColumn
 import bassamalim.hidaya.core.ui.components.MyScaffold
-import bassamalim.hidaya.core.ui.components.MySurface
-import bassamalim.hidaya.core.ui.components.MyText
 import bassamalim.hidaya.core.ui.components.TabLayout
+import bassamalim.hidaya.core.ui.theme.appTypography
+import bassamalim.hidaya.core.ui.theme.dimensions
+import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import bassamalim.hidaya.features.quran.surasMenu.RecitationInfo
 import kotlinx.coroutines.flow.Flow
+
+private val AvatarSize = 40.dp
+private val PlaybackBarHeight = 68.dp
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -102,70 +104,18 @@ fun RecitationRecitersMenuScreen(viewModel: RecitationRecitersMenuViewModel) {
                     stringResource(R.string.downloaded)
                 ),
                 searchComponent = {
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CustomSearchBar(
-                                query = viewModel.searchText,
-                                hint = stringResource(R.string.reciters_search_hint),
-                                modifier = Modifier.weight(1F),
-                                onQueryChange = viewModel::onSearchTextChange
-                            )
-
-                            BadgedBox(
-                                badge = {
-                                    if (state.isFiltered) {
-                                        Badge(
-                                            containerColor = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.padding(end = 10.dp)
-                            ) {
-                                MyIconButton(
-                                    imageVector = Icons.Default.FilterAlt,
-                                    description = stringResource(R.string.filter_search_description),
-                                    iconModifier = Modifier.size(32.dp),
-                                    iconColor =
-                                        if (state.isFiltered) MaterialTheme.colorScheme.secondary
-                                        else MaterialTheme.colorScheme.outline,
-                                    onClick = viewModel::onFilterClick
-                                )
-                            }
-                        }
-
-                        AnimatedVisibility(
-                            visible = state.isFiltered,
-                            enter = expandVertically() + fadeIn(),
-                            exit = shrinkVertically() + fadeOut()
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                                horizontalArrangement = Arrangement.Start
-                            ) {
-                                Surface(
-                                    shape = RoundedCornerShape(16.dp),
-                                    color = MaterialTheme.colorScheme.secondaryContainer
-                                ) {
-                                    MyText(
-                                        text = stringResource(R.string.filtered),
-                                        fontSize = 12.sp,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    SearchRow(
+                        query = viewModel.searchText,
+                        isFiltered = state.isFiltered,
+                        onQueryChange = viewModel::onSearchTextChange,
+                        onFilterClick = viewModel::onFilterClick
+                    )
                 }
             ) { page ->
                 Tab(
                     itemsFlow = viewModel.getItems(page),
                     expandedReciterIds = state.expandedReciterIds,
+                    numeralsLanguage = state.numeralsLanguage,
                     onReciterExpandToggle = viewModel::onReciterExpandToggle,
                     onFavoriteClick = viewModel::onFavoriteClick,
                     onNarrationClick = viewModel::onNarrationClick,
@@ -184,9 +134,44 @@ fun RecitationRecitersMenuScreen(viewModel: RecitationRecitersMenuViewModel) {
 }
 
 @Composable
+private fun SearchRow(
+    query: String,
+    isFiltered: Boolean,
+    onQueryChange: (String) -> Unit,
+    onFilterClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(end = MaterialTheme.dimensions.spaceSm),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        CustomSearchBar(
+            query = query,
+            hint = stringResource(R.string.reciters_search_hint),
+            modifier = Modifier.weight(1F),
+            onQueryChange = onQueryChange
+        )
+
+        IconButton(onClick = onFilterClick) {
+            BadgedBox(badge = { if (isFiltered) Badge() }) {
+                Icon(
+                    imageVector = Icons.Default.FilterAlt,
+                    contentDescription = stringResource(R.string.filter_search_description),
+                    tint =
+                        if (isFiltered) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun Tab(
     itemsFlow: Flow<List<Recitation>>,
     expandedReciterIds: Set<Int>,
+    numeralsLanguage: Language,
     onReciterExpandToggle: (Int) -> Unit,
     onFavoriteClick: (Int, Boolean) -> Unit,
     onNarrationClick: (Int, Int) -> Unit,
@@ -195,233 +180,260 @@ private fun Tab(
     val items by itemsFlow.collectAsStateWithLifecycle(initialValue = emptyList())
 
     if (items.isEmpty()) {
-        EmptyStateView()
-    } else {
-        MyLazyColumn(
-            lazyList = {
-                items(
-                    items = items,
-                    key = { it.reciterId }
-                ) { item ->
-                    ReciterCard(
+        EmptyState()
+        return
+    }
+
+    MyLazyColumn(
+        lazyList = {
+            items(items = items, key = { it.reciterId }) { item ->
+                Column(Modifier.animateItem()) {
+                    ReciterItem(
                         reciter = item,
-                        isExpanded = expandedReciterIds.contains(item.reciterId),
+                        isExpanded = item.reciterId in expandedReciterIds,
+                        numeralsLanguage = numeralsLanguage,
                         onExpandToggle = { onReciterExpandToggle(item.reciterId) },
                         onFavoriteClick = onFavoriteClick,
                         onNarrationClick = onNarrationClick,
-                        onDownloadNarrationClick = onDownloadNarrationClick,
-                        modifier = Modifier.animateItem()
+                        onDownloadNarrationClick = onDownloadNarrationClick
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = MaterialTheme.dimensions.spaceLg),
+                        thickness = MaterialTheme.dimensions.dividerThickness,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                     )
                 }
-
-                item {
-                    Spacer(modifier = Modifier.height(100.dp))
-                }
             }
+
+            // Room for the playback bar so it never covers the last reciter
+            item {
+                Spacer(Modifier.height(PlaybackBarHeight + MaterialTheme.dimensions.spaceXl))
+            }
+        }
+    )
+}
+
+@Composable
+private fun EmptyState() {
+    val dims = MaterialTheme.dimensions
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.MusicNote,
+            contentDescription = null,
+            modifier = Modifier.size(dims.iconXl * 1.5f),
+            tint = MaterialTheme.colorScheme.outline
+        )
+
+        Spacer(Modifier.height(dims.spaceLg))
+
+        Text(
+            text = stringResource(R.string.no_recitations_found),
+            style = MaterialTheme.appTypography.body,
+            color = MaterialTheme.colorScheme.outline
         )
     }
 }
 
 @Composable
-private fun EmptyStateView() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+private fun ReciterItem(
+    reciter: Recitation,
+    isExpanded: Boolean,
+    numeralsLanguage: Language,
+    onExpandToggle: () -> Unit,
+    onFavoriteClick: (Int, Boolean) -> Unit,
+    onNarrationClick: (Int, Int) -> Unit,
+    onDownloadNarrationClick: (Int, Recitation.Narration, String) -> Unit
+) {
+    val dims = MaterialTheme.dimensions
+    val suraString = stringResource(R.string.sura)
+    // Most reciters have a single narration, so it's opened and downloaded from the row itself
+    val singleNarration = reciter.narrations.values.singleOrNull()
+
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    if (singleNarration != null)
+                        onNarrationClick(reciter.reciterId, singleNarration.id)
+                    else onExpandToggle()
+                }
+                .padding(
+                    start = dims.spaceLg,
+                    end = dims.spaceXs,
+                    top = dims.spaceMd,
+                    bottom = dims.spaceMd
+                ),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.MusicNote,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.outline
+            Avatar(name = reciter.reciterName)
+
+            Column(
+                Modifier
+                    .weight(1f)
+                    .padding(horizontal = dims.spaceMd)
+            ) {
+                Text(
+                    text = reciter.reciterName,
+                    style = MaterialTheme.appTypography.title
+                )
+
+                Text(
+                    text = singleNarration?.name ?: pluralStringResource(
+                        R.plurals.narrations_count,
+                        reciter.narrations.size,
+                        translateNums(
+                            string = reciter.narrations.size.toString(),
+                            numeralsLanguage = numeralsLanguage
+                        )
+                    ),
+                    style = MaterialTheme.appTypography.caption,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            MyFavoriteButton(
+                isFavorite = reciter.isFavoriteReciter,
+                onClick = { onFavoriteClick(reciter.reciterId, reciter.isFavoriteReciter) },
+                size = dims.iconMd
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            if (singleNarration != null) {
+                DownloadButton(
+                    narration = singleNarration,
+                    onClick = {
+                        onDownloadNarrationClick(reciter.reciterId, singleNarration, suraString)
+                    }
+                )
+            }
+            else {
+                ExpandArrow(isExpanded = isExpanded)
+            }
+        }
 
-            MyText(
-                text = stringResource(R.string.no_recitations_found),
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.outline
-            )
+        if (singleNarration == null) {
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically(tween(150)) + fadeIn(tween(150)),
+                exit = shrinkVertically(tween(150)) + fadeOut(tween(150))
+            ) {
+                Column(Modifier.padding(bottom = dims.spaceSm)) {
+                    reciter.narrations.values.forEach { narration ->
+                        NarrationItem(
+                            narration = narration,
+                            numeralsLanguage = numeralsLanguage,
+                            onClick = { onNarrationClick(reciter.reciterId, narration.id) },
+                            onDownloadClick = {
+                                onDownloadNarrationClick(reciter.reciterId, narration, suraString)
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ReciterCard(
-    reciter: Recitation,
-    isExpanded: Boolean,
-    onExpandToggle: () -> Unit,
-    onFavoriteClick: (Int, Boolean) -> Unit,
-    onNarrationClick: (Int, Int) -> Unit,
-    onDownloadNarrationClick: (Int, Recitation.Narration, String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val rotationState by animateFloatAsState(
+private fun Avatar(name: String) {
+    Box(
+        modifier = Modifier
+            .size(AvatarSize)
+            .background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = name.firstOrNull()?.toString().orEmpty(),
+            style = MaterialTheme.appTypography.headline,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    }
+}
+
+@Composable
+private fun ExpandArrow(isExpanded: Boolean) {
+    val rotation by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
         animationSpec = tween(durationMillis = 150),
         label = "expandArrowRotation"
     )
 
-    MySurface(
-        modifier = modifier.animateContentSize(
-            animationSpec = tween(durationMillis = 150)
-        ),
-        padding = PaddingValues(vertical = 6.dp, horizontal = 10.dp),
-        cornerRadius = 12.dp,
-        elevation = 4.dp
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onExpandToggle)
-                    .padding(top = 12.dp, bottom = 12.dp, start = 12.dp, end = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Avatar with initial letter
-                Surface(
-                    modifier = Modifier.size(48.dp),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primaryContainer
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        MyText(
-                            text = reciter.reciterName.firstOrNull()?.toString() ?: "",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    MyText(
-                        text = reciter.reciterName,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    MyText(
-                        text = "${reciter.narrations.size} ${stringResource(R.string.narrations)}",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                MyFavoriteButton(
-                    isFavorite = reciter.isFavoriteReciter,
-                    onClick = { onFavoriteClick(reciter.reciterId, reciter.isFavoriteReciter) }
-                )
-
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = stringResource(R.string.expand),
-                    modifier = Modifier
-                        .size(24.dp)
-                        .rotate(rotationState),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = expandVertically(animationSpec = tween(150)) + fadeIn(animationSpec = tween(150)),
-                exit = shrinkVertically(animationSpec = tween(150)) + fadeOut(animationSpec = tween(150))
-            ) {
-                Column(Modifier.fillMaxWidth()) {
-                    reciter.narrations.values.forEachIndexed { idx, narration ->
-                        NarrationCard(
-                            idx = idx,
-                            reciterId = reciter.reciterId,
-                            narration = narration,
-                            onNarrationClick = onNarrationClick,
-                            onDownloadClick = onDownloadNarrationClick
-                        )
-                    }
-                }
-            }
-        }
-    }
+    Icon(
+        imageVector = Icons.Default.KeyboardArrowDown,
+        contentDescription = stringResource(R.string.expand),
+        modifier = Modifier
+            .padding(MaterialTheme.dimensions.spaceMd)
+            .size(MaterialTheme.dimensions.iconMd)
+            .rotate(rotation),
+        tint = MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }
 
 @Composable
-private fun NarrationCard(
-    idx: Int,
-    reciterId: Int,
+private fun NarrationItem(
     narration: Recitation.Narration,
-    onNarrationClick: (Int, Int) -> Unit,
-    onDownloadClick: (Int, Recitation.Narration, String) -> Unit
+    numeralsLanguage: Language,
+    onClick: () -> Unit,
+    onDownloadClick: () -> Unit
 ) {
-    val suraString = stringResource(R.string.sura)
-
-    val stripColor = when (narration.downloadState) {
-        DownloadState.DOWNLOADED -> MaterialTheme.colorScheme.primary
-        DownloadState.DOWNLOADING -> MaterialTheme.colorScheme.tertiary
-        DownloadState.NOT_DOWNLOADED -> MaterialTheme.colorScheme.surfaceContainerLow
-    }
-
-    val backgroundTint = when (narration.downloadState) {
-        DownloadState.DOWNLOADED -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
-        else -> MaterialTheme.colorScheme.surfaceContainerLow
-    }
+    val dims = MaterialTheme.dimensions
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(backgroundTint)
-            .clickable { onNarrationClick(reciterId, narration.id) }
+            .clickable(onClick = onClick)
+            // Lines the narration up under the reciter's name
+            .padding(
+                start = dims.spaceLg + AvatarSize + dims.spaceMd,
+                end = dims.spaceXs,
+                top = dims.spaceSm,
+                bottom = dims.spaceSm
+            ),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // Leading color strip
-        Box(
-            modifier = Modifier
-                .width(4.dp)
-                .height(64.dp)
-                .background(stripColor)
-        )
+        Column(Modifier.weight(1f)) {
+            Text(text = narration.name, style = MaterialTheme.appTypography.body)
 
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                MyText(
-                    text = narration.name,
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Start
-                )
-
-                MyText(
-                    text = "${narration.availableSuras.size} ${stringResource(R.string.suras)}",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Start
-                )
-            }
-
-            AnimatedContent(
-                targetState = narration.downloadState,
-                label = "downloadButtonState",
-                transitionSpec = {
-                    scaleIn(animationSpec = tween(200)) togetherWith
-                            scaleOut(animationSpec = tween(200))
-                }
-            ) { state ->
-                MyDownloadButton(
-                    state = state,
-                    iconSize = 28.dp,
-                    onClick = { onDownloadClick(reciterId, narration, suraString) }
-                )
-            }
+            Text(
+                text = pluralStringResource(
+                    R.plurals.suras_count,
+                    narration.availableSuras.size,
+                    translateNums(
+                        string = narration.availableSuras.size.toString(),
+                        numeralsLanguage = numeralsLanguage
+                    )
+                ),
+                style = MaterialTheme.appTypography.caption,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
+
+        DownloadButton(narration = narration, onClick = onDownloadClick)
+    }
+}
+
+@Composable
+private fun DownloadButton(narration: Recitation.Narration, onClick: () -> Unit) {
+    AnimatedContent(
+        targetState = narration.downloadState,
+        label = "downloadButtonState",
+        transitionSpec = {
+            scaleIn(animationSpec = tween(200)) togetherWith scaleOut(animationSpec = tween(200))
+        }
+    ) { state ->
+        MyDownloadButton(
+            state = state,
+            iconSize = MaterialTheme.dimensions.iconMd,
+            onClick = onClick
+        )
     }
 }
 
@@ -432,95 +444,72 @@ private fun BoxScope.PlaybackBar(
     onContinueListeningClick: () -> Unit,
     onPlayPauseClick: () -> Unit
 ) {
+    val dims = MaterialTheme.dimensions
+
     AnimatedVisibility(
         visible = recitationInfo != null,
         modifier = Modifier.align(Alignment.BottomCenter),
-        enter = slideInVertically(
-            initialOffsetY = { it },
-            animationSpec = tween(300)
-        ) + fadeIn(animationSpec = tween(300)),
-        exit = slideOutVertically(
-            targetOffsetY = { it },
-            animationSpec = tween(300)
-        ) + fadeOut(animationSpec = tween(300))
+        enter = slideInVertically(tween(300)) { it } + fadeIn(tween(300)),
+        exit = slideOutVertically(tween(300)) { it } + fadeOut(tween(300))
     ) {
-        if (recitationInfo != null) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                shadowElevation = 8.dp,
-                tonalElevation = 4.dp
+        if (recitationInfo == null) return@AnimatedVisibility
+
+        Surface(
+            onClick = onContinueListeningClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = dims.spaceMd, end = dims.spaceMd, bottom = dims.spaceMd)
+                .height(PlaybackBarHeight),
+            shape = RoundedCornerShape(dims.radiusLg),
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            shadowElevation = dims.elevationLg
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = dims.spaceSm),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Absolute.SpaceBetween
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ) {
-                    // Play button area with colored background
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(68.dp),
-                        shape = RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 12.dp,
-                            bottomStart = 16.dp,
-                            bottomEnd = 12.dp
-                        ),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clickable(onClick = onPlayPauseClick),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            MyIconPlayerButton(
-                                state = playbackState,
-                                onClick = onPlayPauseClick,
-                                iconSize = 36.dp,
-                                filled = false,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-
-                    // Track info
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clickable(onClick = onContinueListeningClick)
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        MyText(
-                            text = "${stringResource(R.string.sura)} ${recitationInfo.suraName}",
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 15.sp
-                        )
-
-                        MyText(
-                            text = "${stringResource(R.string.for_reciter)} ${recitationInfo.reciterName}",
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // Forward arrow indicator
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = stringResource(R.string.continue_listening),
-                        modifier = Modifier
-                            .padding(end = 12.dp)
-                            .size(24.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    MyIconPlayerButton(
+                        state = playbackState,
+                        onClick = onPlayPauseClick,
+                        iconSize = dims.iconLg,
+                        filled = false,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
+
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .padding(horizontal = dims.spaceMd)
+                ) {
+                    Text(
+                        text = "${stringResource(R.string.sura)} ${recitationInfo.suraName}",
+                        style = MaterialTheme.appTypography.subtitle,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Text(
+                        text = "${stringResource(R.string.for_reciter)} " +
+                                recitationInfo.reciterName,
+                        style = MaterialTheme.appTypography.caption,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = stringResource(R.string.continue_listening),
+                    modifier = Modifier.size(dims.iconMd),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

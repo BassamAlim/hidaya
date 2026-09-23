@@ -20,27 +20,29 @@ import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import bassamalim.hidaya.core.Globals
+import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
 import bassamalim.hidaya.core.data.repositories.QuranRepository
 import bassamalim.hidaya.core.data.repositories.RecitationsRepository
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.helpers.ReceiverWrapper
 import bassamalim.hidaya.core.helpers.Searcher
 import bassamalim.hidaya.core.utils.FileUtils
-import bassamalim.hidaya.features.recitations.RecitationMediaId
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.features.quran.surasMenu.RecitationInfo
+import bassamalim.hidaya.features.recitations.RecitationMediaId
 import bassamalim.hidaya.features.recitations.player.RecitationPlayerService
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import java.io.File
 import java.util.Locale
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 class RecitationRecitersMenuDomain @Inject constructor(
     private val app: Application,
     private val recitationsRepository: RecitationsRepository,
-    private val quranRepository: QuranRepository
+    private val quranRepository: QuranRepository,
+    private val appSettingsRepository: AppSettingsRepository
 ) {
 
     private lateinit var activity: Activity
@@ -161,6 +163,8 @@ class RecitationRecitersMenuDomain @Inject constructor(
     }
 
     fun getLanguage() = LangUtils.getAppLanguage()
+
+    suspend fun getNumeralsLanguage() = appSettingsRepository.getNumeralsLanguage().first()
 
     fun setFavorite(reciterId: Int, value: Boolean) {
         recitationsRepository.setReciterFavorite(
