@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.DisplaySettings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHost
@@ -132,7 +133,7 @@ fun QuranReaderScreen(viewModel: QuranReaderViewModel) {
     var barsVisible by remember { mutableStateOf(false) }
     // Bumped by page taps and by any bar button, restarting the auto-hide countdown
     var lastInteraction by remember { mutableIntStateOf(0) }
-    val onInteraction = {
+    val onInteraction: () -> Unit = {
         barsVisible = true
         lastInteraction++
     }
