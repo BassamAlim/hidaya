@@ -376,7 +376,7 @@ private fun PrayerRow(
                 shape = RoundedCornerShape(dims.radiusMd)
             )
             .heightIn(min = dims.listItemHeight)
-            .padding(start = dims.spaceMd, end = dims.spaceXs),
+            .padding(start = dims.spaceMd, end = dims.spaceSm),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Only the text fades for passed prayers; the controls stay fully usable
@@ -397,7 +397,10 @@ private fun PrayerRow(
 
             Text(
                 text = data.time,
-                modifier = Modifier.padding(horizontal = dims.spaceSm),
+                // Takes the same share as the name and sits centered in it, between the
+                // name and the controls
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Center,
                 style = MaterialTheme.appTypography.h1.copy(
                     fontWeight = if (isNext) FontWeight.Bold else FontWeight.Normal
                 ),
@@ -414,12 +417,16 @@ private fun PrayerRow(
                     NotificationType.OFF -> Icons.Default.NotificationsOff
                 },
                 contentDescription = stringResource(R.string.notification_type),
+                // Set explicitly (not IconButton's default) to match the reminder chip's icon
+                modifier = Modifier.size(dims.iconMd),
                 tint =
                     if (data.notificationType == NotificationType.OFF)
                         MaterialTheme.colorScheme.onSurfaceVariant
                     else MaterialTheme.colorScheme.primary
             )
         }
+
+        Spacer(Modifier.width(dims.spaceXs))
 
         ReminderChip(
             isSpecified = data.isExtraReminderOffsetSpecified,
@@ -441,7 +448,8 @@ private fun ReminderChip(
 
     Surface(
         onClick = onClick,
-        modifier = modifier.heightIn(min = dims.minTouchTarget - dims.spaceSm),
+        // Same height as the notification IconButton beside it (and a full touch target)
+        modifier = modifier.heightIn(min = dims.minTouchTarget),
         shape = CircleShape,
         color =
             if (isSpecified) MaterialTheme.colorScheme.secondaryContainer
@@ -451,7 +459,7 @@ private fun ReminderChip(
             else MaterialTheme.colorScheme.onSurfaceVariant
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = dims.spaceSm),
+            modifier = Modifier.padding(horizontal = dims.spaceMd),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
