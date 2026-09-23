@@ -280,4 +280,8 @@
     <string name="previous_section">السابق</string>
     <string name="next_section">التالي</string>
     <string name="continue_reading">متابعة القراءة</string>
+
+    <string name="today">اليوم</string>
+
+    <string name="prayers_no_location">حدد موقعك لعرض مواقيت الصلاة</string>
 </resources>

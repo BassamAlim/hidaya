@@ -103,4 +103,22 @@ class PrayersBoardDomain @Inject constructor(
         )
     }
 
+    /** The earliest of [candidates] still ahead today, or null once they've all passed. */
+    suspend fun getNextPrayer(
+        location: Location,
+        prayerTimesCalculatorSettings: PrayerTimeCalculatorSettings,
+        candidates: Set<Prayer>
+    ): Prayer? {
+        val now = System.currentTimeMillis()
+        return PrayerTimeUtils.getPrayerTimes(
+            settings = prayerTimesCalculatorSettings,
+            selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
+            location = location,
+            calendar = Calendar.getInstance()
+        ).mapNotNull { (prayer, time) ->
+            // Times can be null for prayers that don't occur at high latitudes
+            time?.timeInMillis?.takeIf { prayer in candidates && it > now }?.let { prayer to it }
+        }.minByOrNull { it.second }?.first
+    }
+
 }

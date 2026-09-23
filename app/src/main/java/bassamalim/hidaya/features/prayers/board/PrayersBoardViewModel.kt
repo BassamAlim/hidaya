@@ -15,11 +15,13 @@ import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import bassamalim.hidaya.features.prayers.notificationSettings.PrayerNotificationSettings
 import com.github.msarhan.ummalqura.calendar.UmmalquraCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -43,23 +45,43 @@ class PrayersBoardViewModel @Inject constructor(
     private val currentDate = Calendar.getInstance()
     private val viewedDate = Calendar.getInstance()
     private val prayerNames = domain.getPrayerNames()
+    // Re-evaluates which prayer is next while the board stays open
+    private val minuteTicks = flow {
+        while (true) {
+            emit(Unit)
+            delay(60_000)
+        }
+    }
 
     private val _uiState = MutableStateFlow(PrayersBoardUiState())
     val uiState = combine(
         _uiState.asStateFlow(),
         location,
         prayerSettings,
-        prayerTimesCalculatorSettings
-    ) { state, location, prayerSettings, prayerTimesCalculatorSettings ->
+        prayerTimesCalculatorSettings,
+        minuteTicks
+    ) { state, location, prayerSettings, prayerTimesCalculatorSettings, _ ->
         if (location != null) {
             val prayerTimeMap = domain.getTimes(
                 location = location,
                 date = viewedDate,
                 prayerTimesCalculatorSettings = prayerTimesCalculatorSettings
             )
+            val nextPrayer =
+                if (isSameDay(viewedDate, currentDate)) domain.getNextPrayer(
+                    location = location,
+                    prayerTimesCalculatorSettings = prayerTimesCalculatorSettings,
+                    candidates = prayerNames.keys
+                )
+                else null
             state.copy(
                 locationAvailable = true,
-                prayersData = getPrayersData(prayerTimeMap, prayerSettings),
+                prayersData = getPrayersData(
+                    prayerTimeMap = prayerTimeMap,
+                    prayerSettings = prayerSettings,
+                    isToday = isSameDay(viewedDate, currentDate),
+                    nextPrayer = nextPrayer
+                ),
                 locationName = getLocationName(location)
             )
         }
@@ -252,34 +274,36 @@ class PrayersBoardViewModel @Inject constructor(
     }
 
     private fun updateDate(newDate: Calendar) {
-        viewModelScope.launch {
-            val location = location.first() ?: return@launch
-            val prayerSettings = prayerSettings.first()
-            val prayerTimesCalculatorSettings = prayerTimesCalculatorSettings.first()
+        // Set first: the state update below makes uiState recompute the times for viewedDate
+        viewedDate.time = newDate.time
 
-            val prayerTimeMap = domain.getTimes(
-                location = location,
-                date = viewedDate,
-                prayerTimesCalculatorSettings = prayerTimesCalculatorSettings
-            )
-            _uiState.update { it.copy(
-                dateText = getDateText(newDate),
-                prayersData = getPrayersData(prayerTimeMap, prayerSettings),
-                noDateOffset = newDate == currentDate
-            )}
-
-            viewedDate.time = newDate.time
-        }
+        _uiState.update { it.copy(
+            dateText = getDateText(newDate),
+            noDateOffset = isSameDay(newDate, currentDate)
+        )}
     }
+
+    private fun isSameDay(a: Calendar, b: Calendar) =
+        a[Calendar.YEAR] == b[Calendar.YEAR] && a[Calendar.DAY_OF_YEAR] == b[Calendar.DAY_OF_YEAR]
 
     private fun getPrayersData(
         prayerTimeMap: SortedMap<Prayer, String>,
-        prayerSettings: Map<Prayer, PrayerNotificationSettings>
+        prayerSettings: Map<Prayer, PrayerNotificationSettings>,
+        isToday: Boolean,
+        nextPrayer: Prayer?
     ) = sortedMapOf<Prayer, PrayerCardData>().apply {
         prayerNames.forEach { (prayer, name) ->
             val settings = prayerSettings[prayer] ?: return@forEach
             this[prayer] = PrayerCardData(
-                text = "$name ${prayerTimeMap[prayer] ?: ""}",
+                name = name,
+                time = prayerTimeMap[prayer] ?: "",
+                status = when {
+                    !isToday -> PrayerCardData.Status.UPCOMING
+                    prayer == nextPrayer -> PrayerCardData.Status.NEXT
+                    // With no next prayer left, everything today has passed
+                    nextPrayer == null || prayer < nextPrayer -> PrayerCardData.Status.PASSED
+                    else -> PrayerCardData.Status.UPCOMING
+                },
                 notificationType = settings.notificationType,
                 isExtraReminderOffsetSpecified = settings.reminderOffset != 0,
                 extraReminderOffset = formatOffset(settings.reminderOffset)
@@ -297,23 +321,20 @@ class PrayersBoardViewModel @Inject constructor(
     }
 
     private fun getDateText(newDate: Calendar): String {
-        return if (newDate == currentDate) ""
-        else {
-            val hijri = UmmalquraCalendar()
-            hijri.time = newDate.time
+        val hijri = UmmalquraCalendar()
+        hijri.time = newDate.time
 
-            val year = translateNums(
-                numeralsLanguage = numeralsLanguage,
-                string = hijri[Calendar.YEAR].toString()
-            )
-            val month = domain.getHijriMonths()[hijri[Calendar.MONTH]]
-            val day = translateNums(
-                numeralsLanguage = numeralsLanguage,
-                string = hijri[Calendar.DATE].toString()
-            )
+        val year = translateNums(
+            numeralsLanguage = numeralsLanguage,
+            string = hijri[Calendar.YEAR].toString()
+        )
+        val month = domain.getHijriMonths()[hijri[Calendar.MONTH]]
+        val day = translateNums(
+            numeralsLanguage = numeralsLanguage,
+            string = hijri[Calendar.DATE].toString()
+        )
 
-            "$day $month $year"
-        }
+        return "$day $month $year"
     }
 
     private fun formatOffset(offset : Int): String {

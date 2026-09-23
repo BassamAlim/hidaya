@@ -287,4 +287,8 @@
     <string name="previous_section">Previous</string>
     <string name="next_section">Next</string>
     <string name="continue_reading">Continue reading</string>
+
+    <string name="today">Today</string>
+
+    <string name="prayers_no_location">Set your location to see prayer times</string>
 </resources>
