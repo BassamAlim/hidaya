@@ -44,13 +44,16 @@ class PrayerNotificationSettingsViewModel @Inject constructor(
         }
     }
 
+    /** A single choice, so picking an option applies it right away (no separate Save) */
     fun onNotificationTypeChange(notificationType: NotificationType) {
         _uiState.update { it.copy(
             notificationType = notificationType
         )}
+
+        save()
     }
 
-    fun onSave() {
+    private fun save() {
         viewModelScope.launch {
             domain.setNotificationType(_uiState.value.notificationType, prayer)
             domain.updateAlarm(_uiState.value.notificationType, prayer)

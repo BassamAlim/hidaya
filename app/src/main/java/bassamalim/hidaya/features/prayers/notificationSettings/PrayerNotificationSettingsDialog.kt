@@ -17,6 +17,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -25,16 +26,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.enums.NotificationType
 import bassamalim.hidaya.core.enums.Prayer
 import bassamalim.hidaya.core.ui.components.DialogDismissButton
-import bassamalim.hidaya.core.ui.components.DialogSubmitButton
 import bassamalim.hidaya.core.ui.components.DialogTitle
-import bassamalim.hidaya.core.ui.components.MyText
+import bassamalim.hidaya.core.ui.theme.appTypography
+import bassamalim.hidaya.core.ui.theme.dimensions
 
 @Composable
 fun PrayerNotificationSettingsDialog(viewModel: PrayerNotificationSettingsViewModel) {
@@ -42,10 +41,8 @@ fun PrayerNotificationSettingsDialog(viewModel: PrayerNotificationSettingsViewMo
 
     AlertDialog(
         onDismissRequest = viewModel::onDismiss,
-        dismissButton = { DialogDismissButton { viewModel.onDismiss() } },
-        confirmButton = {
-            DialogSubmitButton(text = stringResource(R.string.save), onSubmit = viewModel::onSave)
-        },
+        // Choosing an option saves and closes, so the only button left is Cancel
+        confirmButton = { DialogDismissButton { viewModel.onDismiss() } },
         title = {
             DialogTitle(String.format(stringResource(R.string.notification_type), state.prayerName))
         },
@@ -72,7 +69,7 @@ private fun NotificationTypesRadioGroup(
         modifier = Modifier
             .fillMaxWidth()
             .selectableGroup(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spaceXs),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Athan
@@ -127,9 +124,9 @@ private fun NotificationTypeOption(
                 onClick = onSelection,
                 role = Role.RadioButton
             )
-            .padding(6.dp),
+            .padding(MaterialTheme.dimensions.spaceSm),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spaceMd)
     ) {
         RadioButton(selected = isSelected, onClick = null)
 
@@ -141,9 +138,9 @@ private fun NotificationTypeOption(
                 else MaterialTheme.colorScheme.onSurface
         )
 
-        MyText(
+        Text(
             text = name,
-            fontSize = 20.sp,
+            style = MaterialTheme.appTypography.title,
             color =
                 if (isSelected) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurface

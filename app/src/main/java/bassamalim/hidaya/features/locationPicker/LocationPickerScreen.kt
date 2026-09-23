@@ -6,6 +6,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -13,14 +18,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.ui.components.CustomSearchBar
 import bassamalim.hidaya.core.ui.components.MyLazyColumn
+import bassamalim.hidaya.core.ui.components.MyListItem
 import bassamalim.hidaya.core.ui.components.MyScaffold
-import bassamalim.hidaya.core.ui.components.MySquareButton
 import bassamalim.hidaya.core.ui.components.MyTopBar
+import bassamalim.hidaya.core.ui.theme.dimensions
 
 @Composable
 fun LocationPickerScreen(viewModel: LocationPickerViewModel) {
@@ -50,8 +55,7 @@ fun LocationPickerScreen(viewModel: LocationPickerViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(padding)
-                .padding(horizontal = 5.dp),
+                .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             SearchComp(
@@ -79,7 +83,7 @@ private fun SearchComp(
         query = searchText,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 10.dp),
+            .padding(bottom = MaterialTheme.dimensions.spaceSm),
         hint = stringResource(
             when (mode) {
                 LocationPickerMode.COUNTRY -> R.string.countries_search_hint
@@ -100,12 +104,25 @@ private fun LocationItems(
         state = lazyListState,
         lazyList = {
             items(items, key = { it.id }) { item ->
-                MySquareButton(
-                    text = item.name,
-                    modifier = Modifier.fillMaxWidth(),
+                MyListItem(
+                    headline = item.name,
+                    leading = {
+                        Icon(
+                            imageVector = Icons.Outlined.LocationOn,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     onClick = { onSelect(item.id) }
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = MaterialTheme.dimensions.spaceLg),
+                    thickness = MaterialTheme.dimensions.dividerThickness,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                 )
             }
         }
     )
 }
+
