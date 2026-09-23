@@ -253,4 +253,13 @@
     <string name="morning_remembrances">Morning remembrances</string>
     <string name="evening_remembrances">Evening remembrances</string>
     <string name="your_progress">Your progress</string>
+
+    <string name="facing_qibla">You\'re facing the Qibla</string>
+    <string name="turn_right">Turn right %1$s</string>
+    <string name="turn_left">Turn left %1$s</string>
+    <string name="kaaba_distance">Distance to Kaaba</string>
+    <string name="accuracy_good">Good</string>
+    <string name="accuracy_moderate">Moderate</string>
+    <string name="accuracy_low">Low · tap to calibrate</string>
+    <string name="set_location">Set location</string>
 </resources>

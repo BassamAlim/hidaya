@@ -238,4 +238,13 @@
     <string name="morning_remembrances">أذكار الصباح</string>
     <string name="evening_remembrances">أذكار المساء</string>
     <string name="your_progress">إنجازك</string>
+
+    <string name="facing_qibla">أنت باتجاه القبلة</string>
+    <string name="turn_right">استدر يمينًا %1$s</string>
+    <string name="turn_left">استدر يسارًا %1$s</string>
+    <string name="kaaba_distance">المسافة إلى الكعبة</string>
+    <string name="accuracy_good">جيدة</string>
+    <string name="accuracy_moderate">متوسطة</string>
+    <string name="accuracy_low">ضعيفة · اضغط للمعايرة</string>
+    <string name="set_location">تحديد الموقع</string>
 </resources>
