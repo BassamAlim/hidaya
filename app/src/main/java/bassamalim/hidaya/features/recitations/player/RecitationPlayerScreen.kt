@@ -5,31 +5,50 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v4.media.session.PlaybackStateCompat.SHUFFLE_MODE_ALL
 import androidx.activity.compose.LocalActivity
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
@@ -38,9 +57,15 @@ import bassamalim.hidaya.core.ui.components.MyDownloadButton
 import bassamalim.hidaya.core.ui.components.MyIconButton
 import bassamalim.hidaya.core.ui.components.MyIconPlayerButton
 import bassamalim.hidaya.core.ui.components.MyProgressSlider
-import bassamalim.hidaya.core.ui.components.MyRow
 import bassamalim.hidaya.core.ui.components.MyScaffold
-import bassamalim.hidaya.core.ui.components.MyText
+import bassamalim.hidaya.core.ui.theme.appTypography
+import bassamalim.hidaya.core.ui.theme.dimensions
+import kotlin.math.sqrt
+
+private val CoverMaxSize = 320.dp
+private val SkipButtonSize = 56.dp
+private val PlayButtonSize = 80.dp
+private const val STAR_TURN_MILLIS = 60_000
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -55,10 +80,54 @@ fun RecitationPlayerScreen(viewModel: RecitationPlayerViewModel) {
         onDispose { viewModel.onStop(activity) }
     }
 
+    val dims = MaterialTheme.dimensions
+
     MyScaffold(
         title = stringResource(R.string.recitations),
-        bottomBar = {
-            BottomBar(
+        onBack = { viewModel.onBackPressed(activity) }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = dims.spaceXl, vertical = dims.spaceLg),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // The cover takes whatever height is left, so controls stay on screen in any size
+            BoxWithConstraints(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Cover(
+                    suraName = state.suraName,
+                    isPlaying = state.btnState == PlaybackStateCompat.STATE_PLAYING,
+                    modifier = Modifier.size(min(min(maxWidth, maxHeight), CoverMaxSize))
+                )
+            }
+
+            TrackInfo(reciterName = state.reciterName, narrationName = state.narrationName)
+
+            ProgressSection(
+                progress = viewModel.progress,
+                progressText = state.progress,
+                duration = viewModel.duration,
+                durationText = state.duration,
+                isEnabled = state.controlsEnabled,
+                onSliderChange = viewModel::onSliderChange,
+                onSliderChangeFinished = viewModel::onSliderChangeFinished
+            )
+
+            TransportControls(
+                playbackState = state.btnState,
+                isEnabled = state.controlsEnabled,
+                onPreviousTrackClick = viewModel::onPreviousTrackClick,
+                onPlayPauseClick = viewModel::onPlayPauseClick,
+                onNextTrackClick = viewModel::onNextTrackClick
+            )
+
+            SecondaryControls(
                 repeatMode = state.repeatMode,
                 shuffleMode = state.shuffleMode,
                 downloadState = state.downloadState,
@@ -66,173 +135,229 @@ fun RecitationPlayerScreen(viewModel: RecitationPlayerViewModel) {
                 onShuffleClick = viewModel::onShuffleClick,
                 onDownloadClick = viewModel::onDownloadClick
             )
-        },
-        onBack = { viewModel.onBackPressed(activity) }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            InfoSpace(
-                suraName = state.suraName,
-                narrationName = state.narrationName,
-                reciterName = state.reciterName
-            )
-
-            ProgressSpace(
-                progress = viewModel.progress,
-                progressText = state.progress,
-                duration = viewModel.duration,
-                durationText = state.duration,
-                playbackState = state.btnState,
-                areControlsEnabled = state.controlsEnabled,
-                onSliderChange = viewModel::onSliderChange,
-                onSliderChangeFinished = viewModel::onSliderChangeFinished,
-                onPreviousTrackClick = viewModel::onPreviousTrackClick,
-                onPlayPauseClick = viewModel::onPlayPauseClick,
-                onNextTrackClick = viewModel::onNextTrackClick
-            )
         }
     }
 }
 
 @Composable
-private fun InfoSpace(suraName: String, narrationName: String, reciterName: String) {
-    Box(
-        Modifier
-            .padding(horizontal = 10.dp)
-            .border(
-                width = 2.dp,
-                shape = RoundedCornerShape(10),
-                color = MaterialTheme.colorScheme.primary
-            )
+private fun Cover(suraName: String, isPlaying: Boolean, modifier: Modifier = Modifier) {
+    val dims = MaterialTheme.dimensions
+    val contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+
+    // Turns slowly while playing and holds its angle when paused
+    val rotation = remember { Animatable(0f) }
+    LaunchedEffect(isPlaying) {
+        if (isPlaying) {
+            while (true) {
+                rotation.animateTo(
+                    targetValue = rotation.value + 360f,
+                    animationSpec = tween(durationMillis = STAR_TURN_MILLIS, easing = LinearEasing)
+                )
+            }
+        }
+    }
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(dims.radiusLg * 2),
+        color = Color.Transparent,
+        contentColor = contentColor,
+        shadowElevation = dims.elevationMd
     ) {
-        Column(
-            modifier = Modifier.padding(vertical = 25.dp, horizontal = 75.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Box(
+            modifier = Modifier.background(
+                // Both ends stay close to primaryContainer, which onPrimaryContainer text is
+                // guaranteed to contrast with, so the name stays readable in every theme
+                Brush.linearGradient(
+                    listOf(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        lerp(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.primary,
+                            0.15f
+                        )
+                    )
+                )
+            ),
+            contentAlignment = Alignment.Center
         ) {
-            MyText(
-                text = suraName,
-                modifier = Modifier.padding(vertical = 10.dp),
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold
+            StarPattern(
+                color = contentColor.copy(alpha = 0.12f),
+                // Read in the draw phase so each frame only redraws, never recomposes
+                rotation = { rotation.value },
+                modifier = Modifier.fillMaxSize()
             )
 
-            MyText(
-                text = reciterName,
-                modifier = Modifier.padding(vertical = 10.dp),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+            Column(
+                modifier = Modifier.padding(dims.spaceXl),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(dims.spaceLg)
+            ) {
+                Text(
+                    text = stringResource(R.string.sura),
+                    style = MaterialTheme.appTypography.title,
+                    color = contentColor.copy(alpha = 0.7f)
+                )
 
-            MyText(
-                text = narrationName,
-                modifier = Modifier.padding(vertical = 10.dp),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Normal
-            )
+                Text(
+                    text = suraName,
+                    // Extra line height so diacritics on the name don't collide with the label
+                    style = MaterialTheme.appTypography.display.copy(
+                        fontSize = 40.sp,
+                        lineHeight = 56.sp
+                    ),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+/** An eight-pointed star (two overlapping squares) framed by two rings. */
+@Composable
+private fun StarPattern(color: Color, rotation: () -> Float, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val radius = size.minDimension * 0.4f
+        val side = radius * sqrt(2f)
+        val stroke = Stroke(width = 2.dp.toPx())
+
+        drawCircle(color = color, radius = radius * 1.1f, style = stroke)
+        drawCircle(color = color, radius = radius * 0.62f, style = stroke)
+
+        rotate(rotation()) {
+            repeat(2) { i ->
+                rotate(45f * i) {
+                    drawRect(
+                        color = color,
+                        topLeft = center - Offset(side / 2, side / 2),
+                        size = Size(side, side),
+                        style = stroke
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ProgressSpace(
+private fun TrackInfo(reciterName: String, narrationName: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = MaterialTheme.dimensions.spaceXl),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = reciterName,
+            style = MaterialTheme.appTypography.h1,
+            textAlign = TextAlign.Center
+        )
+
+        Text(
+            text = narrationName,
+            style = MaterialTheme.appTypography.body,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun ProgressSection(
     progress: Long,
     progressText: String,
     duration: Long,
     durationText: String,
-    playbackState: Int,
-    areControlsEnabled: Boolean,
+    isEnabled: Boolean,
     onSliderChange: (Float) -> Unit,
-    onSliderChangeFinished: () -> Unit,
+    onSliderChangeFinished: () -> Unit
+) {
+    Column(Modifier.padding(top = MaterialTheme.dimensions.spaceLg)) {
+        MyProgressSlider(
+            value = progress.toFloat(),
+            valueRange = 0F..duration.toFloat(),
+            modifier = Modifier.fillMaxWidth(),
+            enabled = isEnabled,
+            onValueChange = onSliderChange,
+            onValueChangeFinished = onSliderChangeFinished
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = progressText,
+                style = MaterialTheme.appTypography.caption,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Text(
+                text = durationText,
+                style = MaterialTheme.appTypography.caption,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun TransportControls(
+    playbackState: Int,
+    isEnabled: Boolean,
     onPreviousTrackClick: () -> Unit,
     onPlayPauseClick: () -> Unit,
     onNextTrackClick: () -> Unit
 ) {
-    Column(
+    val dims = MaterialTheme.dimensions
+
+    Row(
         modifier = Modifier
-            .fillMaxWidth(0.95f)
-            .clip(RoundedCornerShape(10))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxWidth()
+            .padding(vertical = dims.spaceSm),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dims.spaceXl, Alignment.CenterHorizontally)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
+        MyIconButton(
+            iconId = R.drawable.ic_skip_previous,
+            description = stringResource(R.string.previous_track_btn_description),
+            modifier = Modifier.size(SkipButtonSize),
+            iconSize = dims.iconXl,
+            iconColor = MaterialTheme.colorScheme.onSurface,
+            enabled = isEnabled,
+            onClick = onPreviousTrackClick
+        )
+
+        Surface(
+            modifier = Modifier.size(PlayButtonSize),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primary
         ) {
-            MyText(
-                text = progressText,
-                modifier = Modifier
-                    .weight(0.4f)
-                    .padding(horizontal = 10.dp),
-                fontSize = 19.sp
-            )
-
-            MyProgressSlider(
-                value = progress.toFloat(),
-                valueRange = 0F..duration.toFloat(),
-                modifier = Modifier.weight(1f),
-                enabled = areControlsEnabled,
-                onValueChange = onSliderChange,
-                onValueChangeFinished = onSliderChangeFinished
-            )
-
-            MyText(
-                text = durationText,
-                modifier = Modifier
-                    .weight(0.4f)
-                    .padding(horizontal = 10.dp),
-                fontSize = 19.sp
-            )
-        }
-
-        MyRow(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 16.dp)
-        ) {
-            MyIconButton(
-                iconId = R.drawable.ic_skip_previous,
-                description = stringResource(R.string.previous_track_btn_description),
-                modifier = Modifier.size(80.dp),
-                iconSize = 70.dp,
-                iconColor = MaterialTheme.colorScheme.primary,
-                enabled = areControlsEnabled,
-                onClick = onPreviousTrackClick
-            )
-
             MyIconPlayerButton(
                 state = playbackState,
-                enabled = areControlsEnabled,
-                modifier = Modifier.size(100.dp),
-                iconSize = 90.dp,
-                tint = MaterialTheme.colorScheme.primary,
+                enabled = isEnabled,
+                iconSize = dims.iconXl,
+                filled = false,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 onClick = onPlayPauseClick
             )
-
-            MyIconButton(
-                iconId = R.drawable.ic_skip_next,
-                description = stringResource(R.string.next_track_btn_description),
-                enabled = areControlsEnabled,
-                modifier = Modifier.size(80.dp),
-                iconSize = 70.dp,
-                iconColor = MaterialTheme.colorScheme.primary,
-                onClick = onNextTrackClick
-            )
         }
+
+        MyIconButton(
+            iconId = R.drawable.ic_skip_next,
+            description = stringResource(R.string.next_track_btn_description),
+            modifier = Modifier.size(SkipButtonSize),
+            iconSize = dims.iconXl,
+            iconColor = MaterialTheme.colorScheme.onSurface,
+            enabled = isEnabled,
+            onClick = onNextTrackClick
+        )
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-private fun BottomBar(
+private fun SecondaryControls(
     repeatMode: Int,
     shuffleMode: Int,
     downloadState: DownloadState,
@@ -240,39 +365,52 @@ private fun BottomBar(
     onShuffleClick: (Int) -> Unit,
     onDownloadClick: () -> Unit,
 ) {
-    BottomAppBar {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            MyIconButton(
-                imageVector = Icons.Default.Repeat,
-                description = stringResource(R.string.repeat_description),
-                onClick = { onRepeatClick(repeatMode) },
-                iconModifier = Modifier.size(30.dp),
-                iconColor =
-                    if (repeatMode == PlaybackStateCompat.REPEAT_MODE_ONE)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurface
-            )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = MaterialTheme.dimensions.spaceLg),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        ToggleButton(
+            // Only single-track repeat is toggled here, so it gets the "repeat one" icon when on
+            icon =
+                if (repeatMode == PlaybackStateCompat.REPEAT_MODE_ONE) Icons.Default.RepeatOne
+                else Icons.Default.Repeat,
+            description = stringResource(R.string.repeat_description),
+            isActive = repeatMode == PlaybackStateCompat.REPEAT_MODE_ONE,
+            onClick = { onRepeatClick(repeatMode) }
+        )
 
-            MyDownloadButton(
-                state = downloadState,
-                onClick = onDownloadClick,
-                iconSize = 30.dp
-            )
+        MyDownloadButton(
+            state = downloadState,
+            onClick = onDownloadClick,
+            iconSize = MaterialTheme.dimensions.iconMd
+        )
 
-            MyIconButton(
-                imageVector = Icons.Default.Shuffle,
-                description = stringResource(R.string.shuffle_description),
-                onClick = { onShuffleClick(shuffleMode) },
-                iconModifier = Modifier.size(30.dp),
-                iconColor =
-                    if (shuffleMode == SHUFFLE_MODE_ALL) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface
-            )
-        }
+        ToggleButton(
+            icon = Icons.Default.Shuffle,
+            description = stringResource(R.string.shuffle_description),
+            isActive = shuffleMode == SHUFFLE_MODE_ALL,
+            onClick = { onShuffleClick(shuffleMode) }
+        )
+    }
+}
+
+@Composable
+private fun ToggleButton(
+    icon: ImageVector,
+    description: String,
+    isActive: Boolean,
+    onClick: () -> Unit
+) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = icon,
+            contentDescription = description,
+            tint =
+                if (isActive) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
