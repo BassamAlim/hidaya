@@ -129,8 +129,6 @@ dependencies {
     implementation(libs.androidx.material3.adaptive.navigation.suite)
     implementation(libs.material)
     // Google
-    implementation(libs.accompanist.systemuicontroller)
-    implementation(libs.accompanist.pager.indicators)
     implementation(libs.play.services.location)
     implementation(libs.gson)
     // Firebase
