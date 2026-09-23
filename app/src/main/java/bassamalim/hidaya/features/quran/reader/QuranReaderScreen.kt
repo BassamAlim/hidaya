@@ -3,25 +3,27 @@ package bassamalim.hidaya.features.quran.reader
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.support.v4.media.session.PlaybackStateCompat
 import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -29,13 +31,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.DisplaySettings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -47,7 +49,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -68,13 +69,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.Globals
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.enums.QuranViewType
-import bassamalim.hidaya.core.models.QuranBookmarks
 import bassamalim.hidaya.core.models.Verse
 import bassamalim.hidaya.core.ui.components.LoadingScreen
 import bassamalim.hidaya.core.ui.components.MyHorizontalDivider
@@ -89,9 +88,15 @@ import bassamalim.hidaya.core.ui.theme.Bookmark1Color
 import bassamalim.hidaya.core.ui.theme.Bookmark2Color
 import bassamalim.hidaya.core.ui.theme.Bookmark3Color
 import bassamalim.hidaya.core.ui.theme.Bookmark4Color
+import bassamalim.hidaya.core.ui.theme.appTypography
+import bassamalim.hidaya.core.ui.theme.dimensions
 import bassamalim.hidaya.core.ui.theme.hafs_smart
 import bassamalim.hidaya.core.ui.theme.nsp
 import bassamalim.hidaya.core.ui.theme.uthmanic_hafs
+import bassamalim.hidaya.features.quran.surasMenu.BookmarkItem
+import kotlinx.coroutines.delay
+
+private const val BARS_AUTO_HIDE_MILLIS = 5000L
 
 @Composable
 fun QuranReaderScreen(viewModel: QuranReaderViewModel) {
@@ -99,7 +104,6 @@ fun QuranReaderScreen(viewModel: QuranReaderViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
     val activity = LocalActivity.current!!
     val configuration = LocalConfiguration.current
-    val noBookmarkMessage = stringResource(R.string.no_bookmarked_page)
 
     if (state.isLoading) return LoadingScreen()
 
@@ -125,13 +129,19 @@ fun QuranReaderScreen(viewModel: QuranReaderViewModel) {
         KeepScreenOn(activity)
     }
 
-    var tapCount by remember { mutableIntStateOf(0) }
     var barsVisible by remember { mutableStateOf(false) }
+    // Bumped by page taps and by any bar button, restarting the auto-hide countdown
+    var lastInteraction by remember { mutableIntStateOf(0) }
+    val onInteraction = {
+        barsVisible = true
+        lastInteraction++
+    }
+    val isPlaying = state.playerState == PlaybackStateCompat.STATE_PLAYING
 
-    LaunchedEffect(tapCount) {
-        if (tapCount > 0) {
-            barsVisible = true
-            delay(3000)
+    LaunchedEffect(barsVisible, lastInteraction, isPlaying, state.isBookmarksSheetShown) {
+        // Stays up while listening or picking a bookmark: that's when the controls are needed
+        if (barsVisible && !isPlaying && !state.isBookmarksSheetShown) {
+            delay(BARS_AUTO_HIDE_MILLIS)
             barsVisible = false
         }
     }
@@ -190,7 +200,7 @@ fun QuranReaderScreen(viewModel: QuranReaderViewModel) {
                 onSuraHeaderGloballyPositioned = viewModel::onSuraHeaderGloballyPositioned,
                 onVerseGloballyPositioned = viewModel::onVerseGloballyPositioned,
                 onVersePointerInput = viewModel::onVersePointerInput,
-                onContentTap = { tapCount++ },
+                onContentTap = onInteraction,
                 configuration = configuration
             )
 
@@ -203,31 +213,40 @@ fun QuranReaderScreen(viewModel: QuranReaderViewModel) {
         AnimatedBottomBar(
             visible = barsVisible || state.isTutorialActive,
             playerState = state.playerState,
-            onBookmarksClick = viewModel::onBookmarksClick,
-            bookmarkOptionsExpanded = state.bookmarkOptionsExpanded,
-            bookmarks = state.bookmarks,
-            onBookmarkOptionClick = { verseId ->
-                viewModel.onBookmarkOptionClick(
-                    verseId = verseId,
-                    snackbarHostState = snackbarHostState,
-                    message = noBookmarkMessage
-                )
+            onBookmarksClick = {
+                onInteraction()
+                viewModel.onBookmarksClick()
             },
-            onPreviousVerseClick = viewModel::onPreviousVerseClick,
+            onPreviousVerseClick = {
+                onInteraction()
+                viewModel.onPreviousVerseClick()
+            },
             onPlayPauseClick = {
+                onInteraction()
                 viewModel.onPlayPauseClick(
                     activity = activity,
                     snackbarHostState = snackbarHostState,
                     message = featureNotFoundMessage
                 )
             },
-            onNextVerseClick = viewModel::onNextVerseClick,
+            onNextVerseClick = {
+                onInteraction()
+                viewModel.onNextVerseClick()
+            },
             onSettingsClick = viewModel::onSettingsClick,
             playButtonModifier = Modifier.tutorialTarget(tutorialState, "reader_play")
         )
         }
 
         TutorialOverlay(state = tutorialState)
+    }
+
+    if (state.isBookmarksSheetShown) {
+        BookmarksSheet(
+            bookmarks = state.bookmarks,
+            onBookmarkClick = viewModel::onBookmarkClick,
+            onDismiss = viewModel::onBookmarksSheetDismiss
+        )
     }
 }
 
@@ -278,9 +297,6 @@ private fun AnimatedBottomBar(
     visible: Boolean,
     playerState: Int,
     onBookmarksClick: () -> Unit,
-    bookmarkOptionsExpanded: Boolean,
-    bookmarks: QuranBookmarks,
-    onBookmarkOptionClick: (Int?) -> Unit,
     onPreviousVerseClick: () -> Unit,
     onPlayPauseClick: () -> Unit,
     onNextVerseClick: () -> Unit,
@@ -295,9 +311,6 @@ private fun AnimatedBottomBar(
         BottomBar(
             playerState = playerState,
             onBookmarksClick = onBookmarksClick,
-            bookmarkOptionsExpanded = bookmarkOptionsExpanded,
-            bookmarks = bookmarks,
-            onBookmarkOptionClick = onBookmarkOptionClick,
             onPreviousVerseClick = onPreviousVerseClick,
             onPlayPauseClick = onPlayPauseClick,
             onNextVerseClick = onNextVerseClick,
@@ -311,9 +324,6 @@ private fun AnimatedBottomBar(
 private fun BottomBar(
     playerState: Int,
     onBookmarksClick: () -> Unit,
-    bookmarkOptionsExpanded: Boolean,
-    bookmarks: QuranBookmarks,
-    onBookmarkOptionClick: (Int?) -> Unit,
     onPreviousVerseClick: () -> Unit,
     onPlayPauseClick: () -> Unit,
     onNextVerseClick: () -> Unit,
@@ -328,140 +338,119 @@ private fun BottomBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Bookmark button
-            Box(
-                modifier = if (bookmarkOptionsExpanded) Modifier.fillMaxSize() else Modifier,
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    MyIconButton(
-                        imageVector = Icons.Default.Bookmarks,
-                        description = stringResource(R.string.bookmark_verse_button_description),
-                        modifier = Modifier
-                            .zIndex(1f)
-                            .padding(end = if (bookmarkOptionsExpanded) 32.dp else 0.dp),
-                        iconModifier = Modifier
-                            .size(36.dp)
-                            .padding(2.dp),
-                        onClick = onBookmarksClick
-                    )
+            MyIconButton(
+                imageVector = Icons.Default.Bookmarks,
+                description = stringResource(R.string.bookmark_verse_button_description),
+                iconModifier = Modifier
+                    .size(36.dp)
+                    .padding(2.dp),
+                onClick = onBookmarksClick
+            )
 
-                    BookmarkOptionButtons(
-                        isExpanded = bookmarkOptionsExpanded,
-                        bookmarks = bookmarks,
-                        onBookmarkOptionClick = onBookmarkOptionClick
-                    )
-                }
-            }
-
-            if (!bookmarkOptionsExpanded) {
-                Row {
-                    // Skip to previous button
-                    MyIconButton(
-                        iconId = R.drawable.ic_skip_previous,
-                        description = stringResource(R.string.rewind_btn_description),
-                        iconSize = 40.dp,
-                        onClick = onPreviousVerseClick
-                    )
-
-                    // Play/Pause button
-                    Box (playButtonModifier.padding(horizontal = 4.dp)) {
-                        MyIconPlayerButton(
-                            state = playerState,
-                            onClick = { onPlayPauseClick() },
-                            iconSize = 40.dp,
-                            filled = false
-                        )
-                    }
-
-                    // Skip to next button
-                    MyIconButton(
-                        iconId = R.drawable.ic_skip_next,
-                        description = stringResource(R.string.fast_forward_btn_description),
-                        iconSize = 40.dp,
-                        onClick = onNextVerseClick
-                    )
-                }
-
-                // Preference button
+            Row {
+                // Skip to previous button
                 MyIconButton(
-                    imageVector = Icons.Default.DisplaySettings,
-                    description = stringResource(R.string.settings),
-                    iconModifier = Modifier
-                        .size(40.dp)
-                        .padding(2.dp),
-                    onClick = onSettingsClick
+                    iconId = R.drawable.ic_skip_previous,
+                    description = stringResource(R.string.rewind_btn_description),
+                    iconSize = 40.dp,
+                    onClick = onPreviousVerseClick
+                )
+
+                // Play/Pause button
+                Box (playButtonModifier.padding(horizontal = 4.dp)) {
+                    MyIconPlayerButton(
+                        state = playerState,
+                        onClick = { onPlayPauseClick() },
+                        iconSize = 40.dp,
+                        filled = false
+                    )
+                }
+
+                // Skip to next button
+                MyIconButton(
+                    iconId = R.drawable.ic_skip_next,
+                    description = stringResource(R.string.fast_forward_btn_description),
+                    iconSize = 40.dp,
+                    onClick = onNextVerseClick
                 )
             }
+
+            // Preference button
+            MyIconButton(
+                imageVector = Icons.Default.DisplaySettings,
+                description = stringResource(R.string.settings),
+                iconModifier = Modifier
+                    .size(40.dp)
+                    .padding(2.dp),
+                onClick = onSettingsClick
+            )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BookmarkOptionButtons(
-    isExpanded: Boolean,
-    bookmarks: QuranBookmarks,
-    onBookmarkOptionClick: (Int?) -> Unit
+private fun BookmarksSheet(
+    bookmarks: List<BookmarkItem>,
+    onBookmarkClick: (Int) -> Unit,
+    onDismiss: () -> Unit
 ) {
-    // Bookmark1 FAB
-    BookmarkOptionButton(
-        isExpanded = isExpanded,
-        verseId = bookmarks.bookmark1VerseId,
-        color = Bookmark1Color,
-        widthOffset = 1.3f,
-        onBookmarkOptionClick = onBookmarkOptionClick
-    )
+    val dims = MaterialTheme.dimensions
+    val colors = listOf(Bookmark1Color, Bookmark2Color, Bookmark3Color, Bookmark4Color)
 
-    // Bookmark2 FAB
-    BookmarkOptionButton(
-        isExpanded = isExpanded,
-        verseId = bookmarks.bookmark2VerseId,
-        color = Bookmark2Color,
-        widthOffset = 2.6f,
-        onBookmarkOptionClick = onBookmarkOptionClick
-    )
-
-    // Bookmark3 FAB
-    BookmarkOptionButton(
-        isExpanded = isExpanded,
-        verseId = bookmarks.bookmark3VerseId,
-        color = Bookmark3Color,
-        widthOffset = 3.9f,
-        onBookmarkOptionClick = onBookmarkOptionClick
-    )
-
-    // Bookmark4 FAB
-    BookmarkOptionButton(
-        isExpanded = isExpanded,
-        verseId = bookmarks.bookmark4VerseId,
-        color = Bookmark4Color,
-        widthOffset = 5.2f,
-        onBookmarkOptionClick = onBookmarkOptionClick
-    )
-}
-
-@Composable
-private fun BookmarkOptionButton(
-    isExpanded: Boolean,
-    verseId: Int?,
-    color: Color,
-    widthOffset: Float,
-    onBookmarkOptionClick: (Int?) -> Unit
-) {
-    AnimatedVisibility(
-        visible = isExpanded,
-        enter = slideInHorizontally(initialOffsetX = { width -> (width * widthOffset).toInt() }),
-        exit = slideOutHorizontally(targetOffsetX = { width -> (width * widthOffset).toInt() })
-    ) {
-        MyIconButton(
-            imageVector =
-                if (verseId != null) Icons.Default.Bookmark
-                else Icons.Default.BookmarkBorder,
-            description = stringResource(R.string.bookmarked_verse),
-            onClick = { onBookmarkOptionClick(verseId) },
-            iconModifier = Modifier.size(32.dp),
-            iconColor = color
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Text(
+            text = stringResource(R.string.bookmarked_verses),
+            modifier = Modifier.padding(
+                horizontal = dims.screenPaddingHorizontal,
+                vertical = dims.spaceSm
+            ),
+            style = MaterialTheme.appTypography.headline
         )
+
+        if (bookmarks.isEmpty()) {
+            Text(
+                text = stringResource(R.string.no_bookmarked_page),
+                modifier = Modifier.padding(
+                    horizontal = dims.screenPaddingHorizontal,
+                    vertical = dims.spaceLg
+                ),
+                style = MaterialTheme.appTypography.body,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        bookmarks.forEach { bookmark ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onBookmarkClick(bookmark.verseId) }
+                    .padding(
+                        horizontal = dims.screenPaddingHorizontal,
+                        vertical = dims.spaceMd
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Bookmark,
+                    contentDescription = null,
+                    tint = colors[bookmark.index]
+                )
+
+                Spacer(Modifier.width(dims.spaceMd))
+
+                Text(
+                    text = stringResource(
+                        R.string.bookmark_label,
+                        bookmark.suraName,
+                        bookmark.verseNumText
+                    ),
+                    style = MaterialTheme.appTypography.title
+                )
+            }
+        }
+
+        Spacer(Modifier.height(dims.spaceLg))
     }
 }
 

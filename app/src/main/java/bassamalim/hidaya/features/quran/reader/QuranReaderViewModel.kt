@@ -34,6 +34,7 @@ import bassamalim.hidaya.core.nav.Screen
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import bassamalim.hidaya.core.utils.report
 import bassamalim.hidaya.features.quran.reader.versePlayer.VersePlayerService
+import bassamalim.hidaya.features.quran.surasMenu.BookmarkItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -96,7 +97,29 @@ class QuranReaderViewModel @Inject constructor(
             keepScreenOn = keepScreenOn
         )
     }.combine(domain.getBookmarks()) { state, bookmarks ->
-        state.copy(bookmarks = bookmarks)
+        // Verses and names load with the rest of the data, so wait for it
+        if (state.isLoading) return@combine state
+
+        state.copy(
+            bookmarks = listOf(
+                bookmarks.bookmark1VerseId,
+                bookmarks.bookmark2VerseId,
+                bookmarks.bookmark3VerseId,
+                bookmarks.bookmark4VerseId
+            ).mapIndexedNotNull { index, verseId ->
+                val verse = allVerses.firstOrNull { it.id == verseId }
+                    ?: return@mapIndexedNotNull null
+                BookmarkItem(
+                    index = index,
+                    verseId = verse.id,
+                    suraName = suraNames[verse.suraNum - 1],
+                    verseNumText = translateNums(
+                        string = verse.num.toString(),
+                        numeralsLanguage = numeralsLanguage
+                    )
+                )
+            }
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
@@ -250,22 +273,15 @@ class QuranReaderViewModel @Inject constructor(
     }
 
     fun onBookmarksClick() {
-        _uiState.update { it.copy(
-            bookmarkOptionsExpanded = !it.bookmarkOptionsExpanded
-        )}
+        _uiState.update { it.copy(isBookmarksSheetShown = true) }
     }
 
-    fun onBookmarkOptionClick(
-        verseId: Int?,
-        snackbarHostState: SnackbarHostState,
-        message: String
-    ) {
-        if (verseId == null) {
-            viewModelScope.launch {
-                snackbarHostState.showSnackbar(message)
-            }
-            return
-        }
+    fun onBookmarksSheetDismiss() {
+        _uiState.update { it.copy(isBookmarksSheetShown = false) }
+    }
+
+    fun onBookmarkClick(verseId: Int) {
+        _uiState.update { it.copy(isBookmarksSheetShown = false) }
 
         viewModelScope.launch {
             val targetPageNum = domain.getVersePageNum(verseId)

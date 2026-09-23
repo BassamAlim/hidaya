@@ -2,8 +2,8 @@ package bassamalim.hidaya.features.quran.reader
 
 import android.support.v4.media.session.PlaybackStateCompat
 import bassamalim.hidaya.core.enums.QuranViewType
-import bassamalim.hidaya.core.models.QuranBookmarks
 import bassamalim.hidaya.core.models.Verse
+import bassamalim.hidaya.features.quran.surasMenu.BookmarkItem
 
 data class QuranReaderUiState(
     val isLoading: Boolean = true,
@@ -18,8 +18,8 @@ data class QuranReaderUiState(
     val textSize: Float = 15f,
     val keepScreenOn: Boolean = false,
     val playerState: Int = PlaybackStateCompat.STATE_STOPPED,
-    val bookmarks: QuranBookmarks = QuranBookmarks(),
-    val bookmarkOptionsExpanded: Boolean = false,
+    val bookmarks: List<BookmarkItem> = emptyList(),
+    val isBookmarksSheetShown: Boolean = false,
     val isTutorialActive: Boolean = false,
     val navigateToPage: Int? = null,
     val scrollToVersePosition: Float? = null
