@@ -44,6 +44,7 @@ import bassamalim.hidaya.core.enums.ThemeColor
 import bassamalim.hidaya.core.helpers.ReceiverWrapper
 import bassamalim.hidaya.core.ui.theme.getThemeColor
 import bassamalim.hidaya.core.utils.LangUtils
+import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.features.recitations.RecitationMediaId
 import bassamalim.hidaya.features.recitations.recitersMenu.LastPlayedMedia
 import bassamalim.hidaya.features.recitations.recitersMenu.Recitation
@@ -160,6 +161,11 @@ class RecitationPlayerService : MediaBrowserServiceCompat(),
             }
         }
     )
+
+    // Notification text etc. in the app language (Services don't get it from AppCompat < API 33)
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(newBase.withAppLocale())
+    }
 
     override fun onCreate() {
         println("OnCreate")

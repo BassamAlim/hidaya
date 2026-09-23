@@ -35,6 +35,7 @@ import bassamalim.hidaya.core.data.repositories.PrayersRepository
 import bassamalim.hidaya.core.enums.Prayer
 import bassamalim.hidaya.core.models.Location
 import bassamalim.hidaya.core.utils.LangUtils
+import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
@@ -55,6 +56,8 @@ class NextPrayerWidget(
 ) : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val context = context.withAppLocale()  // app language, not the device's (pre-API 33)
+
         val data = withContext(dispatcher) {
             getNextPrayerData(context)
         }

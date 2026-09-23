@@ -22,6 +22,7 @@ import bassamalim.hidaya.core.models.Narration
 import bassamalim.hidaya.core.models.Recitation
 import bassamalim.hidaya.core.models.Reciter
 import bassamalim.hidaya.core.utils.FileUtils
+import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.features.recitations.RecitationMediaId
 import bassamalim.hidaya.features.recitations.recitersMenu.LastPlayedMedia
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -85,7 +86,8 @@ class RecitationsRepository @Inject constructor(
             FirebaseCrashlytics.getInstance().recordException(e)
             // Callers enqueue from background threads
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(app, app.getString(R.string.download_failed), Toast.LENGTH_LONG)
+                val context = app.withAppLocale()
+                Toast.makeText(context, context.getString(R.string.download_failed), Toast.LENGTH_LONG)
                     .show()
             }
             null

@@ -2,8 +2,9 @@ package bassamalim.hidaya.core.widgets
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
+import android.view.View
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -32,6 +33,7 @@ import bassamalim.hidaya.core.data.repositories.PrayersRepository
 import bassamalim.hidaya.core.enums.Prayer
 import bassamalim.hidaya.core.models.Location
 import bassamalim.hidaya.core.utils.LangUtils
+import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
@@ -52,6 +54,8 @@ class PrayersWidget(
 ) : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val context = context.withAppLocale()  // app language, not the device's (pre-API 33)
+
         val items = withContext(dispatcher) {
             getPrayerItems(context)
         }
@@ -83,7 +87,7 @@ class PrayersWidget(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = stringResource(R.string.error_fetching_data),
+                        text = context.getString(R.string.error_fetching_data),
                         style = TextStyle(
                             color = GlanceTheme.colors.onSurface,
                             textAlign = TextAlign.Center
@@ -153,9 +157,15 @@ class PrayersWidget(
             prayer != Prayer.SUNRISE && prayer != Prayer.SUNSET && time != null && time.after(now)
         }?.key
 
+        // Glance has no layout direction: the launcher lays the Row out in the *device* direction.
+        // Fajr should lead in the *app* direction, so reverse only when the two differ.
+        val isAppRtl = context.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
+        val isHostRtl =
+            Resources.getSystem().configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
+
         return prayerTimes.keys
             .filter { it != Prayer.SUNRISE && it != Prayer.SUNSET }
-            .reversed()
+            .let { if (isAppRtl != isHostRtl) it.reversed() else it }
             .map { prayer ->
                 PrayerWidgetItem(
                     name = getPrayerName(prayer, prayerNames),

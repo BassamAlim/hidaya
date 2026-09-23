@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioAttributes
@@ -30,6 +31,7 @@ import bassamalim.hidaya.core.enums.Reminder
 import bassamalim.hidaya.core.enums.StartAction
 import bassamalim.hidaya.core.enums.ThemeColor
 import bassamalim.hidaya.core.ui.theme.getThemeColor
+import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -54,6 +56,11 @@ class AthanService : Service() {
      * end (it then becomes the prayer notification), but not when the user stopped it.
      */
     private var keepNotificationOnStop = false
+
+    // Notification text in the app language (Services don't get it from AppCompat < API 33)
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(newBase.withAppLocale())
+    }
 
     override fun onCreate() {
         super.onCreate()

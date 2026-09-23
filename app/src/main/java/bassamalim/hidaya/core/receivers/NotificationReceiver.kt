@@ -31,6 +31,7 @@ import bassamalim.hidaya.core.enums.ThemeColor
 import bassamalim.hidaya.core.nav.Screen
 import bassamalim.hidaya.core.services.AthanService
 import bassamalim.hidaya.core.ui.theme.getThemeColor
+import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.features.quran.reader.QuranTarget
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -52,7 +53,8 @@ class NotificationReceiver : BroadcastReceiver() {
     private var channelId = ""
 
     override fun onReceive(context: Context, intent: Intent) {
-        val appContext = context.applicationContext
+        // In the app language, not the device's (matters before API 33)
+        val appContext = context.applicationContext.withAppLocale()
 
         val reminder = Reminder.getById(intent.getIntExtra("id", -1))
         Log.d(Globals.TAG, "notification receiver: received $reminder")

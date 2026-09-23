@@ -41,6 +41,7 @@ import bassamalim.hidaya.core.enums.ThemeColor
 import bassamalim.hidaya.core.helpers.ReceiverWrapper
 import bassamalim.hidaya.core.ui.theme.getThemeColor
 import bassamalim.hidaya.core.utils.LangUtils
+import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -131,6 +132,11 @@ class VersePlayerService : MediaBrowserServiceCompat(), OnAudioFocusChangeListen
             }
         }
     )
+
+    // Notification text etc. in the app language (Services don't get it from AppCompat < API 33)
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(newBase.withAppLocale())
+    }
 
     override fun onCreate() {
         super.onCreate()

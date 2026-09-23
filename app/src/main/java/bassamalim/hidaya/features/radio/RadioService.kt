@@ -35,6 +35,7 @@ import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
 import bassamalim.hidaya.core.enums.ThemeColor
 import bassamalim.hidaya.core.helpers.ReceiverWrapper
 import bassamalim.hidaya.core.ui.theme.getThemeColor
+import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -112,6 +113,11 @@ class RadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
             }
         }
     )
+
+    // Notification text etc. in the app language (Services don't get it from AppCompat < API 33)
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(newBase.withAppLocale())
+    }
 
     override fun onCreate() {
         super.onCreate()

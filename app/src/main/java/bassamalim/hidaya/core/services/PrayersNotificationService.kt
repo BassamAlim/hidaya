@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
@@ -24,6 +25,7 @@ import bassamalim.hidaya.core.models.Location
 import bassamalim.hidaya.core.receivers.NotificationReceiver
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.LangUtils.translateTimeNums
+import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -83,6 +85,11 @@ class PrayersNotificationService : Service() {
         val nextPrayerIsTomorrow: Boolean,
         val devotionalReminders: Map<Reminder.Devotional, Calendar>
     )
+
+    // Notification text in the app language (Services don't get it from AppCompat < API 33)
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(newBase.withAppLocale())
+    }
 
     override fun onCreate() {
         super.onCreate()

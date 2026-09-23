@@ -1,12 +1,18 @@
 package bassamalim.hidaya.core.utils
 
+import android.content.Context
+import android.content.res.Configuration
+import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import bassamalim.hidaya.core.enums.Language
 import java.util.Locale
 
 object LangUtils {
 
+    private const val LOCALE_PREFS = "app_locale"
+    private const val LOCALE_KEY = "language_tags"
     private val enNums = arrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
     private val arNums = arrayOf('٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩')
 
@@ -15,6 +21,41 @@ object LangUtils {
         val languageTag = appLocale.toLanguageTags()
         return getTagLanguage(languageTag)
     }
+
+    /**
+     * Before API 33, AppCompat applies the app language to Activities only, so strings from an
+     * Application or Service context come out in the device language. Use this for those.
+     */
+    fun Context.withAppLocale(): Context {
+        val locale = AppCompatDelegate.getApplicationLocales()[0]
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU || locale == null) return this
+
+        val config = Configuration(resources.configuration).apply { setLocale(locale) }
+        return createConfigurationContext(config)
+    }
+
+    /**
+     * Before API 33, AppCompat only loads the saved app language when an Activity is created, so
+     * a process started for an alarm or service (e.g. athan) sees no language at all. We keep a
+     * copy of it, saved from the Activity and restored at process start.
+     */
+    fun saveAppLocale(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) return
+
+        val tags = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+        if (tags.isNotEmpty()) localePrefs(context).edit { putString(LOCALE_KEY, tags) }
+    }
+
+    fun restoreAppLocale(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+            || !AppCompatDelegate.getApplicationLocales().isEmpty) return
+
+        val tags = localePrefs(context).getString(LOCALE_KEY, null) ?: return
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tags))
+    }
+
+    private fun localePrefs(context: Context) =
+        context.getSharedPreferences(LOCALE_PREFS, Context.MODE_PRIVATE)
 
     fun setAppLanguage(language: Language) {
         val appLocale = languageToLocaleList(language)

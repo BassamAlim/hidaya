@@ -59,6 +59,7 @@ class Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = setupSplashScreen()
         super.onCreate(savedInstanceState)
+        LangUtils.saveAppLocale(this)  // so alarm/service processes can restore it
 
         lifecycleScope.launch {
             try {
