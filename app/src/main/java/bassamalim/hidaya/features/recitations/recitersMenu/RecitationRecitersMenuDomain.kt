@@ -1,25 +1,13 @@
 package bassamalim.hidaya.features.recitations.recitersMenu
 
-import android.app.Activity
 import android.app.Application
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.media.AudioManager
-import android.os.Build
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import androidx.annotation.OptIn
-import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
-import androidx.media3.common.util.UnstableApi
-import bassamalim.hidaya.core.Globals
 import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
 import bassamalim.hidaya.core.data.repositories.QuranRepository
 import bassamalim.hidaya.core.data.repositories.RecitationsRepository
@@ -30,14 +18,15 @@ import bassamalim.hidaya.core.utils.FileUtils
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.features.quran.surasMenu.RecitationInfo
 import bassamalim.hidaya.features.recitations.RecitationMediaId
-import bassamalim.hidaya.features.recitations.player.RecitationPlayerService
 import java.io.File
 import java.util.Locale
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
+@Singleton
 class RecitationRecitersMenuDomain @Inject constructor(
     private val app: Application,
     private val recitationsRepository: RecitationsRepository,
@@ -45,10 +34,6 @@ class RecitationRecitersMenuDomain @Inject constructor(
     private val appSettingsRepository: AppSettingsRepository
 ) {
 
-    private lateinit var activity: Activity
-    private var mediaBrowser: MediaBrowserCompat? = null
-    private lateinit var controller: MediaControllerCompat
-    private lateinit var tc: MediaControllerCompat.TransportControls
     private val searcher = Searcher<Recitation>()
     private val downloadReceiver = ReceiverWrapper(
         context = app,
@@ -207,68 +192,5 @@ class RecitationRecitersMenuDomain @Inject constructor(
             query = searchText,
             keySelector = { recitation -> recitation.reciterName }
         )
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    @OptIn(UnstableApi::class)
-    fun connect(
-        activity: Activity,
-        connectionCallbacks: MediaBrowserCompat.ConnectionCallback
-    ) {
-        this.activity = activity
-
-        mediaBrowser = MediaBrowserCompat(
-            activity,
-            ComponentName(activity, RecitationPlayerService::class.java),
-            connectionCallbacks,
-            null
-        )
-        mediaBrowser?.connect()
-
-        activity.volumeControlStream = AudioManager.STREAM_MUSIC
-    }
-
-    fun isConnected() = mediaBrowser?.isConnected == true
-
-    fun initializeController(controllerCallback: MediaControllerCompat.Callback) {
-        Log.d(Globals.TAG, "in initializeController of RecitationPlayerDomain")
-
-        // Get the token for the MediaSession
-        val token = mediaBrowser!!.sessionToken
-
-        // Create a MediaControllerCompat
-        val mediaController = MediaControllerCompat(activity, token)
-
-        // Save the controller
-        MediaControllerCompat.setMediaController(activity, mediaController)
-
-        controller = MediaControllerCompat.getMediaController(activity)
-        tc = controller.transportControls
-
-        // Register a Callback to stay in sync
-        controller.registerCallback(controllerCallback)
-    }
-
-    fun pause() = tc.pause()
-
-    fun resume() = tc.play()
-
-    fun getState() = controller.playbackState.state
-
-    fun getMetadata(): MediaMetadataCompat = controller.metadata
-
-    fun getPlaybackState(): PlaybackStateCompat = controller.playbackState
-
-    fun disconnectMediaBrowser() {
-        mediaBrowser?.disconnect()
-    }
-
-    fun stopMediaBrowser(controllerCallback: MediaControllerCompat.Callback) {
-        downloadReceiver.unregister()
-
-        MediaControllerCompat.getMediaController(activity)
-            ?.unregisterCallback(controllerCallback)
-
-        disconnectMediaBrowser()
-    }
 
 }

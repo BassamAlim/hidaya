@@ -6,7 +6,9 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.utils.LangUtils
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class RemembranceReaderDomain @Inject constructor(
     private val remembrancesRepository: RemembrancesRepository,
     private val appSettingsRepository: AppSettingsRepository

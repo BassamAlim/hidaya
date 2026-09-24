@@ -2,14 +2,9 @@ package bassamalim.hidaya.features.recitations.recitersMenu
 
 import android.app.Activity
 import android.os.Build
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.PlaybackStateCompat
-import android.support.v4.media.session.PlaybackStateCompat.STATE_NONE
-import android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED
-import android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING
+import android.media.AudioManager
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
@@ -17,12 +12,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
+import androidx.media3.session.MediaController
 import bassamalim.hidaya.core.Globals
 import bassamalim.hidaya.core.enums.DownloadState
 import bassamalim.hidaya.core.enums.MenuType
+import bassamalim.hidaya.core.helpers.PlayerConnection
+import bassamalim.hidaya.core.helpers.playbackStatus
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
 import bassamalim.hidaya.features.quran.surasMenu.RecitationInfo
+import bassamalim.hidaya.features.recitations.player.RecitationPlayerService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +35,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.O)
+@OptIn(UnstableApi::class)
 @HiltViewModel
 class RecitationRecitersMenuViewModel @Inject constructor(
     private val domain: RecitationRecitersMenuDomain,
@@ -71,20 +73,26 @@ class RecitationRecitersMenuViewModel @Inject constructor(
         }
     }
 
+    private var connection: PlayerConnection? = null
+
     fun onStart(activity: Activity) {
         Log.i(Globals.TAG, "in onStart of RecitationsRecitersViewModel")
 
-        viewModelScope.launch {
-            domain.connect(activity = activity, connectionCallbacks = connectionCallbacks)
+        connection = PlayerConnection(
+            context = activity.applicationContext,
+            service = RecitationPlayerService::class.java,
+            onChange = ::onPlayerChange
+        )
+        activity.volumeControlStream = AudioManager.STREAM_MUSIC
 
-            domain.registerDownloadReceiver()
-        }
+        domain.registerDownloadReceiver()
     }
 
     fun onStop() {
         Log.i(Globals.TAG, "in onStop of RecitationsRecitersViewModel")
 
-        domain.stopMediaBrowser(controllerCallback)
+        connection?.release()
+        connection = null
 
         domain.unregisterDownloadReceiver()
     }
@@ -102,21 +110,10 @@ class RecitationRecitersMenuViewModel @Inject constructor(
     }
 
     fun onPlayPauseClick() {
-        if (_uiState.value.playbackState == STATE_NONE)
-            return
-
-        if (domain.getState() == STATE_PLAYING) {
-            domain.pause()
-            _uiState.update { it.copy(
-                playbackState = STATE_PAUSED
-            )}
-        }
-        else {
-            domain.resume()
-            _uiState.update { it.copy(
-                playbackState = STATE_PLAYING
-            )}
-        }
+        val controller = connection?.controller
+        // Nothing loaded in the player (e.g. after the app restarted): pick up the last played
+        if (controller?.currentMediaItem == null) onContinueListeningClick()
+        else Util.handlePlayPauseButtonAction(controller)
     }
 
     fun onContinueListeningClick() {
@@ -190,59 +187,18 @@ class RecitationRecitersMenuViewModel @Inject constructor(
         }
     }
 
-    private val connectionCallbacks = object : MediaBrowserCompat.ConnectionCallback() {
-        override fun onConnected() {
-            Log.i(Globals.TAG, "onConnected in RecitationsPlayerViewModel")
-            domain.initializeController(controllerCallback)
-
-            updateMetadata(domain.getMetadata())
-        }
-
-        override fun onConnectionSuspended() {
-            Log.e(Globals.TAG, "Connection suspended in RecitationsPlayerViewModel")
-            _uiState.update { it.copy(
-                playbackState = STATE_NONE
-            )}
-        }
-
-        override fun onConnectionFailed() {
-            Log.e(Globals.TAG, "Connection failed in RecitationsPlayerViewModel")
-            _uiState.update { it.copy(
-                playbackState = STATE_NONE
-            )}
-        }
-    }
-
-    private var controllerCallback = object : MediaControllerCompat.Callback() {
-        override fun onMetadataChanged(metadata: MediaMetadataCompat) {
-            updateMetadata(metadata)
-        }
-
-        override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
-            updatePlaybackState(state)
-        }
-
-        override fun onSessionDestroyed() {
-            domain.disconnectMediaBrowser()
-        }
-    }
-
-    private fun updateMetadata(metadata: MediaMetadataCompat) {
-        if (metadata.getLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS) == 0L)
-            return
+    private fun onPlayerChange(controller: MediaController) {
+        val metadata = controller.currentMediaItem?.mediaMetadata
 
         _uiState.update { it.copy(
-            playbackRecitationInfo = RecitationInfo(
-                reciterName = metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST) ?: "",
-                narrationName = metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM) ?: "",
-                suraName = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE) ?: ""
-            )
-        )}
-    }
-
-    private fun updatePlaybackState(state: PlaybackStateCompat) {
-        _uiState.update { it.copy(
-            playbackState = state.state
+            playbackState = controller.playbackStatus(),
+            playbackRecitationInfo = metadata?.let { m ->
+                RecitationInfo(
+                    reciterName = m.artist?.toString() ?: "",
+                    narrationName = m.albumTitle?.toString() ?: "",
+                    suraName = m.title?.toString() ?: ""
+                )
+            } ?: it.playbackRecitationInfo
         )}
     }
 
@@ -272,13 +228,14 @@ class RecitationRecitersMenuViewModel @Inject constructor(
             }
 
             val selectedItems = items.values.filter { recitation ->
+                // Unknown narrations count as selected, like the repository's default
                 recitation.narrations.any { narration ->
-                    narrationSelections[narration.value.name]!!
+                    narrationSelections[narration.value.name] != false
                 }
             }.map { recitation ->
                 recitation.copy(
                     narrations = recitation.narrations.filter { narration ->
-                        narrationSelections[narration.value.name]!!
+                        narrationSelections[narration.value.name] != false
                     }
                 )
             }.filter { recitation -> recitation.narrations.isNotEmpty() }

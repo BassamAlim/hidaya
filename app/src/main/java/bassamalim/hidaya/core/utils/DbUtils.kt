@@ -3,7 +3,6 @@ package bassamalim.hidaya.core.utils
 import android.content.Context
 import android.database.sqlite.SQLiteException
 import android.util.Log
-import androidx.room.Room
 import bassamalim.hidaya.core.data.dataSources.room.AppDatabase
 import bassamalim.hidaya.core.Globals
 import kotlinx.coroutines.CoroutineDispatcher
@@ -35,17 +34,14 @@ object DbUtils {
         }
     }
 
-    fun resetDB(context: Context) {
+    /**
+     * Closes the app's Room instance, then deletes the file. Room re-copies it from the asset
+     * on next open, so callers must restart the process before touching the DB again.
+     */
+    fun resetDB(context: Context, database: AppDatabase) {
+        database.close()
         context.deleteDatabase(Globals.DB_NAME)
         Log.i(Globals.TAG, "Database Deleted")
-
-        Room.databaseBuilder(
-            context = context,
-            klass = AppDatabase::class.java,
-            name = Globals.DB_NAME
-        ).createFromAsset("databases/HidayaDB.db").build()
-
-        Log.i(Globals.TAG, "Database Revived")
     }
 
     suspend fun restoreDbData(

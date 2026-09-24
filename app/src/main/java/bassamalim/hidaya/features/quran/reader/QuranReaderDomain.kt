@@ -16,7 +16,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class QuranReaderDomain @Inject constructor(
     private val app: Application,
     private val quranRepository: QuranRepository,

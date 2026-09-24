@@ -8,7 +8,9 @@ import bassamalim.hidaya.core.utils.OsUtils
 import com.google.firebase.firestore.DocumentSnapshot
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class LeaderboardDomain @Inject constructor(
     app: Application,
     private val userRepository: UserRepository,

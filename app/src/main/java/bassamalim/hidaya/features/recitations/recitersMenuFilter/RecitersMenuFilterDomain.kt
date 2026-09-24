@@ -5,7 +5,9 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.utils.LangUtils
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class RecitersMenuFilterDomain @Inject constructor(
     private val recitationsRepository: RecitationsRepository
 ) {

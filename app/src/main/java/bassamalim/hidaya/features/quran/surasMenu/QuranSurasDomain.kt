@@ -15,7 +15,9 @@ import bassamalim.hidaya.core.utils.LangUtils
 import kotlinx.coroutines.flow.first
 import java.util.regex.Pattern
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class QuranSurasDomain @Inject constructor(
     private val quranRepository: QuranRepository,
     private val appSettingsRepository: AppSettingsRepository,

@@ -1,8 +1,6 @@
 package bassamalim.hidaya.features.recitations.player
 
 import android.os.Build
-import android.support.v4.media.session.PlaybackStateCompat
-import android.support.v4.media.session.PlaybackStateCompat.SHUFFLE_MODE_ALL
 import androidx.activity.compose.LocalActivity
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
@@ -51,8 +49,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.Player
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.enums.DownloadState
+import bassamalim.hidaya.core.enums.PlaybackStatus
 import bassamalim.hidaya.core.ui.components.MyDownloadButton
 import bassamalim.hidaya.core.ui.components.MyIconButton
 import bassamalim.hidaya.core.ui.components.MyIconPlayerButton
@@ -77,7 +77,7 @@ fun RecitationPlayerScreen(viewModel: RecitationPlayerViewModel) {
 
     DisposableEffect(key1 = viewModel) {
         viewModel.onStart(activity)
-        onDispose { viewModel.onStop(activity) }
+        onDispose { viewModel.onStop() }
     }
 
     val dims = MaterialTheme.dimensions
@@ -102,7 +102,7 @@ fun RecitationPlayerScreen(viewModel: RecitationPlayerViewModel) {
             ) {
                 Cover(
                     suraName = state.suraName,
-                    isPlaying = state.btnState == PlaybackStateCompat.STATE_PLAYING,
+                    isPlaying = state.btnState == PlaybackStatus.PLAYING,
                     modifier = Modifier.size(min(min(maxWidth, maxHeight), CoverMaxSize))
                 )
             }
@@ -129,7 +129,7 @@ fun RecitationPlayerScreen(viewModel: RecitationPlayerViewModel) {
 
             SecondaryControls(
                 repeatMode = state.repeatMode,
-                shuffleMode = state.shuffleMode,
+                isShuffleOn = state.isShuffleOn,
                 downloadState = state.downloadState,
                 onRepeatClick = viewModel::onRepeatClick,
                 onShuffleClick = viewModel::onShuffleClick,
@@ -303,7 +303,7 @@ private fun ProgressSection(
 
 @Composable
 private fun TransportControls(
-    playbackState: Int,
+    playbackState: PlaybackStatus,
     isEnabled: Boolean,
     onPreviousTrackClick: () -> Unit,
     onPlayPauseClick: () -> Unit,
@@ -359,10 +359,10 @@ private fun TransportControls(
 @Composable
 private fun SecondaryControls(
     repeatMode: Int,
-    shuffleMode: Int,
+    isShuffleOn: Boolean,
     downloadState: DownloadState,
     onRepeatClick: (Int) -> Unit,
-    onShuffleClick: (Int) -> Unit,
+    onShuffleClick: () -> Unit,
     onDownloadClick: () -> Unit,
 ) {
     Row(
@@ -375,10 +375,10 @@ private fun SecondaryControls(
         ToggleButton(
             // Only single-track repeat is toggled here, so it gets the "repeat one" icon when on
             icon =
-                if (repeatMode == PlaybackStateCompat.REPEAT_MODE_ONE) Icons.Default.RepeatOne
+                if (repeatMode == Player.REPEAT_MODE_ONE) Icons.Default.RepeatOne
                 else Icons.Default.Repeat,
             description = stringResource(R.string.repeat_description),
-            isActive = repeatMode == PlaybackStateCompat.REPEAT_MODE_ONE,
+            isActive = repeatMode == Player.REPEAT_MODE_ONE,
             onClick = { onRepeatClick(repeatMode) }
         )
 
@@ -391,8 +391,8 @@ private fun SecondaryControls(
         ToggleButton(
             icon = Icons.Default.Shuffle,
             description = stringResource(R.string.shuffle_description),
-            isActive = shuffleMode == SHUFFLE_MODE_ALL,
-            onClick = { onShuffleClick(shuffleMode) }
+            isActive = isShuffleOn,
+            onClick = onShuffleClick
         )
     }
 }

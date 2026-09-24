@@ -1,6 +1,5 @@
 package bassamalim.hidaya.core.ui.components
 
-import android.support.v4.media.session.PlaybackStateCompat
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -39,6 +38,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.enums.DownloadState
+import bassamalim.hidaya.core.enums.PlaybackStatus
 
 @Composable
 fun MyIconButton(
@@ -175,7 +175,7 @@ fun MyDownloadButton(
 
 @Composable
 fun MyIconPlayerButton(
-    state: Int,
+    state: PlaybackStatus,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     iconSize: Dp = Dp.Unspecified,
@@ -195,20 +195,18 @@ fun MyIconPlayerButton(
                         scaleOut(animationSpec = tween(durationMillis = 200))
             }
         ) { state ->
-            if (state == PlaybackStateCompat.STATE_NONE ||
-                state == PlaybackStateCompat.STATE_CONNECTING ||
-                state == PlaybackStateCompat.STATE_BUFFERING)
+            if (state == PlaybackStatus.CONNECTING || state == PlaybackStatus.BUFFERING)
                 MyCircularProgressIndicator()
             else {
                 Icon(
                     imageVector =
                         if (filled) {
-                            if (state == PlaybackStateCompat.STATE_PLAYING)
+                            if (state == PlaybackStatus.PLAYING)
                                 Icons.Default.PauseCircleFilled
                             else Icons.Default.PlayCircleFilled
                         }
                         else {
-                            if (state == PlaybackStateCompat.STATE_PLAYING) Icons.Default.Pause
+                            if (state == PlaybackStatus.PLAYING) Icons.Default.Pause
                             else Icons.Default.PlayArrow
                         },
                     contentDescription = stringResource(R.string.play_pause_btn_description),

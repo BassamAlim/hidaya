@@ -4,7 +4,9 @@ import bassamalim.hidaya.core.data.repositories.AnalyticsRepository
 import bassamalim.hidaya.core.data.repositories.LiveContentRepository
 import bassamalim.hidaya.core.models.AnalyticsEvent
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class TvDomain @Inject constructor(
     private val liveContentRepository: LiveContentRepository,
     private val analyticsRepository: AnalyticsRepository

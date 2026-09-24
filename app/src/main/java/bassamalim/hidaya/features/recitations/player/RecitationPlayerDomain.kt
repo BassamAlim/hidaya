@@ -2,9 +2,7 @@ package bassamalim.hidaya.features.recitations.player
 
 import android.app.Application
 import android.app.DownloadManager
-import androidx.annotation.OptIn
 import androidx.core.net.toUri
-import androidx.media3.common.util.UnstableApi
 import bassamalim.hidaya.core.data.repositories.QuranRepository
 import bassamalim.hidaya.core.data.repositories.RecitationsRepository
 import bassamalim.hidaya.core.enums.DownloadState
@@ -12,10 +10,14 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.utils.FileUtils
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.features.recitations.recitersMenu.Recitation
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import java.io.File
 import java.util.Locale
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class RecitationPlayerDomain @Inject constructor(
     private val app: Application,
     private val recitationsRepository: RecitationsRepository,
@@ -55,13 +57,15 @@ class RecitationPlayerDomain @Inject constructor(
         recitationsRepository.setRepeatMode(mode)
     }
 
-    fun getShuffleMode() = recitationsRepository.getShuffleMode()
+    fun isShuffleOn() = recitationsRepository.getShuffleMode().map { it != 0 }
 
-    suspend fun setShuffleMode(mode: Int) {
-        recitationsRepository.setShuffleMode(mode)
+    suspend fun setShuffleOn(isOn: Boolean) {
+        recitationsRepository.setShuffleMode(if (isOn) 1 else 0)
     }
 
-    @OptIn(UnstableApi::class)
+    suspend fun getLastPlayedProgress() =
+        recitationsRepository.getLastPlayedMedia().first()?.progress ?: 0L
+
     fun downloadRecitation(narration: Recitation.Narration, suraIdx: Int, suraName: String) {
         val server = narration.server
         val link = String.Companion.format(Locale.US, "%s/%03d.mp3", server, suraIdx+1)

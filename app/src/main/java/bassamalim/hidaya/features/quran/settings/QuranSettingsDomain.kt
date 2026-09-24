@@ -7,7 +7,9 @@ import bassamalim.hidaya.core.enums.VerseRepeatMode
 import bassamalim.hidaya.core.enums.QuranViewType
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class QuranSettingsDomain @Inject constructor(
     private val quranRepository: QuranRepository,
     private val recitationsRepository: RecitationsRepository,

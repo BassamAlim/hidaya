@@ -6,7 +6,9 @@ import bassamalim.hidaya.core.utils.LangUtils
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class BooksMenuFilterDomain @Inject constructor(
     private val booksRepository: BooksRepository
 ) {

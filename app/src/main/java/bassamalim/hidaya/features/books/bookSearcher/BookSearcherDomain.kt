@@ -10,7 +10,9 @@ import bassamalim.hidaya.core.models.BookContent
 import bassamalim.hidaya.core.utils.LangUtils
 import java.util.regex.Pattern
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class BookSearcherDomain @Inject constructor(
     private val booksRepository: BooksRepository
 ) {

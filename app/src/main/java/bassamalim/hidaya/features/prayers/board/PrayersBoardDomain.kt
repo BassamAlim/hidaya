@@ -20,7 +20,9 @@ import kotlinx.coroutines.flow.first
 import java.util.Calendar
 import java.util.SortedMap
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class PrayersBoardDomain @Inject constructor(
     private val prayersRepository: PrayersRepository,
     private val locationRepository: LocationRepository,

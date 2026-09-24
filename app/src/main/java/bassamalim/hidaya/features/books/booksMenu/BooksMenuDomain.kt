@@ -10,7 +10,9 @@ import bassamalim.hidaya.core.models.AnalyticsEvent
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.report
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class BooksMenuDomain @Inject constructor(
     private val booksRepository: BooksRepository,
     private val analyticsRepository: AnalyticsRepository

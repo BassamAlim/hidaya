@@ -10,12 +10,14 @@ import bassamalim.hidaya.core.data.repositories.LocationRepository
 import bassamalim.hidaya.core.models.Location
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
+@Singleton
 class QiblaDomain @Inject constructor(
     private val app: Application,
     private val locationRepository: LocationRepository,

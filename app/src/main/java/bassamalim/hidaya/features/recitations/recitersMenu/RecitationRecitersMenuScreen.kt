@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.enums.Language
+import bassamalim.hidaya.core.enums.PlaybackStatus
 import bassamalim.hidaya.core.ui.components.CustomSearchBar
 import bassamalim.hidaya.core.ui.components.MyDownloadButton
 import bassamalim.hidaya.core.ui.components.MyFavoriteButton
@@ -440,7 +441,7 @@ private fun DownloadButton(narration: Recitation.Narration, onClick: () -> Unit)
 @Composable
 private fun BoxScope.PlaybackBar(
     recitationInfo: RecitationInfo?,
-    playbackState: Int,
+    playbackState: PlaybackStatus,
     onContinueListeningClick: () -> Unit,
     onPlayPauseClick: () -> Unit
 ) {

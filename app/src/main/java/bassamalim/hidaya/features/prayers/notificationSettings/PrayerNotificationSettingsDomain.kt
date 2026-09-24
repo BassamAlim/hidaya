@@ -8,7 +8,9 @@ import bassamalim.hidaya.core.enums.Prayer
 import bassamalim.hidaya.core.helpers.Alarm
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class PrayerNotificationSettingsDomain @Inject constructor(
     private val prayersRepository: PrayersRepository,
     private val notificationsRepository: NotificationsRepository,

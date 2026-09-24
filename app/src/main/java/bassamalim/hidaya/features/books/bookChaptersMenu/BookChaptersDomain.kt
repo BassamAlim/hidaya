@@ -6,7 +6,9 @@ import bassamalim.hidaya.core.models.Book
 import bassamalim.hidaya.core.utils.LangUtils
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class BookChaptersDomain @Inject constructor(
     private val booksRepository: BooksRepository
 ) {

@@ -3,7 +3,9 @@ package bassamalim.hidaya.features.dateEditor
 import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class DateEditorDomain @Inject constructor(
     private val appSettingsRepository: AppSettingsRepository
 ) {

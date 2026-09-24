@@ -1,16 +1,17 @@
 package bassamalim.hidaya.features.recitations.player
 
-import android.support.v4.media.session.PlaybackStateCompat
+import androidx.media3.common.Player
 import bassamalim.hidaya.core.enums.DownloadState
+import bassamalim.hidaya.core.enums.PlaybackStatus
 
 data class RecitationPlayerUiState(
     val isLoading: Boolean = true,
-    val repeatMode: Int = PlaybackStateCompat.REPEAT_MODE_NONE,
-    val shuffleMode: Int = PlaybackStateCompat.SHUFFLE_MODE_NONE,
+    val repeatMode: Int = Player.REPEAT_MODE_OFF,
+    val isShuffleOn: Boolean = false,
     val duration: String = "00:00",
     val progress: String = "00:00",
     val secondaryProgress: Long = 0,
-    val btnState: Int = PlaybackStateCompat.STATE_NONE,
+    val btnState: PlaybackStatus = PlaybackStatus.CONNECTING,
     val suraName: String = "",
     val narrationName: String = "",
     val reciterName: String = "",

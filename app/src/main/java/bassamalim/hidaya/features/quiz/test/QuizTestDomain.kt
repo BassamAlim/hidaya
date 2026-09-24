@@ -7,7 +7,9 @@ import bassamalim.hidaya.core.models.QuizFullQuestion
 import bassamalim.hidaya.core.utils.LangUtils
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class QuizTestDomain @Inject constructor(
     private val quizRepository: QuizRepository,
     private val appSettingsRepository: AppSettingsRepository

@@ -179,13 +179,13 @@ class HomeViewModel @Inject constructor(
             previousPrayerName = prayerNames[previousPrayer]!!,
             previousPrayerTimeText = translateNums(
                 string = if (previousPrayerWasYesterday) formattedYesterdayIshaa
-                else formattedTimes[previousPrayer]!!,
+                else formattedTimes[previousPrayer].orEmpty(),
                 numeralsLanguage = numeralsLanguage
             ),
             nextPrayerName = prayerNames[nextPrayer]!!,
             nextPrayerTimeText = translateNums(
                 string = if (nextPrayerIsTomorrow) formattedTomorrowFajr
-                else formattedTimes[nextPrayer]!!,
+                else formattedTimes[nextPrayer].orEmpty(),
                 numeralsLanguage = numeralsLanguage
             ),
             todayPrayers = listOf(

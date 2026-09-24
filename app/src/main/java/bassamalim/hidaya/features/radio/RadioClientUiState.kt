@@ -1,7 +1,7 @@
 package bassamalim.hidaya.features.radio
 
-import android.support.v4.media.session.PlaybackStateCompat
+import bassamalim.hidaya.core.enums.PlaybackStatus
 
 data class RadioClientUiState(
-    val btnState: Int = PlaybackStateCompat.STATE_STOPPED
+    val btnState: PlaybackStatus = PlaybackStatus.STOPPED
 )

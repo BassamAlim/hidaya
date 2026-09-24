@@ -18,8 +18,10 @@ import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import kotlinx.coroutines.flow.first
 import java.util.Calendar
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.math.max
 
+@Singleton
 class HomeDomain @Inject constructor(
     app: Application,
     private val prayersRepository: PrayersRepository,

@@ -19,8 +19,10 @@ import bassamalim.hidaya.core.models.ReciterSura
 import bassamalim.hidaya.core.utils.LangUtils
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.properties.Delegates
 
+@Singleton
 class RecitationSurasMenuDomain @Inject constructor(
     app: Application,
     private val recitationsRepository: RecitationsRepository,

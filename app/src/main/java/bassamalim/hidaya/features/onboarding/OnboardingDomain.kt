@@ -13,7 +13,9 @@ import bassamalim.hidaya.core.enums.TimeFormat
 import bassamalim.hidaya.core.utils.LangUtils
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class OnboardingDomain @Inject constructor(
     private val appStateRepository: AppStateRepository,
     private val appSettingsRepository: AppSettingsRepository,

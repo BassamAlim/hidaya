@@ -1,7 +1,6 @@
 package bassamalim.hidaya.features.radio
 
 import android.os.Build
-import android.support.v4.media.session.PlaybackStateCompat
 import androidx.activity.compose.LocalActivity
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
@@ -56,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
+import bassamalim.hidaya.core.enums.PlaybackStatus
 import bassamalim.hidaya.core.ui.components.MultiDrawableImage
 import bassamalim.hidaya.core.ui.components.MyCircularProgressIndicator
 import bassamalim.hidaya.core.ui.components.MyScaffold
@@ -81,12 +81,13 @@ private val DOT_RADII_DP = listOf(1.8f, 1.2f, 1.5f, 1.0f, 1.8f, 1.3f, 1.0f, 1.5f
 
 private enum class RadioStatus { LIVE, CONNECTING, PAUSED, ERROR }
 
-private fun statusOf(playbackState: Int) = when (playbackState) {
-    PlaybackStateCompat.STATE_PLAYING -> RadioStatus.LIVE
-    PlaybackStateCompat.STATE_ERROR -> RadioStatus.ERROR
-    PlaybackStateCompat.STATE_STOPPED,
-    PlaybackStateCompat.STATE_PAUSED -> RadioStatus.PAUSED
-    else -> RadioStatus.CONNECTING
+private fun statusOf(playbackState: PlaybackStatus) = when (playbackState) {
+    PlaybackStatus.PLAYING -> RadioStatus.LIVE
+    PlaybackStatus.ERROR -> RadioStatus.ERROR
+    PlaybackStatus.STOPPED,
+    PlaybackStatus.PAUSED -> RadioStatus.PAUSED
+    PlaybackStatus.CONNECTING,
+    PlaybackStatus.BUFFERING -> RadioStatus.CONNECTING
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -97,7 +98,7 @@ fun RadioClientScreen(viewModel: RadioClientViewModel) {
 
     DisposableEffect(key1 = viewModel) {
         viewModel.onStart(activity)
-        onDispose { viewModel.onStop(activity) }
+        onDispose { viewModel.onStop() }
     }
 
     val dims = MaterialTheme.dimensions
@@ -233,7 +234,7 @@ private fun StatusLine(status: RadioStatus, modifier: Modifier = Modifier) {
 @Composable
 private fun OrbitalButton(
     status: RadioStatus,
-    playbackState: Int,
+    playbackState: PlaybackStatus,
     clock: () -> Long,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
@@ -298,7 +299,7 @@ private fun OrbitalButton(
                 MyCircularProgressIndicator()
             }
             else {
-                val isPlaying = playbackState == PlaybackStateCompat.STATE_PLAYING
+                val isPlaying = playbackState == PlaybackStatus.PLAYING
                 MultiDrawableImage(
                     drawables = listOf(
                         (if (isPlaying) R.drawable.ic_radio_pause_container

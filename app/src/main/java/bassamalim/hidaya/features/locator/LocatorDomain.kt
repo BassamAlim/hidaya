@@ -11,7 +11,9 @@ import androidx.core.app.ActivityCompat
 import bassamalim.hidaya.core.data.repositories.LocationRepository
 import com.google.android.gms.location.LocationServices
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class LocatorDomain @Inject constructor(
     private val app: Application,
     private val locationRepository: LocationRepository

@@ -8,7 +8,6 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.nio.channels.FileChannel
 import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets
 
 object FileUtils {
 
@@ -25,28 +24,10 @@ object FileUtils {
 
     fun deleteDirRecursive(target: File) {
         if (target.isDirectory) {
-            for (child in target.listFiles()!!) deleteDirRecursive(child)
+            // null when the directory can't be read
+            target.listFiles()?.forEach(::deleteDirRecursive)
         }
         if (target.isDirectory) target.delete()
-    }
-
-    fun getJsonFromAssets(context: Context, fileName: String?): String? {
-        val jsonString: String = try {
-            val `is` = context.assets.open(fileName!!)
-
-            val size = `is`.available()
-            val buffer = ByteArray(size)
-            `is`.read(buffer)
-            `is`.close()
-
-            String(buffer, StandardCharsets.UTF_8)
-        } catch (e: IOException) {
-            e.report()
-            e.printStackTrace()
-            return null
-        }
-
-        return jsonString
     }
 
     fun getJsonFromDownloads(path: String): String {

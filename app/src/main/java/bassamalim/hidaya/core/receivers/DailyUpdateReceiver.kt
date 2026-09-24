@@ -13,23 +13,17 @@ import android.location.Location
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import bassamalim.hidaya.core.Globals
-import bassamalim.hidaya.core.data.dataSources.room.daos.SurasDao
 import bassamalim.hidaya.core.data.repositories.AppStateRepository
 import bassamalim.hidaya.core.data.repositories.LocationRepository
 import bassamalim.hidaya.core.data.repositories.PrayersRepository
 import bassamalim.hidaya.core.data.repositories.QuranRepository
-import bassamalim.hidaya.core.data.repositories.RecitationsRepository
-import bassamalim.hidaya.core.data.repositories.RemembrancesRepository
-import bassamalim.hidaya.core.di.IoDispatcher
 import bassamalim.hidaya.core.enums.LocationType
 import bassamalim.hidaya.core.helpers.Alarm
-import bassamalim.hidaya.core.utils.DbUtils
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import bassamalim.hidaya.core.utils.report
 import bassamalim.hidaya.core.widgets.PrayersWidget
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -47,12 +41,8 @@ class DailyUpdateReceiver : BroadcastReceiver() {
     @Inject lateinit var appStateRepository: AppStateRepository
     @Inject lateinit var prayersRepository: PrayersRepository
     @Inject lateinit var quranRepository: QuranRepository
-    @Inject lateinit var recitationsRepository: RecitationsRepository
-    @Inject lateinit var remembrancesRepository: RemembrancesRepository
     @Inject lateinit var locationRepository: LocationRepository
-    @Inject lateinit var surasDao: SurasDao
     @Inject lateinit var alarm: Alarm
-    @Inject @IoDispatcher lateinit var dispatcher: CoroutineDispatcher
 
     override fun onReceive(context: Context, intent: Intent) {
         Log.i(Globals.TAG, "in DailyUpdateReceiver")
@@ -61,24 +51,8 @@ class DailyUpdateReceiver : BroadcastReceiver() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         scope.launch {
             try {
-                val shouldReviveDb = DbUtils.shouldReviveDb(
-                    lastDbVersion = appStateRepository.getLastDbVersion().first(),
-                    test = surasDao::getPlainNamesAr,
-                    dispatcher = dispatcher
-                )
-                if (shouldReviveDb) {
-                    DbUtils.resetDB(context)
-                    DbUtils.restoreDbData(
-                        suraFavorites = quranRepository.getSuraFavoritesBackup().first(),
-                        setSuraFavorites = quranRepository::setSuraFavorites,
-                        reciterFavorites = recitationsRepository.getReciterFavoritesBackup().first(),
-                        setReciterFavorites = recitationsRepository::setReciterFavorites,
-                        remembranceFavorites = remembrancesRepository.getFavoritesBackup().first(),
-                        setRemembranceFavorites = remembrancesRepository::setFavorites,
-                    )
-                    appStateRepository.setLastDbVersion(Globals.DB_VERSION)
-                }
-
+                // No DB revival here: deleting the file under the app's open Room instance
+                // corrupts it. The next app launch checks and revives (DbRecoveryHelper).
                 val now = Calendar.getInstance()
                 if ((intent.action == "daily" && notUpdatedToday(now)) || intent.action == "boot") {
                     val location = locationRepository.getLocation().first() ?: return@launch

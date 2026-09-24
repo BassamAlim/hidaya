@@ -6,7 +6,9 @@ import com.github.msarhan.ummalqura.calendar.UmmalquraCalendar
 import kotlinx.coroutines.flow.first
 import java.util.Calendar
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class DateConverterDomain @Inject constructor(
     private val appSettingsRepository: AppSettingsRepository,
     private val appStateRepository: AppStateRepository

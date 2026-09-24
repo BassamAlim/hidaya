@@ -5,7 +5,9 @@ import bassamalim.hidaya.core.data.repositories.AppStateRepository
 import com.github.msarhan.ummalqura.calendar.UmmalquraCalendar
 import java.util.Calendar
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class MainDomain @Inject constructor(
     private val appStateRepository: AppStateRepository,
     private val appSettingsRepository: AppSettingsRepository

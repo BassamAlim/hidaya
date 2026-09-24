@@ -5,7 +5,9 @@ import bassamalim.hidaya.core.data.repositories.BooksRepository
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.utils.LangUtils
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class BookReaderDomain @Inject constructor(
     private val booksRepository: BooksRepository
 ) {

@@ -18,7 +18,9 @@ import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import kotlinx.coroutines.flow.first
 import java.util.Calendar
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class SettingsDomain @Inject constructor(
     private val appSettingsRepository: AppSettingsRepository,
     private val prayersRepository: PrayersRepository,
@@ -71,7 +73,7 @@ class SettingsDomain @Inject constructor(
     fun getLocation() = locationRepository.getLocation()
 
     suspend fun getPrayerTime(prayer: Prayer): Calendar? {
-        val location = locationRepository.getLocation().first()!!
+        val location = locationRepository.getLocation().first() ?: return null
 
         var prayerTime = PrayerTimeUtils.getPrayerTimes(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),

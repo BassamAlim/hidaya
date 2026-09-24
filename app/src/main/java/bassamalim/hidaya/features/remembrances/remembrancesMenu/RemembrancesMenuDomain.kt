@@ -10,7 +10,9 @@ import bassamalim.hidaya.core.utils.LangUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class RemembrancesMenuDomain @Inject constructor(
     private val remembrancesRepository: RemembrancesRepository,
     private val analyticsRepository: AnalyticsRepository

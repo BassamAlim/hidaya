@@ -5,7 +5,9 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.helpers.Searcher
 import bassamalim.hidaya.core.utils.LangUtils
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class LocationPickerDomain @Inject constructor(
     private val locationRepository: LocationRepository
 ) {

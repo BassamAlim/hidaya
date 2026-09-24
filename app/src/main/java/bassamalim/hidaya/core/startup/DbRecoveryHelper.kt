@@ -3,6 +3,7 @@ package bassamalim.hidaya.core.startup
 import android.app.Activity
 import android.util.Log
 import bassamalim.hidaya.core.Globals
+import bassamalim.hidaya.core.data.dataSources.room.AppDatabase
 import bassamalim.hidaya.core.data.dataSources.room.daos.SurasDao
 import bassamalim.hidaya.core.data.repositories.AppStateRepository
 import bassamalim.hidaya.core.data.repositories.QuranRepository
@@ -22,6 +23,7 @@ class DbRecoveryHelper @Inject constructor(
     private val recitationsRepository: RecitationsRepository,
     private val remembrancesRepository: RemembrancesRepository,
     private val surasDao: SurasDao,
+    private val database: AppDatabase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) {
 
@@ -35,7 +37,7 @@ class DbRecoveryHelper @Inject constructor(
 
             if (shouldReviveDb) {
                 Log.d(Globals.TAG, "Database needs revival, resetting...")
-                DbUtils.resetDB(activity)
+                DbUtils.resetDB(activity, database)
                 appStateRepository.setLastDbVersion(Globals.DB_VERSION)
                 ActivityUtils.restartApplication(activity)
             }
