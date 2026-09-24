@@ -148,7 +148,8 @@ class HijriDatePickerViewModel @Inject constructor(
     fun onSelectClicked() {
         navigator.navigateBackWithResult(
             Bundle().apply {
-                putSerializable("selected_date", domain.getSelectedDate())
+                // A copy: the domain keeps reusing its instance for the next picking
+                putSerializable("selected_date", domain.getSelectedDate().clone() as UmmalquraCalendar)
             }
         )
     }

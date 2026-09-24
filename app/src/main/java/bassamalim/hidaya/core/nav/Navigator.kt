@@ -2,17 +2,15 @@ package bassamalim.hidaya.core.nav
 
 import android.os.Bundle
 import android.os.SystemClock
-import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavOptionsBuilder
 import bassamalim.hidaya.core.data.repositories.AnalyticsRepository
 import bassamalim.hidaya.core.models.AnalyticsEvent
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
 
-private const val RESULT_KEY = "nav_result"
 private const val DUPLICATE_WINDOW_MILLIS = 500L
 
 class Navigator @Inject constructor(
@@ -22,6 +20,7 @@ class Navigator @Inject constructor(
     private var navController: NavController? = null
     private var lastRoute: String? = null
     private var lastNavigationMillis = 0L
+    private val results = MutableSharedFlow<Bundle>(extraBufferCapacity = 1)
 
     // Called whenever an Activity's NavHost comes to the foreground, so the singleton always
     // targets the visible Activity (there can be several, e.g. one opened from a notification).
@@ -69,20 +68,24 @@ class Navigator @Inject constructor(
         navController?.popBackStack(route = destination.route, inclusive = inclusive)
     }
 
-    /** Hands [data] to the previous destination (read it with [SavedStateHandle.navResults]). */
+    /**
+     * Goes back and hands [data] to the screen now shown, which reads it with [results].
+     *
+     * Not through the back stack entry's SavedStateHandle: that is a different handle from the
+     * one the screen's ViewModel gets, so the ViewModel would never see the result.
+     */
     fun navigateBackWithResult(data: Bundle?) {
         val navController = navController ?: return
-        if (data != null)
-            navController.previousBackStackEntry?.savedStateHandle?.set(RESULT_KEY, data)
         navController.popBackStack()
+        if (data != null) results.tryEmit(data)
     }
+
+    /**
+     * Results holding [key], sent by [navigateBackWithResult]. Collect from the receiving
+     * ViewModel's init, since only active collectors get them.
+     */
+    fun results(key: String): Flow<Bundle> = results.filter { it.containsKey(key) }
 
     fun getContext() = navController?.context
 
 }
-
-/** Results sent back to this destination via [Navigator.navigateBackWithResult]. */
-fun SavedStateHandle.navResults(): Flow<Bundle> =
-    getStateFlow<Bundle?>(RESULT_KEY, null)
-        .filterNotNull()
-        .onEach { remove<Bundle>(RESULT_KEY) }

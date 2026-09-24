@@ -1,13 +1,11 @@
 package bassamalim.hidaya.features.dateConverter
 
 import android.os.Build
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
-import bassamalim.hidaya.core.nav.navResults
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import com.github.msarhan.ummalqura.calendar.UmmalquraCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +22,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DateConverterViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
     private val domain: DateConverterDomain,
     private val navigator: Navigator
 ): ViewModel() {
@@ -45,7 +42,7 @@ class DateConverterViewModel @Inject constructor(
     )
 
     init {
-        savedStateHandle.navResults().onEach { result ->
+        navigator.results("selected_date").onEach { result ->
             val date =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
                     result.getSerializable("selected_date", UmmalquraCalendar::class.java)

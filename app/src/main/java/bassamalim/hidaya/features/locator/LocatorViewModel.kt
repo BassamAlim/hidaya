@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
-import bassamalim.hidaya.core.nav.navResults
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,7 +30,7 @@ class LocatorViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
-        savedStateHandle.navResults().onEach { result ->
+        navigator.results("city_id").onEach { result ->
             domain.setManualLocation(result.getInt("city_id"))
             launch()
         }.launchIn(viewModelScope)
