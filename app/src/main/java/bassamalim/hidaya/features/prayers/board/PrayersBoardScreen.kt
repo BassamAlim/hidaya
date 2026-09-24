@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -379,10 +380,13 @@ private fun PrayerRow(
             .padding(start = dims.spaceMd, end = dims.spaceSm),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Only the text fades for passed prayers; the controls stay fully usable
+        // Only the text fades for passed prayers; the controls stay fully usable.
+        // Full height since alpha's layer clips, and Tajawal's dots (e.g. ش) draw above the
+        // text bounds
         Row(
             modifier = Modifier
                 .weight(1f)
+                .fillMaxHeight()
                 .alpha(if (data.status == PrayerCardData.Status.PASSED) 0.5f else 1f),
             verticalAlignment = Alignment.CenterVertically
         ) {
