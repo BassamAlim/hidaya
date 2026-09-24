@@ -15,13 +15,16 @@ import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import bassamalim.hidaya.features.prayers.notificationSettings.PrayerNotificationSettings
 import com.github.msarhan.ummalqura.calendar.UmmalquraCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -45,11 +48,16 @@ class PrayersBoardViewModel @Inject constructor(
     private val currentDate = Calendar.getInstance()
     private val viewedDate = Calendar.getInstance()
     private val prayerNames = domain.getPrayerNames()
-    // Re-evaluates which prayer is next while the board stays open
-    private val minuteTicks = flow {
-        while (true) {
-            emit(Unit)
-            delay(60_000)
+    // Re-evaluates which prayer is next while the board stays open. Without a location there's
+    // nothing to highlight, so no timer runs (this also keeps virtual-time tests finite)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val minuteTicks = location.flatMapLatest { location ->
+        if (location == null) flowOf(Unit)
+        else flow {
+            while (true) {
+                emit(Unit)
+                delay(60_000)
+            }
         }
     }
 
