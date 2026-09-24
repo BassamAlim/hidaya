@@ -29,9 +29,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -49,7 +46,6 @@ import bassamalim.hidaya.core.ui.components.MyText
 @Composable
 fun DateConverterScreen(viewModel: DateConverterViewModel) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var hasSelectedDate by remember { mutableStateOf(false) }
 
     MyScaffold(title = stringResource(R.string.date_converter)) { padding ->
         Box(
@@ -76,19 +72,13 @@ fun DateConverterScreen(viewModel: DateConverterViewModel) {
                 HeroSection()
 
                 ActionButtonsSection(
-                    onHijriClick = {
-                        hasSelectedDate = true
-                        viewModel.onPickHijriClick()
-                    },
-                    onGregorianClick = {
-                        hasSelectedDate = true
-                        viewModel.onPickGregorianClick()
-                    }
+                    onHijriClick = viewModel::onPickHijriClick,
+                    onGregorianClick = viewModel::onPickGregorianClick
                 )
 
                 AnimatedVisibility(
-                    visible = hasSelectedDate && (state.hijriDate.day.isNotEmpty()
-                            || state.gregorianDate.day.isNotEmpty()),
+                    visible = state.hijriDate.day.isNotEmpty()
+                            || state.gregorianDate.day.isNotEmpty(),
                     enter = slideInVertically(
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioMediumBouncy,
