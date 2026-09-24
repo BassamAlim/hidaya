@@ -193,8 +193,10 @@ private fun NextPrayerCard(state: HomeUiState, onClick: () -> Unit) {
                         color = contentColor.copy(alpha = 0.75f)
                     )
 
+                    // Arabic dots rise above the text box at this size, into the label above
                     Text(
                         text = state.nextPrayerName,
+                        modifier = Modifier.padding(top = dims.spaceSm),
                         style = MaterialTheme.appTypography.display.copy(fontSize = 32.sp),
                         color = contentColor
                     )
