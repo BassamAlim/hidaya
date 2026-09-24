@@ -32,11 +32,12 @@ import bassamalim.hidaya.core.startup.ThemeApplier
 import bassamalim.hidaya.core.ui.theme.AppTheme
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.report
+import bassamalim.hidaya.core.widgets.refreshWidgets
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class Activity : AppCompatActivity() {
@@ -61,6 +62,8 @@ class Activity : AppCompatActivity() {
         val splashScreen = setupSplashScreen()
         super.onCreate(savedInstanceState)
         LangUtils.saveAppLocale(this)  // so alarm/service processes can restore it
+        // Changing the app language recreates the Activity; widgets need telling to follow
+        refreshWidgets(this)
 
         lifecycleScope.launch {
             try {

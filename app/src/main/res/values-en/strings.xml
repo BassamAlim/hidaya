@@ -87,6 +87,7 @@
     <string name="jumuah">Jumuah</string>
     <string name="passed">Passed: %1$s</string>
     <string name="remaining">Remaining: %1$s</string>
+    <string name="minutes_short">%1$s min</string>
     <string name="reminder_of">%s Extra reminder</string>
     <string name="distance_to_kaaba">Distance to Kaaba: %s</string>
     <string name="reminder_before">%s in %s minutes</string>

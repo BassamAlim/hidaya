@@ -3,9 +3,7 @@ package bassamalim.hidaya.core.receivers
 import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
-import android.appwidget.AppWidgetManager
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -21,7 +19,7 @@ import bassamalim.hidaya.core.enums.LocationType
 import bassamalim.hidaya.core.helpers.Alarm
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import bassamalim.hidaya.core.utils.report
-import bassamalim.hidaya.core.widgets.PrayersWidget
+import bassamalim.hidaya.core.widgets.refreshWidgets
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -126,22 +124,9 @@ class DailyUpdateReceiver : BroadcastReceiver() {
 
         alarm.setAll(prayerTimes)
 
-        updateWidget(context)
+        refreshWidgets(context)
 
         setUpdated(now)
-    }
-
-    private fun updateWidget(context: Context) {
-        val intent = Intent(context, PrayersWidget::class.java)
-        intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-
-        val ids = AppWidgetManager
-            .getInstance(context.applicationContext)
-            .getAppWidgetIds(ComponentName(context.applicationContext, PrayersWidget::class.java))
-
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-
-        context.sendBroadcast(intent)
     }
 
     private fun setUpdated(now: Calendar) {

@@ -88,6 +88,7 @@
     <string name="jumuah">جمعة</string>
     <string name="passed">مرت: %1$s</string>
     <string name="remaining">متبقي: %1$s</string>
+    <string name="minutes_short">%1$s دقيقة</string>
     <string name="reminder_of">تنبيه إضافي ل%s</string>
     <string name="distance_to_kaaba">المسافة الى الكعبة: %s</string>
     <string name="reminder_before">%s بعد %s دقيقة</string>

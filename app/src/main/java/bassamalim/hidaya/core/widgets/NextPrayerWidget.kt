@@ -9,7 +9,6 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.action.clickable
-import androidx.glance.material3.ColorProviders
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -22,25 +21,28 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.material3.ColorProviders
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
-import bassamalim.hidaya.core.ui.theme.darkColorScheme
-import bassamalim.hidaya.core.ui.theme.lightColorScheme
 import bassamalim.hidaya.core.data.repositories.LocationRepository
 import bassamalim.hidaya.core.data.repositories.PrayersRepository
 import bassamalim.hidaya.core.enums.Prayer
 import bassamalim.hidaya.core.models.Location
+import bassamalim.hidaya.core.ui.theme.darkColorScheme
+import bassamalim.hidaya.core.ui.theme.lightColorScheme
 import bassamalim.hidaya.core.utils.LangUtils
+import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
+import java.util.Calendar
+import java.util.Locale
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.util.Calendar
 
 private data class NextPrayerData(
     val name: String,
@@ -203,8 +205,12 @@ class NextPrayerWidget(
             val remainingMillis = nextEntry.value!!.timeInMillis - now.timeInMillis
             val hours = (remainingMillis / (1000L * 60 * 60)).toInt()
             val minutes = ((remainingMillis % (1000L * 60 * 60)) / (1000L * 60)).toInt()
-            val remainingFormatted = if (hours > 0) "%d:%02d".format(hours, minutes)
-                                     else "%d min".format(minutes)
+            val remainingFormatted = translateNums(
+                string =
+                    if (hours > 0) String.format(Locale.US, "%d:%02d", hours, minutes)
+                    else context.getString(R.string.minutes_short, minutes.toString()),
+                numeralsLanguage = numeralsLanguage
+            )
 
             return NextPrayerData(
                 name = getPrayerName(nextEntry.key, prayerNames),
