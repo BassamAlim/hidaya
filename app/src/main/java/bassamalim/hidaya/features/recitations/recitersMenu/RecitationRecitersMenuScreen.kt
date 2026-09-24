@@ -141,10 +141,11 @@ private fun SearchRow(
     onQueryChange: (String) -> Unit,
     onFilterClick: () -> Unit
 ) {
+    // The icon button's own 12dp padding brings the icon onto the screen's 16dp gutter
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(end = MaterialTheme.dimensions.spaceSm),
+            .padding(end = MaterialTheme.dimensions.spaceXs),
         verticalAlignment = Alignment.CenterVertically
     ) {
         CustomSearchBar(

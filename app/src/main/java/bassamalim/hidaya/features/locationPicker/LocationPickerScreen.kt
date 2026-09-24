@@ -81,9 +81,7 @@ private fun SearchComp(
 ) {
     CustomSearchBar(
         query = searchText,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = MaterialTheme.dimensions.spaceSm),
+        modifier = Modifier.fillMaxWidth(),
         hint = stringResource(
             when (mode) {
                 LocationPickerMode.COUNTRY -> R.string.countries_search_hint

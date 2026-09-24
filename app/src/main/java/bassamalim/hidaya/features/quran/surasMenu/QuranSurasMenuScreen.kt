@@ -1,7 +1,7 @@
 package bassamalim.hidaya.features.quran.surasMenu
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,16 +21,14 @@ import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
@@ -55,7 +53,11 @@ import bassamalim.hidaya.core.ui.components.MyFavoriteButton
 import bassamalim.hidaya.core.ui.components.MyLazyColumn
 import bassamalim.hidaya.core.ui.components.MyScaffold
 import bassamalim.hidaya.core.ui.components.MyText
+import bassamalim.hidaya.core.ui.components.SearchBarClearButton
+import bassamalim.hidaya.core.ui.components.SearchBarLeadingIcon
+import bassamalim.hidaya.core.ui.components.SearchBarPlaceholder
 import bassamalim.hidaya.core.ui.components.TabLayout
+import bassamalim.hidaya.core.ui.components.searchBarShape
 import bassamalim.hidaya.core.ui.components.tutorial.TutorialOverlay
 import bassamalim.hidaya.core.ui.components.tutorial.TutorialShape
 import bassamalim.hidaya.core.ui.components.tutorial.TutorialStep
@@ -65,9 +67,9 @@ import bassamalim.hidaya.core.ui.theme.Bookmark1Color
 import bassamalim.hidaya.core.ui.theme.Bookmark2Color
 import bassamalim.hidaya.core.ui.theme.Bookmark3Color
 import bassamalim.hidaya.core.ui.theme.Bookmark4Color
-import bassamalim.hidaya.core.ui.theme.hafs_smart
 import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
+import bassamalim.hidaya.core.ui.theme.hafs_smart
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -290,41 +292,37 @@ private fun QuranSearchBar(
     val state = rememberTextFieldState()
     var expanded by remember { mutableStateOf(false) }
 
+    val dims = MaterialTheme.dimensions
+
     SearchBar(
         inputField = {
-            SearchBarDefaults.InputField(
-                state = state,
-                onSearch = {},
-                expanded = expanded,
-                onExpandedChange = { expanded = it },
-                placeholder = {
-                    MyText(stringResource(R.string.quran_search_hint))
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = stringResource(R.string.search)
-                    )
-                },
-                trailingIcon = {
-                    if (state.text.isNotEmpty()) {
-                        IconButton(onClick = state::clearText) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = stringResource(R.string.close)
-                            )
-                        }
+            // Material's text fields default to the system font; the app's text is Tajawal
+            ProvideTextStyle(MaterialTheme.appTypography.body) {
+                SearchBarDefaults.InputField(
+                    state = state,
+                    onSearch = {},
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                    placeholder = {
+                        SearchBarPlaceholder(stringResource(R.string.quran_search_hint))
+                    },
+                    leadingIcon = { SearchBarLeadingIcon() },
+                    trailingIcon = {
+                        if (state.text.isNotEmpty()) SearchBarClearButton(state::clearText)
                     }
-                }
-            )
+                )
+            }
         },
         expanded = expanded,
         onExpandedChange = {},
+        // Expanded, it fills the screen, so the spacing only applies collapsed
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 4.dp, bottom = 6.dp)
-            .padding(horizontal = if (expanded) 0.dp else 6.dp),
-        shape = RoundedCornerShape(10.dp)
+            .padding(
+                horizontal = if (expanded) 0.dp else dims.spaceLg,
+                vertical = if (expanded) 0.dp else dims.spaceSm
+            ),
+        shape = searchBarShape()
     ) {
         val suraAndPageMatches = searchSurasAndPages(state.text.toString())
         val highlightColor = MaterialTheme.colorScheme.primary

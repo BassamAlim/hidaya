@@ -89,9 +89,7 @@ private fun SearchArea(
 
         CustomSearchBar(
             query = searchText,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 30.dp),
+            modifier = Modifier.fillMaxWidth(),
             hint = stringResource(R.string.search),
             onQueryChange = onSearchTextChange,
             onSearch = { onSearch(highlightColor) }
