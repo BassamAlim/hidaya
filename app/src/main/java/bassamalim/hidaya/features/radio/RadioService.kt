@@ -69,7 +69,9 @@ class RadioService : MediaSessionService() {
             }
         })
 
+        // IDs must be unique in the process, and the other player services may be alive too
         session = MediaSession.Builder(this, player)
+            .setId("radio")
             .setSessionActivity(
                 PendingIntent.getActivity(
                     this,

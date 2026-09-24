@@ -114,6 +114,7 @@ class VersePlayerService : MediaSessionService() {
         })
 
         session = MediaSession.Builder(this, player)
+            .setId("verses")
             .setCallback(callback)
             .build()
     }

@@ -88,6 +88,7 @@ class RecitationPlayerService : MediaSessionService() {
         })
 
         session = MediaSession.Builder(this, player)
+            .setId("recitations")
             .setSessionActivity(contentIntent(mediaId = null))
             .setCallback(callback)
             .build()
