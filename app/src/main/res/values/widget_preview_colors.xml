@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget picker previews, approximating the widgets in the app's own theme -->
+<resources>
+    <color name="widget_preview_background">#D7E3EF</color>
+    <color name="widget_preview_header">#85A6C8</color>
+    <color name="widget_preview_on_header">#004669</color>
+    <color name="widget_preview_text">#000000</color>
+    <color name="widget_preview_accent">#005A87</color>
+</resources>

@@ -10,7 +10,6 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -21,7 +20,6 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
-import androidx.glance.material3.ColorProviders
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
@@ -32,8 +30,6 @@ import bassamalim.hidaya.core.data.repositories.LocationRepository
 import bassamalim.hidaya.core.data.repositories.PrayersRepository
 import bassamalim.hidaya.core.enums.Prayer
 import bassamalim.hidaya.core.models.Location
-import bassamalim.hidaya.core.ui.theme.darkColorScheme
-import bassamalim.hidaya.core.ui.theme.lightColorScheme
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
@@ -60,12 +56,13 @@ class NextPrayerWidget(
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val context = context.withAppLocale()  // app language, not the device's (pre-API 33)
 
+        val theme = appSettingsRepository.getTheme().first()
         val data = withContext(dispatcher) {
             getNextPrayerData(context)
         }
 
         provideContent {
-            GlanceTheme(colors = ColorProviders(light = lightColorScheme, dark = darkColorScheme)) {
+            GlanceTheme(colors = widgetColors(theme)) {
                 WidgetContent(data, context)
             }
         }
@@ -75,9 +72,7 @@ class NextPrayerWidget(
     private fun WidgetContent(data: NextPrayerData?, context: Context) {
         Box(
             modifier = GlanceModifier
-                .fillMaxSize()
-                .background(GlanceTheme.colors.surface)
-                .cornerRadius(16.dp)
+                .widgetBackground()
                 .clickable {
                     val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
                     intent?.let {

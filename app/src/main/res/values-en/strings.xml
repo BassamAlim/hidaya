@@ -47,7 +47,20 @@
     <string name="download_description">Download</string>
     <string name="repeat_description">Repeat</string>
     <string name="accuracy_indicator_description">Accuracy</string>
-    <string name="app_widget_description">App widget</string>
+    <string name="prayers_widget_description">Today\'s five prayer times</string>
+    <string name="next_prayer_widget_description">The upcoming prayer and the time left until it</string>
+    <!-- Sample content for the widget picker's previews -->
+    <string name="widget_preview_fajr">Fajr</string>
+    <string name="widget_preview_dhuhr">Duhr</string>
+    <string name="widget_preview_asr">Asr</string>
+    <string name="widget_preview_maghrib">Maghrib</string>
+    <string name="widget_preview_ishaa">Ishaa</string>
+    <string name="widget_preview_fajr_time">4:30 am</string>
+    <string name="widget_preview_dhuhr_time">11:41 am</string>
+    <string name="widget_preview_asr_time">3:03 pm</string>
+    <string name="widget_preview_maghrib_time">5:34 pm</string>
+    <string name="widget_preview_ishaa_time">7:04 pm</string>
+    <string name="widget_preview_remaining">Remaining: 1:20</string>
     <string name="previous_day_button_description">Previous day</string>
     <string name="next_day_button_description">Next day</string>
     <string name="next_track_btn_description">Next track</string>

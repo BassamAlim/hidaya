@@ -47,7 +47,20 @@
     <string name="download_description">تحميل</string>
     <string name="repeat_description">تكرار</string>
     <string name="accuracy_indicator_description">دقة القياس</string>
-    <string name="app_widget_description">تطبيق مصغر</string>
+    <string name="prayers_widget_description">مواقيت الصلوات الخمس لليوم</string>
+    <string name="next_prayer_widget_description">الصلاة القادمة والوقت المتبقي لها</string>
+    <!-- Sample content for the widget picker's previews -->
+    <string name="widget_preview_fajr">الفجر</string>
+    <string name="widget_preview_dhuhr">الظهر</string>
+    <string name="widget_preview_asr">العصر</string>
+    <string name="widget_preview_maghrib">المغرب</string>
+    <string name="widget_preview_ishaa">العشاء</string>
+    <string name="widget_preview_fajr_time">٤:٣٠ ص</string>
+    <string name="widget_preview_dhuhr_time">١١:٤١ ص</string>
+    <string name="widget_preview_asr_time">٣:٠٣ م</string>
+    <string name="widget_preview_maghrib_time">٥:٣٤ م</string>
+    <string name="widget_preview_ishaa_time">٧:٠٤ م</string>
+    <string name="widget_preview_remaining">متبقي: ١:٢٠</string>
     <string name="previous_day_button_description">اليوم السابق</string>
     <string name="next_day_button_description">اليوم التالي</string>
     <string name="next_track_btn_description">التالي</string>

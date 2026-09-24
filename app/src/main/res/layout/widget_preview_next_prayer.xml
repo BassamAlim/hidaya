@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The widget picker's preview of NextPrayerWidget (Android 12+) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_preview_background"
+    android:clipToOutline="true"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/widget_preview_header"
+        android:gravity="center"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:text="@string/next_prayer"
+        android:textColor="@color/widget_preview_on_header"
+        android:textSize="11sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/widget_preview_asr"
+            android:textColor="@color/widget_preview_accent"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/widget_preview_asr_time"
+            android:textColor="@color/widget_preview_text"
+            android:textSize="17sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/widget_preview_remaining"
+            android:textColor="@color/widget_preview_text"
+            android:textSize="12sp" />
+    </LinearLayout>
+</LinearLayout>

@@ -24,11 +24,12 @@ class App: Application() {
         super.onCreate()
         LangUtils.restoreAppLocale(this)
 
-        // Widgets show times in these formats; the app language is handled by the Activity
+        // Widgets draw with these settings; the app language is handled by the Activity
         combine(
             appSettingsRepository.getNumeralsLanguage(),
             appSettingsRepository.getTimeFormat(),
-            ::Pair
+            appSettingsRepository.getTheme(),
+            ::Triple
         )
             .distinctUntilChanged()
             .drop(1)  // the current values, which the widgets already show

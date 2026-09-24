@@ -50,7 +50,6 @@
     <string name="download_description">تحميل</string>
     <string name="repeat_description">تكرار</string>
     <string name="accuracy_indicator_description">دقة القياس</string>
-    <string name="app_widget_description">تطبيق مصغر</string>
     <string name="previous_day_button_description">اليوم السابق</string>
     <string name="next_day_button_description">اليوم التالي</string>
     <string name="next_track_btn_description">التالي</string>
