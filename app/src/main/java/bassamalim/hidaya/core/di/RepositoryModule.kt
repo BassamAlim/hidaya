@@ -2,7 +2,6 @@ package bassamalim.hidaya.core.di
 
 import android.app.Application
 import android.content.Context
-import android.content.res.Resources
 import bassamalim.hidaya.core.data.dataSources.preferences.dataSources.AppSettingsPreferencesDataSource
 import bassamalim.hidaya.core.data.dataSources.preferences.dataSources.AppStatePreferencesDataSource
 import bassamalim.hidaya.core.data.dataSources.preferences.dataSources.BooksPreferencesDataSource
@@ -65,10 +64,10 @@ object RepositoryModule {
 
     @Provides @Singleton
     fun provideAppStateRepository(
-        resources: Resources,
+        app: Application,
         appStatePreferencesDataSource: AppStatePreferencesDataSource,
         @ApplicationScope scope: CoroutineScope
-    ) = AppStateRepository(resources, appStatePreferencesDataSource, scope)
+    ) = AppStateRepository(app, appStatePreferencesDataSource, scope)
 
     @Provides @Singleton
     fun provideBooksRepository(
@@ -112,10 +111,10 @@ object RepositoryModule {
 
     @Provides @Singleton
     fun providePrayersRepository(
-        resources: Resources,
+        app: Application,
         prayersPreferencesDataSource: PrayersPreferencesDataSource,
         @ApplicationScope scope: CoroutineScope
-    ) = PrayersRepository(resources, prayersPreferencesDataSource, scope)
+    ) = PrayersRepository(app, prayersPreferencesDataSource, scope)
 
     @Provides @Singleton
     fun provideQuizRepository(

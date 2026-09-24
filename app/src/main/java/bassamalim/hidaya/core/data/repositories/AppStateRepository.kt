@@ -1,20 +1,26 @@
 package bassamalim.hidaya.core.data.repositories
 
+import android.app.Application
 import android.content.res.Resources
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.data.dataSources.preferences.dataSources.AppStatePreferencesDataSource
 import bassamalim.hidaya.core.di.ApplicationScope
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.models.Source
+import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 class AppStateRepository @Inject constructor(
-    private val resources: Resources,
+    private val app: Application,
     private val appStatePreferencesDataSource: AppStatePreferencesDataSource,
     @ApplicationScope private val scope: CoroutineScope
 ) {
+
+    // Looked up on each use in the app language: Application resources follow the device
+    // language before API 33, and a language change doesn't restart the process
+    private val resources: Resources get() = app.withAppLocale().resources
 
     fun getHijriMonthNames() =
         resources.getStringArray(R.array.hijri_months) as Array<String>

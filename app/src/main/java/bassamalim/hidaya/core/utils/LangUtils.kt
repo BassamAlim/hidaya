@@ -17,9 +17,22 @@ object LangUtils {
     private val arNums = arrayOf('٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩')
 
     fun getAppLanguage(): Language {
-        val appLocale = AppCompatDelegate.getApplicationLocales()
-        val languageTag = appLocale.toLanguageTags()
-        return getTagLanguage(languageTag)
+        val deviceLocales = LocaleListCompat.getAdjustedDefault()
+        return resolveLanguage(
+            appLocale = AppCompatDelegate.getApplicationLocales()[0],
+            deviceLocales = (0 until deviceLocales.size()).mapNotNull { deviceLocales[it] }
+        )
+    }
+
+    /**
+     * The language the app's strings actually show in. With no app language saved (e.g. the
+     * default was kept at onboarding), Android picks resources by the device's locales: the first
+     * one the app has strings for, else the default ones, which are Arabic.
+     */
+    internal fun resolveLanguage(appLocale: Locale?, deviceLocales: List<Locale>): Language {
+        val locale = appLocale
+            ?: deviceLocales.firstOrNull { it.language == "ar" || it.language == "en" }
+        return if (locale?.language == "en") Language.ENGLISH else Language.ARABIC
     }
 
     /**
@@ -174,13 +187,6 @@ object LangUtils {
         when (language) {
             Language.ARABIC -> "ar"
             Language.ENGLISH -> "en"
-        }
-
-    private fun getTagLanguage(languageTag: String) =
-        when (languageTag) {
-            "ar" -> Language.ARABIC
-            "en" -> Language.ENGLISH
-            else -> Language.ARABIC
         }
 
 }

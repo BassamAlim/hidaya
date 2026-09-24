@@ -2,7 +2,6 @@ package bassamalim.hidaya.core.di
 
 import android.app.Application
 import android.content.Context
-import android.content.res.Resources
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
@@ -52,10 +51,6 @@ import javax.inject.Singleton
 
 @Module @InstallIn(SingletonComponent::class)
 object DataSourceModule {
-
-    @Provides @Singleton
-    fun provideResources(application: Application): Resources =
-        application.resources
 
     @Provides @Singleton
     fun provideAppSettingsPreferencesDataSource(@ApplicationContext appContext: Context) =
