@@ -21,7 +21,7 @@ import bassamalim.hidaya.core.di.ApplicationScope
 import bassamalim.hidaya.core.enums.VerseRepeatMode
 import bassamalim.hidaya.core.helpers.ListeningTimeRecorder
 import bassamalim.hidaya.core.helpers.buildAudioPlayer
-import bassamalim.hidaya.core.helpers.setUpMediaNotification
+import bassamalim.hidaya.core.helpers.mediaNotificationProvider
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.report
@@ -78,11 +78,13 @@ class VersePlayerService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
-        setUpMediaNotification(
-            notificationId = 101,
-            channelId = "verse_playback",
-            channelName = R.string.recitations,
-            oldChannelId = "AyaPlayer"
+        setMediaNotificationProvider(
+            mediaNotificationProvider(
+                notificationId = 101,
+                channelId = "verse_playback",
+                channelName = R.string.recitations,
+                oldChannelId = "AyaPlayer"
+            )
         )
 
         val player = buildAudioPlayer(this)

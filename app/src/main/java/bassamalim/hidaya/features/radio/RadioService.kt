@@ -16,7 +16,7 @@ import bassamalim.hidaya.R
 import bassamalim.hidaya.core.Activity
 import bassamalim.hidaya.core.Globals
 import bassamalim.hidaya.core.helpers.buildAudioPlayer
-import bassamalim.hidaya.core.helpers.setUpMediaNotification
+import bassamalim.hidaya.core.helpers.mediaNotificationProvider
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.report
 import com.google.common.util.concurrent.ListenableFuture
@@ -49,11 +49,13 @@ class RadioService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
-        setUpMediaNotification(
-            notificationId = 444,
-            channelId = "quran_radio_playback",
-            channelName = R.string.quran_radio,
-            oldChannelId = "QuranRadio"
+        setMediaNotificationProvider(
+            mediaNotificationProvider(
+                notificationId = 444,
+                channelId = "quran_radio_playback",
+                channelName = R.string.quran_radio,
+                oldChannelId = "QuranRadio"
+            )
         )
 
         val player = buildAudioPlayer(this)

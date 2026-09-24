@@ -45,27 +45,26 @@ fun buildAudioPlayer(context: Context): ExoPlayer =
         .build()
 
 /**
- * Media3 posts and updates the notification itself. [oldChannelId] is the channel the pre-Media3
- * service used; it was created at default importance, so reusing it could make the notification
- * alert. Media3 creates [channelId] as low importance.
+ * For MediaSessionService.setMediaNotificationProvider (protected, so the service calls it);
+ * Media3 then posts and updates the notification itself. [oldChannelId] is the channel the
+ * pre-Media3 service used; it was created at default importance, so reusing it could make the
+ * notification alert. Media3 creates [channelId] as low importance.
  */
 @OptIn(UnstableApi::class)
-fun MediaSessionService.setUpMediaNotification(
+fun Context.mediaNotificationProvider(
     notificationId: Int,
     channelId: String,
     @StringRes channelName: Int,
     oldChannelId: String
-) {
+): DefaultMediaNotificationProvider {
     NotificationManagerCompat.from(this).deleteNotificationChannel(oldChannelId)
 
-    setMediaNotificationProvider(
-        DefaultMediaNotificationProvider.Builder(this)
-            .setNotificationId(notificationId)
-            .setChannelId(channelId)
-            .setChannelName(channelName)
-            .build()
-            .apply { setSmallIcon(R.drawable.small_launcher_foreground) }
-    )
+    return DefaultMediaNotificationProvider.Builder(this)
+        .setNotificationId(notificationId)
+        .setChannelId(channelId)
+        .setChannelName(channelName)
+        .build()
+        .apply { setSmallIcon(R.drawable.small_launcher_foreground) }
 }
 
 fun Player.playbackStatus() = when {

@@ -20,7 +20,7 @@ import bassamalim.hidaya.core.di.ApplicationScope
 import bassamalim.hidaya.core.enums.StartAction
 import bassamalim.hidaya.core.helpers.ListeningTimeRecorder
 import bassamalim.hidaya.core.helpers.buildAudioPlayer
-import bassamalim.hidaya.core.helpers.setUpMediaNotification
+import bassamalim.hidaya.core.helpers.mediaNotificationProvider
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.report
@@ -65,11 +65,13 @@ class RecitationPlayerService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
-        setUpMediaNotification(
-            notificationId = 333,
-            channelId = "recitations_playback",
-            channelName = R.string.recitations,
-            oldChannelId = "Recitations"
+        setMediaNotificationProvider(
+            mediaNotificationProvider(
+                notificationId = 333,
+                channelId = "recitations_playback",
+                channelName = R.string.recitations,
+                oldChannelId = "Recitations"
+            )
         )
 
         val player = buildAudioPlayer(this)
