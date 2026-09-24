@@ -7,25 +7,31 @@ import androidx.activity.compose.LocalActivity
 import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.displayCutoutPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -40,8 +47,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -52,10 +59,13 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 import bassamalim.hidaya.R
+import bassamalim.hidaya.core.ui.components.MyCard
 import bassamalim.hidaya.core.ui.components.MyCircularProgressIndicator
-import bassamalim.hidaya.core.ui.components.MyColumn
 import bassamalim.hidaya.core.ui.components.MyScaffold
-import bassamalim.hidaya.core.ui.components.MyText
+import bassamalim.hidaya.core.ui.theme.appTypography
+import bassamalim.hidaya.core.ui.theme.dimensions
+
+private val ChannelLogoSize = 64.dp
 
 @Composable
 fun TvScreen(viewModel: TvViewModel) {
@@ -133,34 +143,33 @@ fun TvScreen(viewModel: TvViewModel) {
                             .aspectRatio(16f / 9f)
                     )
 
-                    Box(
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min)
+                            .padding(MaterialTheme.dimensions.spaceLg),
+                        horizontalArrangement =
+                            Arrangement.spacedBy(MaterialTheme.dimensions.spaceMd)
                     ) {
-                        Column(
+                        ChannelCard(
+                            text = stringResource(R.string.quran_channel),
+                            painter = painterResource(R.mipmap.ic_quran_channel),
+                            isSelected = state.selectedChannel == TvChannel.QURAN,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .verticalScroll(rememberScrollState())
-                                .padding(vertical = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(48.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            ChannelButton(
-                                text = stringResource(R.string.quran_channel),
-                                painter = painterResource(R.mipmap.ic_quran_channel),
-                                description = stringResource(R.string.quran_channel),
-                                onClick = viewModel::onQuranChannelClick
-                            )
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            onClick = viewModel::onQuranChannelClick
+                        )
 
-                            ChannelButton(
-                                text = stringResource(R.string.sunnah_channel),
-                                painter = painterResource(R.mipmap.ic_sunnah_channel),
-                                description = stringResource(R.string.sunnah_channel),
-                                onClick = viewModel::onSunnahChannelClick
-                            )
-                        }
+                        ChannelCard(
+                            text = stringResource(R.string.sunnah_channel),
+                            painter = painterResource(R.mipmap.ic_sunnah_channel),
+                            isSelected = state.selectedChannel == TvChannel.SUNNAH,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            onClick = viewModel::onSunnahChannelClick
+                        )
                     }
                 }
             }
@@ -206,34 +215,79 @@ private fun VideoPlayer(
     }
 }
 
+/** A channel to switch to; the one playing is highlighted and marked live. */
 @Composable
-private fun ChannelButton(
+private fun ChannelCard(
     text: String,
     painter: Painter,
-    description: String,
+    isSelected: Boolean,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    ElevatedButton(
+    val dims = MaterialTheme.dimensions
+
+    MyCard(
+        modifier = modifier.then(
+            if (isSelected) Modifier.border(
+                width = dims.borderThick,
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(dims.radiusLg)
+            )
+            else Modifier
+        ),
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(0.7f),
-        shape = RoundedCornerShape(10.dp)
+        shape = RoundedCornerShape(dims.radiusLg),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor =
+                if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                else MaterialTheme.colorScheme.onSurface
+        )
     ) {
-        MyColumn(Modifier.padding(6.dp)) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Image(
                 painter = painter,
-                contentDescription = description,
-                contentScale = ContentScale.None,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(ChannelLogoSize)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surface)
             )
 
-            MyText(
+            Spacer(Modifier.height(dims.spaceSm))
+
+            Text(
                 text = text,
-                modifier = Modifier.padding(top = 6.dp),
-                fontSize = 24.sp
+                style = MaterialTheme.appTypography.title,
+                textAlign = TextAlign.Center
             )
+
+            // Kept in the layout when hidden so both cards stay the same height
+            Row(
+                modifier = Modifier
+                    .padding(top = dims.spaceXs)
+                    .alpha(if (isSelected) 1f else 0f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    Modifier
+                        .size(dims.spaceSm)
+                        .background(MaterialTheme.colorScheme.error, CircleShape)
+                )
+
+                Spacer(Modifier.width(dims.spaceXs))
+
+                Text(
+                    text = stringResource(R.string.radio_live),
+                    style = MaterialTheme.appTypography.caption
+                )
+            }
         }
     }
 }
