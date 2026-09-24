@@ -93,10 +93,12 @@ object PrayerTimeUtils {
             }
         }
 
+        // Zero-stripping is for durations: it turns a 24-hour "00:30" into "30"
         return LangUtils.translateTimeNums(
             language = language,
             numeralsLanguage = numeralsLanguage,
-            string = formattedTime
+            string = formattedTime,
+            removeLeadingZeros = false
         )
     }
 
