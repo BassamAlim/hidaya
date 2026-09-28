@@ -72,12 +72,13 @@ class PrayerTimesGoldenTest {
     private val tehran = City("tehran", 35.6892, 51.3890, 1189.0, "Asia/Tehran")  // +03:30
     private val karachi = City("karachi", 24.8607, 67.0011, 8.0, "Asia/Karachi")
     private val delhi = City("delhi", 28.6139, 77.2090, 216.0, "Asia/Kolkata")  // +05:30
-    private val kathmandu = City("kathmandu", 27.7172, 85.3240, 1400.0, "Asia/Kathmandu")  // +05:45
+    private val kathmandu = City("kathmandu", 27.7172, 85.3240, 1400.0, "Asia/Kathmandu")
     private val jakarta = City("jakarta", -6.2088, 106.8456, 8.0, "Asia/Jakarta")
     private val london = City("london", 51.5074, -0.1278, 11.0, "Europe/London")
     private val berlin = City("berlin", 52.52, 13.405, 34.0, "Europe/Berlin")
     private val newYork = City("new_york", 40.7128, -74.0060, 10.0, "America/New_York")
-    private val santiago = City("santiago", -33.4489, -70.6693, 570.0, "America/Santiago")  // DST switches at midnight
+    // DST switches at midnight
+    private val santiago = City("santiago", -33.4489, -70.6693, 570.0, "America/Santiago")
     private val sydney = City("sydney", -33.8688, 151.2093, 58.0, "Australia/Sydney")
     private val reykjavik = City("reykjavik", 64.1466, -21.9426, 0.0, "Atlantic/Reykjavik")
 
@@ -90,31 +91,46 @@ class PrayerTimesGoldenTest {
     private fun auto(city: City, settings: PrayerTimeCalculatorSettings) =
         Scenario(city.name, city, city.zone, LocationType.AUTO, settings)
 
+    private val meccaMethod = settings(PrayerTimeCalculationMethod.MECCA)
+    private val mwl = settings(PrayerTimeCalculationMethod.MWL)
+    private val mwlAngleBased = settings(
+        PrayerTimeCalculationMethod.MWL,
+        highLatitudes = HighLatitudesAdjustmentMethod.ANGLE_BASED
+    )
+    private val karachiHanafi =
+        settings(PrayerTimeCalculationMethod.KARACHI, PrayerTimeJuristicMethod.HANAFI)
+    private val isna = settings(PrayerTimeCalculationMethod.ISNA)
+
     /** Every day of [YEAR], so every DST transition in every zone is covered. */
     private val dailyScenarios = listOf(
-        auto(mecca, settings(PrayerTimeCalculationMethod.MECCA)),
+        auto(mecca, meccaMethod),
         auto(cairo, settings(PrayerTimeCalculationMethod.EGYPT)),
         auto(amman, settings(PrayerTimeCalculationMethod.JORDAN)),
-        auto(istanbul, settings(PrayerTimeCalculationMethod.MWL)),
+        auto(istanbul, mwl),
         auto(tehran, settings(PrayerTimeCalculationMethod.TAHRAN)),
-        auto(karachi, settings(PrayerTimeCalculationMethod.KARACHI, PrayerTimeJuristicMethod.HANAFI)),
-        auto(delhi, settings(PrayerTimeCalculationMethod.KARACHI, PrayerTimeJuristicMethod.HANAFI)),
+        auto(karachi, karachiHanafi),
+        auto(delhi, karachiHanafi),
         auto(kathmandu, settings(PrayerTimeCalculationMethod.KARACHI)),
-        auto(jakarta, settings(PrayerTimeCalculationMethod.MWL)),
-        auto(london, settings(PrayerTimeCalculationMethod.MWL, highLatitudes = HighLatitudesAdjustmentMethod.ANGLE_BASED)),
-        auto(berlin, settings(PrayerTimeCalculationMethod.MWL, highLatitudes = HighLatitudesAdjustmentMethod.ANGLE_BASED)),
-        auto(newYork, settings(PrayerTimeCalculationMethod.ISNA)),
-        auto(santiago, settings(PrayerTimeCalculationMethod.ISNA)),
-        auto(sydney, settings(PrayerTimeCalculationMethod.MWL)),
-        auto(reykjavik, settings(PrayerTimeCalculationMethod.MWL, highLatitudes = HighLatitudesAdjustmentMethod.MIDNIGHT)),
+        auto(jakarta, mwl),
+        auto(london, mwlAngleBased),
+        auto(berlin, mwlAngleBased),
+        auto(newYork, isna),
+        auto(santiago, isna),
+        auto(sydney, mwl),
+        auto(reykjavik, settings(
+            PrayerTimeCalculationMethod.MWL,
+            highLatitudes = HighLatitudesAdjustmentMethod.MIDNIGHT
+        )),
         // Manual location in the device's own zone
-        Scenario("mecca_manual", mecca, mecca.zone, LocationType.MANUAL, settings(PrayerTimeCalculationMethod.MECCA)),
-        Scenario("london_manual", london, london.zone, LocationType.MANUAL, settings(PrayerTimeCalculationMethod.MWL, highLatitudes = HighLatitudesAdjustmentMethod.ANGLE_BASED)),
+        Scenario("mecca_manual", mecca, mecca.zone, LocationType.MANUAL, meccaMethod),
+        Scenario("london_manual", london, london.zone, LocationType.MANUAL, mwlAngleBased),
         // Manual location in another zone than the device's; pins the current behavior so any
         // change to it is deliberate
-        Scenario("mecca_on_berlin_device", mecca, berlin.zone, LocationType.MANUAL, settings(PrayerTimeCalculationMethod.MECCA)),
-        Scenario("london_on_riyadh_device", london, mecca.zone, LocationType.MANUAL, settings(PrayerTimeCalculationMethod.MWL, highLatitudes = HighLatitudesAdjustmentMethod.ANGLE_BASED)),
-        Scenario("new_york_on_london_device", newYork, london.zone, LocationType.MANUAL, settings(PrayerTimeCalculationMethod.ISNA))
+        Scenario("mecca_on_berlin_device", mecca, berlin.zone, LocationType.MANUAL, meccaMethod),
+        Scenario(
+            "london_on_riyadh_device", london, mecca.zone, LocationType.MANUAL, mwlAngleBased
+        ),
+        Scenario("new_york_on_london_device", newYork, london.zone, LocationType.MANUAL, isna)
     )
 
     /** Every combination of settings, on the equinoxes and solstices. */
@@ -236,7 +252,8 @@ class PrayerTimesGoldenTest {
         )
         val utc = Instant.ofEpochMilli(time.timeInMillis).atZone(ZoneOffset.UTC)
         return buildString {
-            append("%02d:%02d".format(Locale.US, time[Calendar.HOUR_OF_DAY], time[Calendar.MINUTE]))
+            val hour = time[Calendar.HOUR_OF_DAY]
+            append("%02d:%02d".format(Locale.US, hour, time[Calendar.MINUTE]))
             append(dayShift(date, wallDate))
             append("@%02d:%02d".format(Locale.US, utc.hour, utc.minute))
             if (utc.second != 0 || utc.nano != 0)
