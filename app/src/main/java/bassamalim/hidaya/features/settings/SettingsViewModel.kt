@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Calendar
 import java.util.Locale
 import javax.inject.Inject
 
@@ -115,10 +114,7 @@ class SettingsViewModel @Inject constructor(
                         if (devotion == Reminder.Devotional.MorningRemembrances) Prayer.FAJR
                         else Prayer.ASR
                     val prayerTime = domain.getPrayerTime(prayer) ?: return@launch
-                    onTimePicked(
-                        hour = prayerTime.get(Calendar.HOUR_OF_DAY),
-                        minute = prayerTime.get(Calendar.MINUTE)
-                    )
+                    onTimePicked(hour = prayerTime.hour, minute = prayerTime.minute)
                 }
             }
         }

@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.time.temporal.ChronoField
-import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -53,10 +52,10 @@ class MainViewModel @Inject constructor(
     }
 
     private fun getGregorianDate(numeralsLanguage: Language): String {
-        val gregorian = domain.getGregorianDateCalendar()
+        val gregorian = domain.getGregorianDate()
 
-        val mMonth = domain.getGregorianMonths()[gregorian[Calendar.MONTH]]
-        val gregorianStr = "${gregorian[Calendar.DATE]} $mMonth ${gregorian[Calendar.YEAR]}"
+        val mMonth = domain.getGregorianMonths()[gregorian.monthValue - 1]
+        val gregorianStr = "${gregorian.dayOfMonth} $mMonth ${gregorian.year}"
         return translateNums(
             numeralsLanguage = numeralsLanguage,
             string = gregorianStr

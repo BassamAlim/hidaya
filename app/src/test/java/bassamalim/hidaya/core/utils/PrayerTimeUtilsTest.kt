@@ -10,9 +10,10 @@ import bassamalim.hidaya.core.models.PrayerTimeCalculatorSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.Locale
-import java.util.TimeZone
 
 /**
  * Covers the timezone-offset handling around the calculator, in particular the DST
@@ -31,31 +32,23 @@ class PrayerTimeUtilsTest {
     private val settings =
         PrayerTimeCalculatorSettings(calculationMethod = PrayerTimeCalculationMethod.MWL)
 
-    private fun midnightAt(year: Int, month: Int, day: Int, zoneId: String): Calendar =
-        Calendar.getInstance(TimeZone.getTimeZone(zoneId)).apply {
-            clear()
-            set(year, month - 1, day, 0, 0, 0)
-        }
+    private fun timesOn(year: Int, month: Int, day: Int) = PrayerTimeUtils.getPrayerTimes(
+        settings = settings,
+        selectedTimeZoneId = berlinZone,
+        location = berlin,
+        date = LocalDate.of(year, month, day),
+        zone = ZoneId.of(berlinZone)
+    )
 
-    private fun format(calendar: Calendar?): String {
-        assertNotNull(calendar)
-        return String.format(
-            Locale.US,
-            "%02d:%02d",
-            calendar!![Calendar.HOUR_OF_DAY],
-            calendar[Calendar.MINUTE]
-        )
+    private fun format(time: ZonedDateTime?): String {
+        assertNotNull(time)
+        return String.format(Locale.US, "%02d:%02d", time!!.hour, time.minute)
     }
 
     @Test
-    fun `spring forward day computed at midnight uses the post-transition offset`() {
+    fun `spring forward day uses the post-transition offset`() {
         // CEST starts 2024-03-31 at 02:00 (+1h -> +2h); midnight is still on +1h
-        val times = PrayerTimeUtils.getPrayerTimes(
-            settings = settings,
-            selectedTimeZoneId = berlinZone,
-            location = berlin,
-            calendar = midnightAt(2024, 3, 31, berlinZone)
-        )
+        val times = timesOn(2024, 3, 31)
 
         // Pre-fix, these came out an hour early (Dhuhr 12:10)
         assertEquals("04:41", format(times[Prayer.FAJR]))
@@ -64,14 +57,9 @@ class PrayerTimeUtilsTest {
     }
 
     @Test
-    fun `fall back day computed at midnight uses the post-transition offset`() {
+    fun `fall back day uses the post-transition offset`() {
         // CEST ends 2024-10-27 at 03:00 (+2h -> +1h); midnight is still on +2h
-        val times = PrayerTimeUtils.getPrayerTimes(
-            settings = settings,
-            selectedTimeZoneId = berlinZone,
-            location = berlin,
-            calendar = midnightAt(2024, 10, 27, berlinZone)
-        )
+        val times = timesOn(2024, 10, 27)
 
         // Pre-fix, these came out an hour late (Dhuhr 12:50)
         assertEquals("04:59", format(times[Prayer.FAJR]))
@@ -80,44 +68,13 @@ class PrayerTimeUtilsTest {
     }
 
     @Test
-    fun `result does not depend on the input calendar's time of day`() {
-        // September: Berlin has a proper 18-degree twilight, so no prayer is null.
-        // In midsummer Fajr/Ishaa would legitimately be null at this latitude.
-        val atMidnight = PrayerTimeUtils.getPrayerTimes(
-            settings = settings,
-            selectedTimeZoneId = berlinZone,
-            location = berlin,
-            calendar = midnightAt(2024, 9, 15, berlinZone)
-        )
-        val atNight = PrayerTimeUtils.getPrayerTimes(
-            settings = settings,
-            selectedTimeZoneId = berlinZone,
-            location = berlin,
-            calendar = midnightAt(2024, 9, 15, berlinZone).apply {
-                this[Calendar.HOUR_OF_DAY] = 22
-                this[Calendar.MINUTE] = 30
-            }
-        )
-
-        for (prayer in atMidnight.keys)
-            assertEquals("$prayer", format(atMidnight[prayer]), format(atNight[prayer]))
-    }
-
-    @Test
-    fun `returned calendars' millis match their wall-clock fields in the real zone`() {
-        // What AlarmManager fires on is timeInMillis; it must agree with the displayed time
-        val times = PrayerTimeUtils.getPrayerTimes(
-            settings = settings,
-            selectedTimeZoneId = berlinZone,
-            location = berlin,
-            calendar = midnightAt(2024, 3, 31, berlinZone)
-        )
+    fun `returned times' instants match their wall-clock times in the real zone`() {
+        // What AlarmManager fires on is the instant; it must agree with the displayed time
+        val times = timesOn(2024, 3, 31)
 
         for ((prayer, time) in times) {
             assertNotNull("$prayer", time)
-            val rendered = Calendar.getInstance(TimeZone.getTimeZone(berlinZone)).apply {
-                timeInMillis = time!!.timeInMillis
-            }
+            val rendered = time!!.toInstant().atZone(ZoneId.of(berlinZone))
             assertEquals("$prayer", format(time), format(rendered))
         }
     }

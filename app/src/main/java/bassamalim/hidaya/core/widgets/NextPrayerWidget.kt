@@ -34,7 +34,8 @@ import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
-import java.util.Calendar
+import java.time.Duration
+import java.time.ZonedDateTime
 import java.util.Locale
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
@@ -173,21 +174,19 @@ class NextPrayerWidget(
         val numeralsLanguage = appSettingsRepository.getNumeralsLanguage().first()
         val timeFormat = appSettingsRepository.getTimeFormat().first()
         val prayerNames = context.resources.getStringArray(R.array.prayer_names)
-        val now = Calendar.getInstance()
+        val now = ZonedDateTime.now()
 
         // Try today; if all prayers have passed, fall back to tomorrow's Fajr
         for (dayOffset in 0..1) {
-            val calendar = Calendar.getInstance().apply {
-                if (dayOffset > 0) add(Calendar.DAY_OF_YEAR, 1)
-            }
             val prayerTimes = PrayerTimeUtils.getPrayerTimes(
                 settings = settings,
                 selectedTimeZoneId = timeZoneId,
                 location = location,
-                calendar = calendar
+                date = now.toLocalDate().plusDays(dayOffset.toLong())
             )
             val nextEntry = prayerTimes.entries.firstOrNull { (prayer, time) ->
-                prayer != Prayer.SUNRISE && prayer != Prayer.SUNSET && time != null && time.after(now)
+                prayer != Prayer.SUNRISE && prayer != Prayer.SUNSET && time != null &&
+                        time.isAfter(now)
             } ?: continue
 
             val prayerTimeStrings = PrayerTimeUtils.formatPrayerTimes(
@@ -197,7 +196,7 @@ class NextPrayerWidget(
                 timeFormat = timeFormat
             )
 
-            val remainingMillis = nextEntry.value!!.timeInMillis - now.timeInMillis
+            val remainingMillis = Duration.between(now, nextEntry.value!!).toMillis()
             val hours = (remainingMillis / (1000L * 60 * 60)).toInt()
             val minutes = ((remainingMillis % (1000L * 60 * 60)) / (1000L * 60)).toInt()
             val remainingFormatted = translateNums(

@@ -37,10 +37,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZonedDateTime
-import java.util.Calendar
 import java.util.Locale
-import java.util.SortedMap
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -77,17 +78,17 @@ class PrayersNotificationService : Service() {
     )
 
     data class PrayerData(
-        val times: Map<Prayer, Calendar?>,
+        val times: Map<Prayer, ZonedDateTime?>,
         val formattedTimes: Map<Prayer, String>,
-        val yesterdayIshaa: Calendar,
+        val yesterdayIshaa: ZonedDateTime,
         val formattedYesterdayIshaa: String,
-        val tomorrowFajr: Calendar,
+        val tomorrowFajr: ZonedDateTime,
         val formattedTomorrowFajr: String,
         val previousPrayer: Prayer?,
         val nextPrayer: Prayer?,
         val previousPrayerWasYesterday: Boolean,
         val nextPrayerIsTomorrow: Boolean,
-        val devotionalReminders: Map<Reminder.Devotional, Calendar>
+        val devotionalReminders: Map<Reminder.Devotional, ZonedDateTime>
     )
 
     // Notification text in the app language (Services don't get it from AppCompat < API 33)
@@ -177,8 +178,8 @@ class PrayersNotificationService : Service() {
         )
     }
 
-    private suspend fun getDevotionalReminders(): Map<Reminder.Devotional, Calendar> {
-        val today = Calendar.getInstance()
+    private suspend fun getDevotionalReminders(): Map<Reminder.Devotional, ZonedDateTime> {
+        val today = LocalDate.now()
 
         val devotionAlarmEnabledMap =
             notificationsRepository.getDevotionalReminderEnabledMap().first()
@@ -187,15 +188,13 @@ class PrayersNotificationService : Service() {
         for ((devotion, enabled) in devotionAlarmEnabledMap) {
             if (enabled) {
                 if (devotion is Reminder.Devotional.FridayKahf) {
-                    if (today[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY)
+                    if (today.dayOfWeek == DayOfWeek.FRIDAY)
                         devotionReminderTimes[devotion] = alarm.getDevotionalReminderTime(devotion)
                 }
                 else devotionReminderTimes[devotion] = alarm.getDevotionalReminderTime(devotion)
             }
         }
-        return devotionReminderTimes.mapValues { (_, time) ->
-            Calendar.getInstance().apply { timeInMillis = time.toInstant().toEpochMilli() }
-        }
+        return devotionReminderTimes.toMap()
     }
 
     private fun startCountdown(prayerData: PrayerData) {
@@ -220,16 +219,17 @@ class PrayersNotificationService : Service() {
 
         val nextPrayerTime =
             if (prayerData.nextPrayerIsTomorrow)
-                prayerData.tomorrowFajr.timeInMillis
+                prayerData.tomorrowFajr.toInstant().toEpochMilli()
             else
-                prayerData.times[prayerData.nextPrayer]?.timeInMillis ?: return
+                prayerData.times[prayerData.nextPrayer]?.toInstant()?.toEpochMilli() ?: return
 
         // Loop-invariant, so it is resolved once: resolving it per iteration meant a missing
         // previous prayer time skipped straight back to the condition without ever reaching the
         // delay, spinning the loop at full speed.
         val previousPrayerTime =
-            if (prayerData.previousPrayerWasYesterday) prayerData.yesterdayIshaa.timeInMillis
-            else prayerData.times[prayerData.previousPrayer]?.timeInMillis
+            if (prayerData.previousPrayerWasYesterday)
+                prayerData.yesterdayIshaa.toInstant().toEpochMilli()
+            else prayerData.times[prayerData.previousPrayer]?.toInstant()?.toEpochMilli()
 
         var remainingTime = nextPrayerTime - System.currentTimeMillis()
 
@@ -262,17 +262,15 @@ class PrayersNotificationService : Service() {
             if (System.currentTimeMillis() - lastDevotionalCheck >= 60 * 1000) {
                 lastDevotionalCheck = System.currentTimeMillis()
                 Log.d(TAG, "Checking for devotional reminders...")
-                val now = Calendar.getInstance()
+                val now = LocalTime.now()
                 prayerData.devotionalReminders.forEach { (reminder, reminderTime) ->
-                    if (now.get(Calendar.HOUR_OF_DAY) == reminderTime.get(Calendar.HOUR_OF_DAY) &&
-                        now.get(Calendar.MINUTE) == reminderTime.get(Calendar.MINUTE)
-                    ) {
+                    if (now.hour == reminderTime.hour && now.minute == reminderTime.minute) {
                         Log.d(TAG, "Devotional reminder triggered: ${reminder.name}")
                         sendBroadcast(
                             Intent(this, NotificationReceiver::class.java).apply {
                                 action = "devotion"
                                 putExtra("id", reminder.id)
-                                putExtra("time", reminderTime.timeInMillis)
+                                putExtra("time", reminderTime.toInstant().toEpochMilli())
                             }
                         )
                     }
@@ -363,12 +361,12 @@ class PrayersNotificationService : Service() {
         else stopForeground(true)
     }
 
-    private suspend fun getPrayerTimeMap(location: Location): Map<Prayer, Calendar?> {
+    private suspend fun getPrayerTimeMap(location: Location): Map<Prayer, ZonedDateTime?> {
         return PrayerTimeUtils.getPrayerTimes(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = Calendar.getInstance()
+            date = LocalDate.now()
         )
     }
 
@@ -378,21 +376,20 @@ class PrayersNotificationService : Service() {
         numeralsLanguage: Language
     ): Map<Prayer, String> {
         return PrayerTimeUtils.formatPrayerTimes(
-            prayerTimes = getPrayerTimeMap(location) as SortedMap<Prayer, Calendar?>,
+            prayerTimes = getPrayerTimeMap(location),
             timeFormat = appSettingsRepository.getTimeFormat().first(),
             language = language,
             numeralsLanguage = numeralsLanguage
         )
     }
 
-    private suspend fun getYesterdayIshaa(location: Location): Calendar {
-        val yesterdayCalendar = Calendar.getInstance().apply { add(Calendar.DATE, -1) }
+    private suspend fun getYesterdayIshaa(location: Location): ZonedDateTime {
         return PrayerTimeUtils.getPrayerTimes(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = yesterdayCalendar
-        )[Prayer.ISHAA] ?: Calendar.getInstance()
+            date = LocalDate.now().minusDays(1)
+        )[Prayer.ISHAA] ?: ZonedDateTime.now()
     }
 
     private suspend fun getStrYesterdayIshaa(
@@ -408,14 +405,13 @@ class PrayersNotificationService : Service() {
         )
     }
 
-    private suspend fun getTomorrowFajr(location: Location): Calendar {
-        val tomorrowCalendar = Calendar.getInstance().apply { add(Calendar.DATE, 1) }
+    private suspend fun getTomorrowFajr(location: Location): ZonedDateTime {
         return PrayerTimeUtils.getPrayerTimes(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = tomorrowCalendar
-        )[Prayer.FAJR] ?: Calendar.getInstance()
+            date = LocalDate.now().plusDays(1)
+        )[Prayer.FAJR] ?: ZonedDateTime.now()
     }
 
     private suspend fun getStrTomorrowFajr(
@@ -431,12 +427,12 @@ class PrayersNotificationService : Service() {
         )
     }
 
-    private fun getPreviousPrayer(times: Map<Prayer, Calendar?>): Pair<Prayer?, Boolean> {
+    private fun getPreviousPrayer(times: Map<Prayer, ZonedDateTime?>): Pair<Prayer?, Boolean> {
         val currentMillis = System.currentTimeMillis()
         var previousPrayer: Prayer? = null
 
         for ((prayer, time) in times.entries.reversed()) {
-            if (time != null && time.timeInMillis < currentMillis) {
+            if (time != null && time.toInstant().toEpochMilli() < currentMillis) {
                 previousPrayer = prayer
                 break
             }
@@ -448,12 +444,12 @@ class PrayersNotificationService : Service() {
         return Pair(previousPrayer, wasYesterday)
     }
 
-    private fun getNextPrayer(times: Map<Prayer, Calendar?>): Pair<Prayer?, Boolean> {
+    private fun getNextPrayer(times: Map<Prayer, ZonedDateTime?>): Pair<Prayer?, Boolean> {
         val currentMillis = System.currentTimeMillis()
         var nextPrayer: Prayer? = null
 
         for ((prayer, time) in times.entries) {
-            if (time != null && time.timeInMillis > currentMillis) {
+            if (time != null && time.toInstant().toEpochMilli() > currentMillis) {
                 nextPrayer = prayer
                 break
             }

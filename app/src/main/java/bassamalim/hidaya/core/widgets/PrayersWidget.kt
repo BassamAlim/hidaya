@@ -34,7 +34,8 @@ import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.ZonedDateTime
 
 private data class PrayerWidgetItem(
     val name: String,
@@ -137,7 +138,7 @@ class PrayersWidget(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = Calendar.getInstance()
+            date = LocalDate.now()
         )
         val prayerTimeStrings = PrayerTimeUtils.formatPrayerTimes(
             prayerTimes = prayerTimes,
@@ -147,10 +148,11 @@ class PrayersWidget(
         )
 
         val prayerNames = context.resources.getStringArray(R.array.prayer_names)
-        val now = Calendar.getInstance()
+        val now = ZonedDateTime.now()
 
         val nextPrayer = prayerTimes.entries.firstOrNull { (prayer, time) ->
-            prayer != Prayer.SUNRISE && prayer != Prayer.SUNSET && time != null && time.after(now)
+            prayer != Prayer.SUNRISE && prayer != Prayer.SUNSET && time != null &&
+                    time.isAfter(now)
         }?.key
 
         // Glance has no layout direction: the launcher lays the Row out in the *device* direction.

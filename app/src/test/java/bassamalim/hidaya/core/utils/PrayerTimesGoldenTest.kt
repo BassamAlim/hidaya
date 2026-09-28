@@ -13,14 +13,12 @@ import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.File
-import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.time.zone.ZoneRulesProvider
-import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 
@@ -142,10 +140,6 @@ class PrayerTimesGoldenTest {
         LocalDate.of(YEAR, 12, 21)
     )
 
-    // Callers pass the current time; the daily update runs just after midnight
-    private val primaryTimeOfDay = LocalTime.of(0, 0, 30)
-    private val otherTimesOfDay = listOf(LocalTime.of(12, 0), LocalTime.of(23, 59, 30))
-
     @Test
     fun `prayer times match the recorded baseline`() {
         val actual = generate()
@@ -185,20 +179,14 @@ class PrayerTimesGoldenTest {
         }
     }
 
-    /** Result key ("scenario date[@time]") to its formatted times, in a stable order. */
+    /** Result key ("scenario date") to its formatted times, in a stable order. */
     private fun generate(): LinkedHashMap<String, String> {
         val results = LinkedHashMap<String, String>()
 
         for (scenario in dailyScenarios) {
             var date = LocalDate.of(YEAR, 1, 1)
             while (date.year == YEAR) {
-                val primary = compute(scenario, date, primaryTimeOfDay)
-                results["${scenario.name} $date"] = primary
-                // The time of day callers pass shouldn't matter; recorded only where it does
-                for (time in otherTimesOfDay) {
-                    val other = compute(scenario, date, time)
-                    if (other != primary) results["${scenario.name} $date@$time"] = other
-                }
+                results["${scenario.name} $date"] = compute(scenario, date)
                 date = date.plusDays(1)
             }
         }
@@ -210,20 +198,16 @@ class PrayerTimesGoldenTest {
                         val name = "grid:${city.name}:$method:$juristic:$highLatitudes"
                         val scenario = auto(city, settings(method, juristic, highLatitudes))
                         for (date in gridDates)
-                            results["$name $date"] = compute(scenario, date, primaryTimeOfDay)
+                            results["$name $date"] = compute(scenario, date)
                     }
         }
 
         return results
     }
 
-    private fun compute(scenario: Scenario, date: LocalDate, timeOfDay: LocalTime): String {
+    private fun compute(scenario: Scenario, date: LocalDate): String {
+        // The device's zone, which an automatic location's times are computed in
         TimeZone.setDefault(TimeZone.getTimeZone(scenario.deviceZone))
-        // Built like production's Calendar.getInstance(): from an instant, not set field by field
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = date.atTime(timeOfDay)
-                .atZone(ZoneId.of(scenario.deviceZone)).toInstant().toEpochMilli()
-        }
         val city = scenario.city
         val times = PrayerTimeUtils.getPrayerTimes(
             settings = scenario.settings,
@@ -233,7 +217,8 @@ class PrayerTimesGoldenTest {
                 coordinates = Coordinates(city.latitude, city.longitude, city.elevation),
                 ids = LocationIds(countryId = 1, cityId = 1)
             ),
-            calendar = calendar
+            date = date,
+            zone = ZoneId.of(scenario.deviceZone)
         )
         return times.entries.joinToString(" ") { (prayer, time) ->
             "${abbreviation(prayer)}=${format(date, time)}"
@@ -244,17 +229,13 @@ class PrayerTimesGoldenTest {
      * "HH:mm" as shown, then "@HH:mmZ", the UTC time the alarm fires at. A day shift from [date]
      * is appended to either as "(+1d)" when there is one.
      */
-    private fun format(date: LocalDate, time: Calendar?): String {
+    private fun format(date: LocalDate, time: ZonedDateTime?): String {
         if (time == null) return "--"
 
-        val wallDate = LocalDate.of(
-            time[Calendar.YEAR], time[Calendar.MONTH] + 1, time[Calendar.DAY_OF_MONTH]
-        )
-        val utc = Instant.ofEpochMilli(time.timeInMillis).atZone(ZoneOffset.UTC)
+        val utc = time.toInstant().atZone(ZoneOffset.UTC)
         return buildString {
-            val hour = time[Calendar.HOUR_OF_DAY]
-            append("%02d:%02d".format(Locale.US, hour, time[Calendar.MINUTE]))
-            append(dayShift(date, wallDate))
+            append("%02d:%02d".format(Locale.US, time.hour, time.minute))
+            append(dayShift(date, time.toLocalDate()))
             append("@%02d:%02d".format(Locale.US, utc.hour, utc.minute))
             if (utc.second != 0 || utc.nano != 0)
                 append(":%02d.%03d".format(Locale.US, utc.second, utc.nano / 1_000_000))

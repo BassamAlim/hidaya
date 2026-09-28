@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.time.ZonedDateTime
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.collections.get
@@ -40,11 +40,11 @@ class HomeViewModel @Inject constructor(
 ): ViewModel() {
 
     private val prayerNames = domain.getPrayerNames()
-    private var times: Map<Prayer, Calendar?> = emptyMap()
+    private var times: Map<Prayer, ZonedDateTime?> = emptyMap()
     private var formattedTimes: Map<Prayer, String> = emptyMap()
-    private var yesterdayIshaa: Calendar? = null
+    private var yesterdayIshaa: ZonedDateTime? = null
     private var formattedYesterdayIshaa: String = ""
-    private var tomorrowFajr: Calendar? = null
+    private var tomorrowFajr: ZonedDateTime? = null
     private var formattedTomorrowFajr: String = ""
     private var timer: CountDownTimer? = null
     private var previousPrayer: Prayer? = null
@@ -196,7 +196,7 @@ class HomeViewModel @Inject constructor(
                     timeText = formattedTimes[prayer].orEmpty(),
                     status = when {
                         !nextPrayerIsTomorrow && prayer == nextPrayer -> TodayPrayer.Status.NEXT
-                        (times[prayer]?.timeInMillis ?: Long.MAX_VALUE) < now ->
+                        (times[prayer]?.toInstant()?.toEpochMilli() ?: Long.MAX_VALUE) < now ->
                             TodayPrayer.Status.PASSED
                         else -> TodayPrayer.Status.UPCOMING
                     }
@@ -314,8 +314,8 @@ class HomeViewModel @Inject constructor(
         }
 
         val till =
-            if (nextPrayerIsTomorrow) tomorrowFajr?.timeInMillis ?: return
-            else times[nextPrayer]?.timeInMillis ?: return
+            if (nextPrayerIsTomorrow) tomorrowFajr?.toInstant()?.toEpochMilli() ?: return
+            else times[nextPrayer]?.toInstant()?.toEpochMilli() ?: return
         timer = object : CountDownTimer(
             /* millisInFuture = */ till - System.currentTimeMillis(),
             /* countDownInterval = */ 1000
@@ -330,9 +330,13 @@ class HomeViewModel @Inject constructor(
 
                 val timeFromPreviousPrayer =
                     if (nextPrayer == Prayer.FAJR)
-                        System.currentTimeMillis() - (previousPrayerTime?.timeInMillis ?: System.currentTimeMillis())
+                        System.currentTimeMillis() -
+                                (previousPrayerTime?.toInstant()?.toEpochMilli()
+                                    ?: System.currentTimeMillis())
                     else
-                        System.currentTimeMillis() - (times[previousPrayer]?.timeInMillis ?: System.currentTimeMillis())
+                        System.currentTimeMillis() -
+                                (times[previousPrayer]?.toInstant()?.toEpochMilli()
+                                    ?: System.currentTimeMillis())
                 val timeFromPreviousPrayerHours = timeFromPreviousPrayer / (60 * 60 * 1000) % 24
                 val timeFromPreviousPrayerMinutes = timeFromPreviousPrayer / (60 * 1000) % 60
                 val timeFromPreviousPrayerSeconds = timeFromPreviousPrayer / 1000 % 60
@@ -367,8 +371,9 @@ class HomeViewModel @Inject constructor(
                             language = it.language,
                             numeralsLanguage = it.numeralsLanguage
                         ),
-                        previousPrayerTime = previousPrayerTime?.let { TimeOfDay.fromCalendar(it) },
-                        nextPrayerTime = nextPrayerTime?.let { TimeOfDay.fromCalendar(it) }
+                        previousPrayerTime =
+                            previousPrayerTime?.let { TimeOfDay.of(it.toLocalTime()) },
+                        nextPrayerTime = nextPrayerTime?.let { TimeOfDay.of(it.toLocalTime()) }
                     )}
                 }
             }

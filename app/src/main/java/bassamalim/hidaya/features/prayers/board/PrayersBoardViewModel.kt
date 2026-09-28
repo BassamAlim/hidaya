@@ -31,7 +31,6 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.chrono.HijrahDate
 import java.time.temporal.ChronoField
-import java.util.Calendar
 import java.util.SortedMap
 import javax.inject.Inject
 
@@ -47,8 +46,8 @@ class PrayersBoardViewModel @Inject constructor(
     private val location = domain.getLocation()
     private val prayerSettings = domain.getPrayerSettings()
     private val prayerTimesCalculatorSettings = domain.getPrayerTimesCalculatorSettings()
-    private val currentDate = Calendar.getInstance()
-    private val viewedDate = Calendar.getInstance()
+    private val currentDate = LocalDate.now()
+    private var viewedDate = currentDate
     private val prayerNames = domain.getPrayerNames()
     // Re-evaluates which prayer is next while the board stays open. Without a location there's
     // nothing to highlight, so no timer runs (this also keeps virtual-time tests finite)
@@ -78,7 +77,7 @@ class PrayersBoardViewModel @Inject constructor(
                 prayerTimesCalculatorSettings = prayerTimesCalculatorSettings
             )
             val nextPrayer =
-                if (isSameDay(viewedDate, currentDate)) domain.getNextPrayer(
+                if (viewedDate == currentDate) domain.getNextPrayer(
                     location = location,
                     prayerTimesCalculatorSettings = prayerTimesCalculatorSettings,
                     candidates = prayerNames.keys
@@ -89,7 +88,7 @@ class PrayersBoardViewModel @Inject constructor(
                 prayersData = getPrayersData(
                     prayerTimeMap = prayerTimeMap,
                     prayerSettings = prayerSettings,
-                    isToday = isSameDay(viewedDate, currentDate),
+                    isToday = viewedDate == currentDate,
                     nextPrayer = nextPrayer
                 ),
                 locationName = getLocationName(location)
@@ -140,18 +139,15 @@ class PrayersBoardViewModel @Inject constructor(
     }
 
     fun onPreviousDayClick() {
-        val newDate = (viewedDate.clone() as Calendar).apply { add(Calendar.DATE, -1) }
-        updateDate(newDate)
+        updateDate(viewedDate.minusDays(1))
     }
 
     fun onDateClick() {
-        val newDate = (viewedDate.clone() as Calendar).apply { time = currentDate.time }
-        updateDate(newDate)
+        updateDate(currentDate)
     }
 
     fun onNextDayClick() {
-        val newDate = (viewedDate.clone() as Calendar).apply { add(Calendar.DATE, 1) }
-        updateDate(newDate)
+        updateDate(viewedDate.plusDays(1))
     }
 
     fun onReportHelpClick() {
@@ -283,18 +279,15 @@ class PrayersBoardViewModel @Inject constructor(
         }
     }
 
-    private fun updateDate(newDate: Calendar) {
+    private fun updateDate(newDate: LocalDate) {
         // Set first: the state update below makes uiState recompute the times for viewedDate
-        viewedDate.time = newDate.time
+        viewedDate = newDate
 
         _uiState.update { it.copy(
             dateText = getDateText(newDate),
-            noDateOffset = isSameDay(newDate, currentDate)
+            noDateOffset = newDate == currentDate
         )}
     }
-
-    private fun isSameDay(a: Calendar, b: Calendar) =
-        a[Calendar.YEAR] == b[Calendar.YEAR] && a[Calendar.DAY_OF_YEAR] == b[Calendar.DAY_OF_YEAR]
 
     private fun getPrayersData(
         prayerTimeMap: SortedMap<Prayer, String>,
@@ -330,14 +323,8 @@ class PrayersBoardViewModel @Inject constructor(
         return "$countryName, $cityName"
     }
 
-    private fun getDateText(newDate: Calendar): String {
-        val hijri = HijrahDate.from(
-            LocalDate.of(
-                newDate[Calendar.YEAR],
-                newDate[Calendar.MONTH] + 1,
-                newDate[Calendar.DATE]
-            )
-        )
+    private fun getDateText(newDate: LocalDate): String {
+        val hijri = HijrahDate.from(newDate)
 
         val year = translateNums(
             numeralsLanguage = numeralsLanguage,

@@ -4,14 +4,13 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.enums.TimeFormat
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.util.Calendar
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 class PrayerTimeFormatTest {
 
-    private fun at(hour: Int, minute: Int) = Calendar.getInstance().apply {
-        set(Calendar.HOUR_OF_DAY, hour)
-        set(Calendar.MINUTE, minute)
-    }
+    private fun at(hour: Int, minute: Int) =
+        ZonedDateTime.of(2026, 1, 1, hour, minute, 0, 0, ZoneOffset.UTC)
 
     private fun format(
         hour: Int,

@@ -16,7 +16,9 @@ import bassamalim.hidaya.core.models.TimeOfDay
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import kotlinx.coroutines.flow.first
-import java.util.Calendar
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -72,25 +74,23 @@ class SettingsDomain @Inject constructor(
 
     fun getLocation() = locationRepository.getLocation()
 
-    suspend fun getPrayerTime(prayer: Prayer): Calendar? {
+    suspend fun getPrayerTime(prayer: Prayer): ZonedDateTime? {
         val location = locationRepository.getLocation().first() ?: return null
 
         var prayerTime = PrayerTimeUtils.getPrayerTimes(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = Calendar.getInstance()
+            date = LocalDate.now()
         )[prayer] ?: return null
 
         // if prayer time passed
-        if (prayerTime.timeInMillis < System.currentTimeMillis()) {
+        if (prayerTime.toInstant().isBefore(Instant.now())) {
             prayerTime = PrayerTimeUtils.getPrayerTimes(
                 settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
                 selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
                 location = location,
-                calendar = Calendar.getInstance().apply {
-                    add(Calendar.DAY_OF_MONTH, 1)
-                }
+                date = LocalDate.now().plusDays(1)
             )[prayer] ?: return null
         }
 
@@ -98,19 +98,10 @@ class SettingsDomain @Inject constructor(
     }
 
     suspend fun setDevotionalReminder(reminder: Reminder.Devotional, hour: Int, minute: Int) {
-        val adjustedTime = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-        }
-
         setDevotionReminderEnabled(reminder, true)
         setDevotionReminderTimeOfDay(
             reminder = reminder,
-            timeOfDay = TimeOfDay(
-                hour = adjustedTime.get(Calendar.HOUR_OF_DAY),
-                minute = adjustedTime.get(Calendar.MINUTE)
-            )
+            timeOfDay = TimeOfDay(hour = hour, minute = minute)
         )
 
         setAlarm(reminder)

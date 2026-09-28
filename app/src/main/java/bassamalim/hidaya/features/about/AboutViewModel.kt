@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.time.Instant
+import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
@@ -71,14 +72,13 @@ class AboutViewModel @Inject constructor(
     }
 
     private fun formatLastUpdate(millis: Long): String {
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = millis
+        val time = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault())
 
         return "Last Daily Update: " +
-                "${calendar[Calendar.YEAR]}/" +
-                "${calendar[Calendar.MONTH] + 1}/" +
-                "${calendar[Calendar.DATE]} " +
-                "${calendar[Calendar.HOUR_OF_DAY]}:${calendar[Calendar.MINUTE]}"
+                "${time.year}/" +
+                "${time.monthValue}/" +
+                "${time.dayOfMonth} " +
+                "${time.hour}:${time.minute}"
     }
 
 }

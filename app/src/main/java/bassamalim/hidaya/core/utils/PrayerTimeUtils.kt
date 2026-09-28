@@ -12,7 +12,6 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import java.util.Calendar
 import java.util.Locale
 import java.util.SortedMap
 import java.util.TimeZone
@@ -50,35 +49,8 @@ object PrayerTimeUtils {
             }
     }
 
-    /** Prayer times on [calendar]'s date, as calendars in its zone; see the other overload. */
-    fun getPrayerTimes(
-        settings: PrayerTimeCalculatorSettings,
-        selectedTimeZoneId: String = "",
-        location: Location,
-        calendar: Calendar = Calendar.getInstance()
-    ): SortedMap<Prayer, Calendar?> {
-        val date = LocalDate.of(
-            calendar[Calendar.YEAR],
-            calendar[Calendar.MONTH] + 1,
-            calendar[Calendar.DAY_OF_MONTH]
-        )
-        return getPrayerTimes(
-            settings = settings,
-            selectedTimeZoneId = selectedTimeZoneId,
-            location = location,
-            date = date,
-            zone = ZoneId.of(calendar.timeZone.id)
-        ).mapValuesTo(sortedMapOf<Prayer, Calendar?>()) { (_, time) ->
-            time?.let {
-                (calendar.clone() as Calendar).apply {
-                    timeInMillis = it.toInstant().toEpochMilli()
-                }
-            }
-        }
-    }
-
     fun formatPrayerTimes(
-        prayerTimes: SortedMap<Prayer, Calendar?>,
+        prayerTimes: Map<Prayer, ZonedDateTime?>,
         language: Language,
         numeralsLanguage: Language,
         timeFormat: TimeFormat
@@ -97,7 +69,7 @@ object PrayerTimeUtils {
     }
 
     fun formatPrayerTime(
-        time: Calendar?,
+        time: ZonedDateTime?,
         language: Language,
         numeralsLanguage: Language,
         timeFormat: TimeFormat
@@ -106,18 +78,18 @@ object PrayerTimeUtils {
 
         val formattedTime = when (timeFormat) {
             TimeFormat.TWENTY_FOUR -> {
-                val hour = String.format(Locale.ENGLISH, "%02d", time[Calendar.HOUR_OF_DAY])
-                val minute = String.format(Locale.ENGLISH, "%02d", time[Calendar.MINUTE])
+                val hour = String.format(Locale.ENGLISH, "%02d", time.hour)
+                val minute = String.format(Locale.ENGLISH, "%02d", time.minute)
                 "$hour:$minute"
             }
             TimeFormat.TWELVE -> {
-                var hour = time[Calendar.HOUR_OF_DAY]
+                var hour = time.hour
                 val suffix = when (language) {
                     Language.ENGLISH -> { if (hour >= 12) "pm" else "am" }
                     Language.ARABIC -> { if (hour >= 12) "م" else "ص" }
                 }
                 hour = (hour + 12 - 1) % 12 + 1
-                val minute = time[Calendar.MINUTE]
+                val minute = time.minute
 
                 val formattedMinute = String.format(locale = Locale.ENGLISH, "%02d", minute)
                 "$hour:$formattedMinute $suffix"

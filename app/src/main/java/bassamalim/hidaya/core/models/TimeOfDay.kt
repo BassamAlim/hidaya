@@ -1,7 +1,7 @@
 package bassamalim.hidaya.core.models
 
 import kotlinx.serialization.Serializable
-import java.util.Calendar
+import java.time.LocalTime
 
 @Serializable
 data class TimeOfDay(
@@ -10,10 +10,7 @@ data class TimeOfDay(
     val second: Int = 0
 ) {
     companion object {
-        fun fromCalendar(calendar: Calendar) = TimeOfDay(
-            hour = calendar.get(Calendar.HOUR_OF_DAY),
-            minute = calendar.get(Calendar.MINUTE),
-            second = calendar.get(Calendar.SECOND)
-        )
+        fun of(time: LocalTime) =
+            TimeOfDay(hour = time.hour, minute = time.minute, second = time.second)
     }
 }

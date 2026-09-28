@@ -33,7 +33,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.Calendar
 import java.util.Random
 import javax.inject.Inject
 
@@ -162,11 +161,10 @@ class DailyUpdateReceiver : BroadcastReceiver() {
 
 }
 
-/** Same calendar day. Comparing only the day of month took a month-old update for today's. */
-internal fun isSameDay(a: Calendar, b: Calendar) =
-    a[Calendar.YEAR] == b[Calendar.YEAR] && a[Calendar.DAY_OF_YEAR] == b[Calendar.DAY_OF_YEAR]
-
-/** Whether the moment [millis] falls on [date] in [zone]. */
+/**
+ * Whether the moment [millis] falls on [date] in [zone]. Comparing only the day of month took a
+ * month-old update for today's.
+ */
 internal fun isOnDate(millis: Long, date: LocalDate, zone: ZoneId) =
     Instant.ofEpochMilli(millis).atZone(zone).toLocalDate() == date
 

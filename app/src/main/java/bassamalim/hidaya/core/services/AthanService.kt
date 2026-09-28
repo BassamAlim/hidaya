@@ -38,7 +38,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.time.DayOfWeek
+import java.time.LocalDate
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -150,7 +151,7 @@ class AthanService : Service() {
 
     private fun getTitle(reminder: Reminder): String {
         return if ((reminder == Reminder.Prayer.Dhuhr || reminder == Reminder.PrayerExtra.Dhuhr) &&
-            Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY) {
+            LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY) {
             resources.getString(R.string.jumuah_title)
         }
         else resources.getStringArray(R.array.prayer_titles)[reminder.id-1]
@@ -158,7 +159,7 @@ class AthanService : Service() {
 
     private fun getSubtitle(reminder: Reminder): String {
         return if (reminder == Reminder.Prayer.Dhuhr &&
-            Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY)
+            LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY)
             resources.getString(R.string.jumuah_subtitle)
         else resources.getStringArray(R.array.prayer_subtitles)[reminder.id-1]
     }
@@ -217,7 +218,7 @@ class AthanService : Service() {
 
     private fun getBasicTitle(reminder: Reminder): String {
         return if ((reminder == Reminder.Prayer.Dhuhr || reminder == Reminder.PrayerExtra.Dhuhr) &&
-            Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY) {
+            LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY) {
             resources.getString(R.string.jumuah_title)
         }
         else resources.getStringArray(R.array.prayer_titles)[reminder.id-1]
@@ -225,7 +226,7 @@ class AthanService : Service() {
 
     private fun getBasicSubtitle(reminder: Reminder): String {
         return if (reminder == Reminder.Prayer.Dhuhr &&
-            Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY)
+            LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY)
             resources.getString(R.string.jumuah_subtitle)
         else resources.getStringArray(R.array.prayer_subtitles)[reminder.id-1]
     }

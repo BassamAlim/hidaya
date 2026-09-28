@@ -17,7 +17,7 @@ import bassamalim.hidaya.features.prayers.notificationSettings.PrayerNotificatio
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import java.util.Calendar
+import java.time.LocalDate
 import java.util.SortedMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -87,14 +87,14 @@ class PrayersBoardDomain @Inject constructor(
 
     suspend fun getTimes(
         location: Location,
-        date: Calendar,
+        date: LocalDate,
         prayerTimesCalculatorSettings: PrayerTimeCalculatorSettings
     ): SortedMap<Prayer, String> {
         val prayerTimes = PrayerTimeUtils.getPrayerTimes(
             settings = prayerTimesCalculatorSettings,
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = date
+            date = date
         )
 
         return PrayerTimeUtils.formatPrayerTimes(
@@ -116,10 +116,10 @@ class PrayersBoardDomain @Inject constructor(
             settings = prayerTimesCalculatorSettings,
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = Calendar.getInstance()
+            date = LocalDate.now()
         ).mapNotNull { (prayer, time) ->
             // Times can be null for prayers that don't occur at high latitudes
-            time?.timeInMillis?.takeIf { prayer in candidates && it > now }?.let { prayer to it }
+            time?.toInstant()?.toEpochMilli()?.takeIf { prayer in candidates && it > now }?.let { prayer to it }
         }.minByOrNull { it.second }?.first
     }
 

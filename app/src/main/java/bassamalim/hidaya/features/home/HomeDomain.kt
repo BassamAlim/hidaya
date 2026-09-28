@@ -16,7 +16,8 @@ import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.OsUtils
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import kotlinx.coroutines.flow.first
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.max
@@ -39,7 +40,7 @@ class HomeDomain @Inject constructor(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = Calendar.getInstance()
+            date = LocalDate.now()
         )
 
     suspend fun getStrPrayerTimeMap(location: Location) =
@@ -55,7 +56,7 @@ class HomeDomain @Inject constructor(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = Calendar.getInstance().apply { add(Calendar.DATE, -1) }
+            date = LocalDate.now().minusDays(1)
         )[Prayer.ISHAA]
 
     suspend fun getStrYesterdayIshaa(location: Location) =
@@ -71,7 +72,7 @@ class HomeDomain @Inject constructor(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = Calendar.getInstance().apply { add(Calendar.DATE, 1) }
+            date = LocalDate.now().plusDays(1)
         )[Prayer.FAJR]
 
     suspend fun getStrTomorrowFajr(location: Location) =
@@ -83,18 +84,18 @@ class HomeDomain @Inject constructor(
         )
 
     // Times can be null for prayers that don't occur at high latitudes, so they're skipped.
-    fun getPreviousPrayer(times: Map<Prayer, Calendar?>): Prayer? {
+    fun getPreviousPrayer(times: Map<Prayer, ZonedDateTime?>): Prayer? {
         val currentMillis = System.currentTimeMillis()
         for ((prayer, time) in times.entries.reversed()) {
-            if (time != null && time.timeInMillis < currentMillis) return prayer
+            if (time != null && time.toInstant().toEpochMilli() < currentMillis) return prayer
         }
         return null
     }
 
-    fun getNextPrayer(times: Map<Prayer, Calendar?>): Prayer? {
+    fun getNextPrayer(times: Map<Prayer, ZonedDateTime?>): Prayer? {
         val currentMillis = System.currentTimeMillis()
         for ((prayer, time) in times.entries) {
-            if (time != null && time.timeInMillis > currentMillis) return prayer
+            if (time != null && time.toInstant().toEpochMilli() > currentMillis) return prayer
         }
         return null
     }

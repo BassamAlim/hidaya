@@ -33,7 +33,7 @@ import bassamalim.hidaya.R
 import bassamalim.hidaya.core.ui.theme.tajwal
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.models.TimeOfDay
-import java.util.Calendar
+import java.time.LocalTime
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -44,11 +44,11 @@ fun AnalogClock(
     numeralsLanguage: Language,
     modifier: Modifier = Modifier
 ) {
-    var currentTime by remember { mutableStateOf(TimeOfDay.fromCalendar(Calendar.getInstance())) }
+    var currentTime by remember { mutableStateOf(TimeOfDay.of(LocalTime.now())) }
     LaunchedEffect(Unit) {
         while (true) {
             kotlinx.coroutines.delay(1000)
-            currentTime = TimeOfDay.fromCalendar(Calendar.getInstance())
+            currentTime = TimeOfDay.of(LocalTime.now())
         }
     }
 
