@@ -11,6 +11,8 @@ import androidx.core.net.toUri
 import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
 import bassamalim.hidaya.core.data.repositories.QuranRepository
 import bassamalim.hidaya.core.data.repositories.RecitationsRepository
+import bassamalim.hidaya.core.di.ApplicationScope
+import bassamalim.hidaya.core.di.IoDispatcher
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.helpers.ReceiverWrapper
 import bassamalim.hidaya.core.helpers.Searcher
@@ -22,16 +24,21 @@ import java.io.File
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @Singleton
 class RecitationRecitersMenuDomain @Inject constructor(
     private val app: Application,
     private val recitationsRepository: RecitationsRepository,
     private val quranRepository: QuranRepository,
-    private val appSettingsRepository: AppSettingsRepository
+    private val appSettingsRepository: AppSettingsRepository,
+    @ApplicationScope private val scope: CoroutineScope,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     private val searcher = Searcher<Recitation>()
@@ -104,7 +111,8 @@ class RecitationRecitersMenuDomain @Inject constructor(
     ) {
         val language = getLanguage()
         val reciterNames = recitationsRepository.getSuraReciterNames(language)
-        Thread {
+        // App scope so the enqueueing finishes even if the user leaves the screen
+        scope.launch(ioDispatcher) {
             var request: DownloadManager.Request
             var posted = false
             for (i in 0..113) {
@@ -137,7 +145,7 @@ class RecitationRecitersMenuDomain @Inject constructor(
                     }
                 }
             }
-        }.start()
+        }
     }
 
     fun deleteNarration(reciterId: Int, narration: Recitation.Narration) {

@@ -3,8 +3,6 @@ package bassamalim.hidaya.core.data.repositories
 import android.app.Application
 import android.app.DownloadManager
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.widget.Toast
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.data.dataSources.preferences.dataSources.RecitationsPreferencesDataSource
@@ -29,6 +27,7 @@ import bassamalim.hidaya.features.recitations.recitersMenu.LastPlayedMedia
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -62,7 +61,7 @@ class RecitationsRepository @Inject constructor(
         suraSearchName: String,
         server: String
     ) {
-        Thread {
+        scope.launch(Dispatchers.IO) {
             val link = String.format(Locale.US, "%s/%03d.mp3", server, suraId+1)
             val uri = link.toUri()
 
@@ -72,9 +71,9 @@ class RecitationsRepository @Inject constructor(
             request.setDestinationInExternalFilesDir(app, "$prefix/$reciterId/$narrationId/", "$suraId.mp3")
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
 
-            val downloadId = enqueueDownload(request) ?: return@Thread
+            val downloadId = enqueueDownload(request) ?: return@launch
             addToDownloading(downloadId, narrationId, suraId)
-        }.start()
+        }
     }
 
     /** Null if the system refuses (some ROMs reject the app's own external files path). */
@@ -84,7 +83,7 @@ class RecitationsRepository @Inject constructor(
         } catch (e: SecurityException) {
             e.report()
             // Callers enqueue from background threads
-            Handler(Looper.getMainLooper()).post {
+            scope.launch(Dispatchers.Main) {
                 val context = app.withAppLocale()
                 Toast.makeText(context, context.getString(R.string.download_failed), Toast.LENGTH_LONG)
                     .show()
