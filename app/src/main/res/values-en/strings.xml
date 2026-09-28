@@ -317,4 +317,9 @@
     <string name="location_screen_title">Location</string>
     <string name="prayer_settings_hint">Pick what your local mosque follows; the defaults suit most people</string>
     <string name="continue_action">Continue</string>
+    <string name="verse_guess_title">Where\'s the verse?</string>
+    <string name="verse_location">%1$s %2$s · Page %3$s</string>
+    <string name="verse_map_hint">Tap a box to pick a verse, or hold and slide</string>
+    <string name="verse_map_scroll_position">Juz %1$s · %2$s</string>
+    <string name="whole_quran">Whole Quran</string>
 </resources>

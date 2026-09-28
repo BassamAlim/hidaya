@@ -295,4 +295,9 @@
     <string name="location_screen_title">الموقع</string>
     <string name="prayer_settings_hint">اختر ما يتبعه مسجدك المحلي، والإعدادات الافتراضية تناسب معظم المستخدمين</string>
     <string name="continue_action">متابعة</string>
+    <string name="verse_guess_title">أين الآية؟</string>
+    <string name="verse_location">%1$s %2$s · صفحة %3$s</string>
+    <string name="verse_map_hint">المس مربعًا لاختيار آية، أو اضغط مطولًا ثم اسحب</string>
+    <string name="verse_map_scroll_position">جزء %1$s · %2$s</string>
+    <string name="whole_quran">القرآن كاملًا</string>
 </resources>

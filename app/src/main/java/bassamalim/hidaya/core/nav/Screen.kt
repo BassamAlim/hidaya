@@ -113,6 +113,9 @@ sealed interface Screen {
     @Serializable @SerialName("tv")
     data object Tv: Screen
 
+    @Serializable @SerialName("verse_guess")
+    data object VerseGuess: Screen
+
     @Serializable @SerialName("verse_info")
     data class VerseInfo(val verseId: Int): Screen
 
