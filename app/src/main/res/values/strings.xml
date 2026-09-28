@@ -314,6 +314,7 @@
     <string name="today">اليوم</string>
 
     <string name="prayers_no_location">حدد موقعك لعرض مواقيت الصلاة</string>
+    <string name="prayers_zone_mismatch">المنطقة الزمنية لهاتفك تختلف عن منطقة هذا الموقع، والمواقيت تتبع ساعة هاتفك</string>
 
     <string name="categories">التصنيفات</string>
 

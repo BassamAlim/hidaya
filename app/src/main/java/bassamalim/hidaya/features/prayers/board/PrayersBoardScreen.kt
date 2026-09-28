@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.NotificationsPaused
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -144,6 +145,9 @@ fun PrayersBoardScreen(viewModel: PrayersBoardViewModel) {
                 onPreviousDayClick = viewModel::onPreviousDayClick,
                 onNextDayClick = viewModel::onNextDayClick
             )
+
+            if (state.locationAvailable && state.hasZoneMismatch)
+                ZoneMismatchHint(onChangeLocationClick = viewModel::onLocatorClick)
 
             if (state.locationAvailable) {
                 PrayersCard(
@@ -478,6 +482,50 @@ private fun ReminderChip(
                 Spacer(Modifier.width(dims.spaceXs))
 
                 Text(text = offsetText, style = MaterialTheme.appTypography.label)
+            }
+        }
+    }
+}
+
+/** The manual location's time zone differs from the phone's, so times follow the phone's clock. */
+@Composable
+private fun ZoneMismatchHint(onChangeLocationClick: () -> Unit) {
+    val dims = MaterialTheme.dimensions
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(dims.radiusLg),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+    ) {
+        Row(
+            modifier = Modifier.padding(
+                start = dims.spaceMd,
+                end = dims.spaceXs,
+                top = dims.spaceSm,
+                bottom = dims.spaceSm
+            ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Schedule,
+                contentDescription = null,
+                modifier = Modifier.size(dims.iconMd)
+            )
+
+            Spacer(Modifier.width(dims.spaceSm))
+
+            Text(
+                text = stringResource(R.string.prayers_zone_mismatch),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.appTypography.label
+            )
+
+            TextButton(onClick = onChangeLocationClick) {
+                Text(
+                    text = stringResource(R.string.change),
+                    style = MaterialTheme.appTypography.button
+                )
             }
         }
     }

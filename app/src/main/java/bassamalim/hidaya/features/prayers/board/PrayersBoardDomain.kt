@@ -17,6 +17,7 @@ import bassamalim.hidaya.features.prayers.notificationSettings.PrayerNotificatio
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import java.time.Instant
 import java.time.LocalDate
 import java.util.SortedMap
 import javax.inject.Inject
@@ -104,6 +105,13 @@ class PrayersBoardDomain @Inject constructor(
             numeralsLanguage = appSettingsRepository.getNumeralsLanguage().first(),
         )
     }
+
+    /** Whether the location's time zone differs from the phone's; see the hint it shows. */
+    suspend fun hasZoneMismatch(location: Location) = PrayerTimeUtils.hasZoneMismatch(
+        location = location,
+        selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
+        now = Instant.now()
+    )
 
     /** The earliest of [candidates] still ahead today, or null once they've all passed. */
     suspend fun getNextPrayer(

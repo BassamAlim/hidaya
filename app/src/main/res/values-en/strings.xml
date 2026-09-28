@@ -303,6 +303,7 @@
     <string name="today">Today</string>
 
     <string name="prayers_no_location">Set your location to see prayer times</string>
+    <string name="prayers_zone_mismatch">Your phone\'s time zone differs from this location\'s. Times follow your phone\'s clock</string>
 
     <string name="categories">Categories</string>
 

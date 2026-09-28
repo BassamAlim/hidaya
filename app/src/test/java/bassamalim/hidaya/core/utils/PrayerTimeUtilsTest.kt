@@ -7,13 +7,18 @@ import bassamalim.hidaya.core.models.Coordinates
 import bassamalim.hidaya.core.models.Location
 import bassamalim.hidaya.core.models.LocationIds
 import bassamalim.hidaya.core.models.PrayerTimeCalculatorSettings
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.Locale
+import java.util.TimeZone
 
 /**
  * Covers the timezone-offset handling around the calculator, in particular the DST
@@ -77,6 +82,47 @@ class PrayerTimeUtilsTest {
             val rendered = time!!.toInstant().atZone(ZoneId.of(berlinZone))
             assertEquals("$prayer", format(time), format(rendered))
         }
+    }
+
+    // hasZoneMismatch
+
+    private val originalZone: TimeZone = TimeZone.getDefault()
+
+    @After
+    fun restoreDefaultZone() {
+        TimeZone.setDefault(originalZone)
+    }
+
+    private fun mismatchOnDevice(deviceZone: String, location: Location = berlin): Boolean {
+        TimeZone.setDefault(TimeZone.getTimeZone(deviceZone))
+        return PrayerTimeUtils.hasZoneMismatch(
+            location = location,
+            selectedTimeZoneId = berlinZone,
+            now = Instant.parse("2026-07-01T12:00:00Z")
+        )
+    }
+
+    @Test
+    fun `a manual location in the device's zone is no mismatch`() {
+        assertFalse(mismatchOnDevice(berlinZone))
+    }
+
+    @Test
+    fun `a manual location in another zone with the same offset is no mismatch`() {
+        // Paris is on the same offset as Berlin all year
+        assertFalse(mismatchOnDevice("Europe/Paris"))
+    }
+
+    @Test
+    fun `a manual location on another offset than the device's is a mismatch`() {
+        assertTrue(mismatchOnDevice("Asia/Riyadh"))
+        // An hour behind Berlin all year
+        assertTrue(mismatchOnDevice("Europe/London"))
+    }
+
+    @Test
+    fun `an automatic location is never a mismatch`() {
+        assertFalse(mismatchOnDevice("Asia/Riyadh", berlin.copy(type = LocationType.AUTO)))
     }
 
 }

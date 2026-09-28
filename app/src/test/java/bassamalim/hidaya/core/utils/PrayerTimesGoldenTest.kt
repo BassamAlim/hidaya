@@ -122,8 +122,10 @@ class PrayerTimesGoldenTest {
         // Manual location in the device's own zone
         Scenario("mecca_manual", mecca, mecca.zone, LocationType.MANUAL, meccaMethod),
         Scenario("london_manual", london, london.zone, LocationType.MANUAL, mwlAngleBased),
-        // Manual location in another zone than the device's; pins the current behavior so any
-        // change to it is deliberate
+        // Manual location in another zone than the device's. Intended behavior: times are the
+        // location's wall-clock times on the device's clock, so athans follow the clock the
+        // user sees (see PrayerTimeUtils.getPrayerTimes for why), and the prayers board points
+        // the mismatch out. Don't "fix" these to the location's real moments.
         Scenario("mecca_on_berlin_device", mecca, berlin.zone, LocationType.MANUAL, meccaMethod),
         Scenario(
             "london_on_riyadh_device", london, mecca.zone, LocationType.MANUAL, mwlAngleBased

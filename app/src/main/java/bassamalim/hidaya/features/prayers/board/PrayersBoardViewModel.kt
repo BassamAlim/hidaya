@@ -91,12 +91,14 @@ class PrayersBoardViewModel @Inject constructor(
                     isToday = viewedDate == currentDate,
                     nextPrayer = nextPrayer
                 ),
-                locationName = getLocationName(location)
+                locationName = getLocationName(location),
+                hasZoneMismatch = domain.hasZoneMismatch(location)
             )
         }
         else state.copy(
             locationAvailable = false,
-            locationName = ""
+            locationName = "",
+            hasZoneMismatch = false
         )
     }.onStart {
         initializeData()
