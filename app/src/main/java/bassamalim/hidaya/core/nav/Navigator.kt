@@ -18,7 +18,7 @@ class Navigator @Inject constructor(
 ) {
 
     private var navController: NavController? = null
-    private var lastRoute: String? = null
+    private var lastDestination: Screen? = null
     private var lastNavigationMillis = 0L
     private val results = MutableSharedFlow<Bundle>(extraBufferCapacity = 1)
 
@@ -34,17 +34,17 @@ class Navigator @Inject constructor(
     }
 
     fun navigate(destination: Screen) {
-        if (isDuplicate(destination.route)) return
-        navController?.navigate(destination.route)
+        if (isDuplicate(destination)) return
+        navController?.navigate(destination)
 
-        analyticsRepository.trackEvent(AnalyticsEvent.ScreenView(destination.route))
+        analyticsRepository.trackEvent(AnalyticsEvent.ScreenView(destination.analyticsName))
     }
 
     fun navigate(destination: Screen, builder: NavOptionsBuilder.() -> Unit) {
-        if (isDuplicate(destination.route)) return
-        navController?.navigate(route = destination.route, builder = builder)
+        if (isDuplicate(destination)) return
+        navController?.navigate(route = destination, builder = builder)
 
-        analyticsRepository.trackEvent(AnalyticsEvent.ScreenView(destination.route))
+        analyticsRepository.trackEvent(AnalyticsEvent.ScreenView(destination.analyticsName))
     }
 
     /**
@@ -52,20 +52,17 @@ class Navigator @Inject constructor(
      * the same screen twice. Only exact repeats are dropped, so moving on to a different screen
      * right away is never blocked.
      */
-    private fun isDuplicate(route: String): Boolean {
+    private fun isDuplicate(destination: Screen): Boolean {
         val now = SystemClock.elapsedRealtime()
-        val isDuplicate = route == lastRoute && now - lastNavigationMillis < DUPLICATE_WINDOW_MILLIS
-        lastRoute = route
+        val isDuplicate =
+            destination == lastDestination && now - lastNavigationMillis < DUPLICATE_WINDOW_MILLIS
+        lastDestination = destination
         lastNavigationMillis = now
         return isDuplicate
     }
 
     fun popBackStack() {
         navController?.popBackStack()
-    }
-
-    fun popBackStack(destination: Screen, inclusive: Boolean = false) {
-        navController?.popBackStack(route = destination.route, inclusive = inclusive)
     }
 
     /**

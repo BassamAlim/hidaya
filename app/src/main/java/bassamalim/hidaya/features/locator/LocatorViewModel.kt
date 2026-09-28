@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.navigation.toRoute
 
 @HiltViewModel
 class LocatorViewModel @Inject constructor(
@@ -22,7 +23,7 @@ class LocatorViewModel @Inject constructor(
     private val navigator: Navigator
 ): ViewModel() {
 
-    private val isInitialLocation = savedStateHandle.get<Boolean>("is_initial") == true
+    private val isInitialLocation = savedStateHandle.toRoute<Screen.Locator>().isInitial
 
     private val _uiState = MutableStateFlow(LocatorUiState(
         isInitial = isInitialLocation
@@ -73,7 +74,7 @@ class LocatorViewModel @Inject constructor(
     private fun launch() {
         if (isInitialLocation) {
             navigator.navigate(Screen.Main) {
-                popUpTo(Screen.Locator(isInitial = "{is_initial}").route) {
+                popUpTo<Screen.Locator> {
                     inclusive = true
                 }
             }

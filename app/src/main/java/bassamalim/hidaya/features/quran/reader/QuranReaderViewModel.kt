@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import bassamalim.hidaya.core.data.dataSources.room.entities.Verse as VerseEntity
+import androidx.navigation.toRoute
 
 @HiltViewModel
 class QuranReaderViewModel @Inject constructor(
@@ -45,10 +46,8 @@ class QuranReaderViewModel @Inject constructor(
     private val navigator: Navigator
 ): ViewModel() {
 
-    private val targetType = QuranTarget.valueOf(
-        savedStateHandle.get<String>("target_type") ?: QuranTarget.SURA.name
-    )
-    private var targetValue = savedStateHandle.get<Int>("target_value") ?: 0
+    private val targetType = savedStateHandle.toRoute<Screen.QuranReader>().targetType
+    private var targetValue = savedStateHandle.toRoute<Screen.QuranReader>().targetValue
 
     lateinit var language: Language
     lateinit var numeralsLanguage: Language
@@ -391,7 +390,7 @@ class QuranReaderViewModel @Inject constructor(
     }
 
     private fun onVerseHold(verseId: Int) {
-        navigator.navigate(Screen.VerseInfo(verseId.toString()))
+        navigator.navigate(Screen.VerseInfo(verseId))
         pressedVerseId = null
         longPressJob?.cancel()
     }

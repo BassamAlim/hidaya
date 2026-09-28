@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.navigation.toRoute
+import bassamalim.hidaya.core.nav.Screen
 
 @HiltViewModel
 class RemembranceReaderViewModel @Inject constructor(
@@ -23,7 +25,7 @@ class RemembranceReaderViewModel @Inject constructor(
     private val domain: RemembranceReaderDomain
 ): ViewModel() {
 
-    private val id = savedStateHandle.get<Int>("remembrance_id") ?: 0
+    private val id = savedStateHandle.toRoute<Screen.RemembranceReader>().id
 
     private lateinit var language: Language
     private lateinit var numeralsLanguage: Language

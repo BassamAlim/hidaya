@@ -152,8 +152,8 @@ class HomeViewModel @Inject constructor(
 
         navigator.navigate(
             Screen.QuranReader(
-                targetType = QuranTarget.PAGE.name,
-                targetValue = werdPage.toString()
+                targetType = QuranTarget.PAGE,
+                targetValue = werdPage
             )
         )
 
@@ -163,7 +163,7 @@ class HomeViewModel @Inject constructor(
     fun onRemembranceClick() {
         // Ids 0 and 1 are the morning and evening remembrances (same ids the reminders open)
         val id = if (_uiState.value.isMorning) 0 else 1
-        navigator.navigate(Screen.RemembranceReader(id.toString()))
+        navigator.navigate(Screen.RemembranceReader(id))
     }
 
     fun onLeaderboardClick() {

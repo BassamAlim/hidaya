@@ -122,7 +122,7 @@ class PrayersBoardViewModel @Inject constructor(
     }
 
     fun onLocatorClick() {
-        navigator.navigate(Screen.Locator(isInitial = false.toString()))
+        navigator.navigate(Screen.Locator(isInitial = false))
     }
 
     fun onTimeCalculationSettingsClick() {
@@ -130,11 +130,11 @@ class PrayersBoardViewModel @Inject constructor(
     }
 
     fun onPrayerCardClick(prayer: Prayer) {
-        navigator.navigate(Screen.PrayerSettings(prayerName = prayer.name))
+        navigator.navigate(Screen.PrayerSettings(prayer = prayer))
     }
 
     fun onExtraReminderCardClick(prayer: Prayer) {
-        navigator.navigate(Screen.PrayerExtraReminderSettings(prayerName = prayer.name))
+        navigator.navigate(Screen.PrayerExtraReminderSettings(prayer = prayer))
     }
 
     fun onPreviousDayClick() {

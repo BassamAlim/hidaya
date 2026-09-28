@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import bassamalim.hidaya.core.enums.NotificationType
-import bassamalim.hidaya.core.enums.Prayer
 import bassamalim.hidaya.core.nav.Navigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +13,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.navigation.toRoute
+import bassamalim.hidaya.core.nav.Screen
 
 @HiltViewModel
 class PrayerNotificationSettingsViewModel @Inject constructor(
@@ -22,7 +23,7 @@ class PrayerNotificationSettingsViewModel @Inject constructor(
     private val navigator: Navigator
 ): ViewModel() {
 
-    private val prayer = Prayer.valueOf(savedStateHandle.get<String>("prayer_name") ?: "")
+    private val prayer = savedStateHandle.toRoute<Screen.PrayerSettings>().prayer
 
     private val _uiState = MutableStateFlow(PrayerNotificationSettingsUiState(
         prayer = prayer,

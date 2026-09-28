@@ -11,6 +11,7 @@ data class SuraMatch(
 ) : SearchMatch()
 
 data class PageMatch(
+    val page: Int,
     val num: String,
     val suraName: String
 ) : SearchMatch()

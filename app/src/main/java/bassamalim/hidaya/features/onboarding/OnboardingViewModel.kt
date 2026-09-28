@@ -101,8 +101,8 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun onSaveClick() {
-        navigator.navigate(Screen.Locator(isInitial = true.toString())) {
-            popUpTo(Screen.Onboarding.route) {
+        navigator.navigate(Screen.Locator(isInitial = true)) {
+            popUpTo<Screen.Onboarding> {
                 inclusive = true
             }
         }

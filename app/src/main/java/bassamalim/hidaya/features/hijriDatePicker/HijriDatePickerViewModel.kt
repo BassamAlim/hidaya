@@ -24,6 +24,8 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
 import kotlin.properties.Delegates
+import androidx.navigation.toRoute
+import bassamalim.hidaya.core.nav.Screen
 
 @HiltViewModel
 class HijriDatePickerViewModel @Inject constructor(
@@ -32,7 +34,7 @@ class HijriDatePickerViewModel @Inject constructor(
     private val navigator: Navigator
 ): ViewModel() {
 
-    private val initialDate = savedStateHandle.get<String>("initial_date")!!
+    private val initialDate = savedStateHandle.toRoute<Screen.HijriDatePicker>().initialDate
 
     private lateinit var language: Language
     private lateinit var numeralsLanguage: Language

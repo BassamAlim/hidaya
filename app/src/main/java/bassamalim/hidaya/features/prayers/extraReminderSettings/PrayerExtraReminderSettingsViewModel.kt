@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import bassamalim.hidaya.core.enums.Language
-import bassamalim.hidaya.core.enums.Prayer
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.utils.LangUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +14,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.navigation.toRoute
+import bassamalim.hidaya.core.nav.Screen
 
 @HiltViewModel
 class PrayerExtraReminderSettingsViewModel @Inject constructor(
@@ -23,7 +24,7 @@ class PrayerExtraReminderSettingsViewModel @Inject constructor(
     private val navigator: Navigator
 ): ViewModel() {
 
-    private val prayer = Prayer.valueOf(savedStateHandle.get<String>("prayer_name") ?: "")
+    private val prayer = savedStateHandle.toRoute<Screen.PrayerExtraReminderSettings>().prayer
 
     val offsetMin = domain.offsetMin
     private lateinit var numeralsLanguage: Language

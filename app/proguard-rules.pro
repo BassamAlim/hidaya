@@ -20,3 +20,7 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+# Enums used as navigation route arguments: Navigation looks their classes up by name
+-keepnames class bassamalim.hidaya.core.enums.MenuType
+-keepnames class bassamalim.hidaya.core.enums.Prayer
+-keepnames class bassamalim.hidaya.features.quran.reader.QuranTarget

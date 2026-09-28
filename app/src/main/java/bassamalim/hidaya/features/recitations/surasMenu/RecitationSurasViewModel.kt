@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.navigation.toRoute
 
 @HiltViewModel
 class RecitationSurasViewModel @Inject constructor(
@@ -32,8 +33,8 @@ class RecitationSurasViewModel @Inject constructor(
     private val navigator: Navigator
 ): ViewModel() {
 
-    private val reciterId = savedStateHandle.get<Int>("reciter_id") ?: 0
-    private val narrationId = savedStateHandle.get<Int>("narration_id") ?: 0
+    private val reciterId = savedStateHandle.toRoute<Screen.RecitationSurasMenu>().reciterId
+    private val narrationId = savedStateHandle.toRoute<Screen.RecitationSurasMenu>().narrationId
 
     private lateinit var language: Language
     private lateinit var narration: Recitation.Narration
@@ -97,12 +98,7 @@ class RecitationSurasViewModel @Inject constructor(
 
         if ((context as Activity).isTaskRoot) {
             navigator.navigate(Screen.RecitationsRecitersMenu) {
-                popUpTo(
-                    Screen.RecitationSurasMenu(
-                        reciterId = reciterId.toString(),
-                        narrationId = narrationId.toString()
-                    ).route
-                ) {
+                popUpTo<Screen.RecitationSurasMenu> {
                     inclusive = true
                 }
             }

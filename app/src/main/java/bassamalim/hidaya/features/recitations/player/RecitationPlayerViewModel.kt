@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
+import androidx.navigation.toRoute
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(UnstableApi::class)
@@ -53,8 +54,8 @@ class RecitationPlayerViewModel @Inject constructor(
     private val navigator: Navigator
 ): ViewModel() {
 
-    private val action = savedStateHandle.get<String>("action") ?: ""
-    private val mediaId = savedStateHandle.get<String>("media_id") ?: ""
+    private val action = savedStateHandle.toRoute<Screen.RecitationPlayer>().action
+    private val mediaId = savedStateHandle.toRoute<Screen.RecitationPlayer>().mediaId
 
     private lateinit var language: Language
     // Every source (suras menu, notification, last played) is validated upstream
@@ -202,12 +203,9 @@ class RecitationPlayerViewModel @Inject constructor(
     fun onBackPressed(activity: Activity) {
         if (activity.isTaskRoot) {
             navigator.navigate(
-                Screen.RecitationSurasMenu(
-                    reciterId = reciterId.toString(),
-                    narrationId = narrationId.toString()
-                )
+                Screen.RecitationSurasMenu(reciterId = reciterId, narrationId = narrationId)
             ) {
-                popUpTo(Screen.RecitationPlayer(action, mediaId).route) {
+                popUpTo<Screen.RecitationPlayer> {
                     inclusive = true
                 }
             }

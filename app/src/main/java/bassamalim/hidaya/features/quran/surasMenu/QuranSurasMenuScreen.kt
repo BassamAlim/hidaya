@@ -286,7 +286,7 @@ private fun QuranSearchBar(
     searchSurasAndPages: (String) -> List<SearchMatch>,
     searchVerses: (String, Color) -> List<VerseMatch>,
     onSuraClick: (Int) -> Unit,
-    onPageClick: (String) -> Unit,
+    onPageClick: (Int) -> Unit,
     onVerseClick: (Int) -> Unit
 ) {
     val state = rememberTextFieldState()
@@ -343,7 +343,7 @@ private fun SearchBarContent(
     suraAndPageMatches: List<SearchMatch>,
     verseMatches: List<VerseMatch>,
     onSuraClick: (Int) -> Unit,
-    onPageClick: (String) -> Unit,
+    onPageClick: (Int) -> Unit,
     onVerseClick: (Int) -> Unit
 ) {
     if (suraAndPageMatches.isEmpty() && verseMatches.isEmpty()) {
@@ -391,7 +391,7 @@ private fun NoMatchesSection(title: String) {
 private fun SuraAndPagesMatchesSection(
     matches: List<SearchMatch>,
     onSuraClick: (Int) -> Unit,
-    onPageClick: (String) -> Unit
+    onPageClick: (Int) -> Unit
 ) {
     SearchSectionTitle(title = stringResource(R.string.suras_and_pages))
 
@@ -439,7 +439,7 @@ private fun SuraAndPagesMatchesSection(
                                     textAlign = TextAlign.Start
                                 )
                             },
-                            modifier = Modifier.clickable { onPageClick(match.num) },
+                            modifier = Modifier.clickable { onPageClick(match.page) },
                             supportingContent = {
                                 MyText(
                                     text = match.suraName,

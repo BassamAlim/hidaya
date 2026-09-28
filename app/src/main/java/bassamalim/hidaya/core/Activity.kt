@@ -22,6 +22,8 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.enums.LocationType
 import bassamalim.hidaya.core.enums.Theme
 import bassamalim.hidaya.core.nav.Navigation
+import bassamalim.hidaya.core.nav.screenFromJson
+import bassamalim.hidaya.core.nav.Screen
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.startup.DbRecoveryHelper
 import bassamalim.hidaya.core.startup.LocationStartupHelper
@@ -53,7 +55,7 @@ class Activity : AppCompatActivity() {
     @Inject lateinit var permissionsHelper: PermissionsHelper
 
     private var shouldOnboard = false
-    private var startRoute: String? = null
+    private var startDestination: Screen? = null
     private lateinit var language: Language
     private lateinit var theme: Flow<Theme>
     private lateinit var initialTheme: Theme
@@ -87,7 +89,7 @@ class Activity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { false }
 
         val isLaunch = savedInstanceState == null
-        startRoute = intent.getStringExtra("start_route")
+        startDestination = intent.getStringExtra("start_route")?.let(::screenFromJson)
 
         if (isLaunch) dbRecoveryHelper.testAndReviveIfNeeded(this)
 
@@ -111,8 +113,8 @@ class Activity : AppCompatActivity() {
     private suspend fun handleStartupFlow() {
         try {
             val result = startActionHandler.handle(this, intent)
-            if (result.overrideRoute != null) {
-                startRoute = result.overrideRoute
+            if (result.overrideDestination != null) {
+                startDestination = result.overrideDestination
             }
 
             if (shouldOnboard) {
@@ -246,7 +248,7 @@ class Activity : AppCompatActivity() {
             AppTheme(theme = themeState, direction = getDirection(language)) {
                 Navigation(
                     navigator = navigator,
-                    thenTo = startRoute,
+                    thenTo = startDestination,
                     shouldOnboard = shouldOnboard
                 )
             }

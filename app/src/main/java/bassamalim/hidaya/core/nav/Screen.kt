@@ -1,104 +1,135 @@
 package bassamalim.hidaya.core.nav
 
-sealed class Screen(val route: String) {
+import bassamalim.hidaya.core.enums.MenuType
+import bassamalim.hidaya.core.enums.Prayer
+import bassamalim.hidaya.features.quran.reader.QuranTarget
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.serializer
 
-    data object About: Screen("about")
+// Serial names are the route names, so they stay readable and survive R8 renaming
+@Serializable
+sealed interface Screen {
 
-    data class BookChaptersMenu(
-        val bookId: String
-    ): Screen("book_chapters_menu/$bookId")
+    @Serializable @SerialName("about")
+    data object About: Screen
 
-    data class BookReader(
-        val bookId: String,
-        val chapterId: String
-    ): Screen("book_reader/$bookId/$chapterId")
+    @Serializable @SerialName("book_chapters_menu")
+    data class BookChaptersMenu(val bookId: Int): Screen
 
-    data object BookSearcher: Screen("book_searcher")
+    @Serializable @SerialName("book_reader")
+    data class BookReader(val bookId: Int, val chapterId: Int): Screen
 
-    data object BooksMenu: Screen("books_menu")
+    @Serializable @SerialName("book_searcher")
+    data object BookSearcher: Screen
 
-    data object BooksMenuFilter: Screen("books_menu_filter")
+    @Serializable @SerialName("books_menu")
+    data object BooksMenu: Screen
 
-    data object DateConverter: Screen("date_converter")
+    @Serializable @SerialName("books_menu_filter")
+    data object BooksMenuFilter: Screen
 
-    data object DateEditor: Screen("date_editor")
+    @Serializable @SerialName("date_converter")
+    data object DateConverter: Screen
 
-    data class HijriDatePicker(
-        val initialDate: String
-    ): Screen("hijri_date_picker/$initialDate")
+    @Serializable @SerialName("date_editor")
+    data object DateEditor: Screen
 
-    data object Leaderboard: Screen("leaderboard")
+    @Serializable @SerialName("hijri_date_picker")
+    data class HijriDatePicker(val initialDate: String): Screen
 
-    data object LocationPicker: Screen("location_picker")
+    @Serializable @SerialName("leaderboard")
+    data object Leaderboard: Screen
 
-    data class Locator(
-        val isInitial: String
-    ): Screen("locator/$isInitial")
+    @Serializable @SerialName("location_picker")
+    data object LocationPicker: Screen
 
-    data object Main: Screen("main")
+    @Serializable @SerialName("locator")
+    data class Locator(val isInitial: Boolean): Screen
 
-    data object Misbaha: Screen("misbaha")
+    @Serializable @SerialName("main")
+    data object Main: Screen
 
-    data object Onboarding: Screen("onboarding")
+    @Serializable @SerialName("misbaha")
+    data object Misbaha: Screen
 
-    data class PrayerExtraReminderSettings(
-        val prayerName: String
-    ): Screen("prayer_extra_reminder/$prayerName")
+    @Serializable @SerialName("onboarding")
+    data object Onboarding: Screen
 
-    data class PrayerSettings(
-        val prayerName: String
-    ): Screen("prayer_settings/$prayerName")
+    @Serializable @SerialName("prayer_extra_reminder")
+    data class PrayerExtraReminderSettings(val prayer: Prayer): Screen
 
-    data object PrayerTimeCalculationSettings: Screen("prayer_time_calculation_settings")
+    @Serializable @SerialName("prayer_settings")
+    data class PrayerSettings(val prayer: Prayer): Screen
 
-    data object Qibla: Screen("qibla")
+    @Serializable @SerialName("prayer_time_calculation_settings")
+    data object PrayerTimeCalculationSettings: Screen
 
-    data object QuizLobby: Screen("quiz_lobby")
+    @Serializable @SerialName("qibla")
+    data object Qibla: Screen
 
-    data object QuizResult: Screen("quiz_result")
+    @Serializable @SerialName("quiz_lobby")
+    data object QuizLobby: Screen
 
-    data class QuizTest(
-        val category: String = "all"
-    ): Screen("quiz_test/$category")
+    @Serializable @SerialName("quiz_result")
+    data object QuizResult: Screen
 
-    data class QuranReader(
-        val targetType: String,
-        val targetValue: String = "-1",
-    ): Screen("quran_reader/$targetType/$targetValue")
+    @Serializable @SerialName("quiz_test")
+    data class QuizTest(val category: String = "all"): Screen
 
-    data object QuranSettings: Screen("quran_settings")
+    @Serializable @SerialName("quran_reader")
+    data class QuranReader(val targetType: QuranTarget, val targetValue: Int = -1): Screen
 
-    data object Radio: Screen("radio")
+    @Serializable @SerialName("quran_settings")
+    data object QuranSettings: Screen
 
-    data class RecitationPlayer(
-        val action: String,
-        val mediaId: String
-    ): Screen("recitations_player/$action/$mediaId")
+    @Serializable @SerialName("radio")
+    data object Radio: Screen
 
-    data object RecitersMenuFilter: Screen("reciters_menu_filter")
+    @Serializable @SerialName("recitations_player")
+    data class RecitationPlayer(val action: String, val mediaId: String): Screen
 
-    data object RecitationsRecitersMenu: Screen("recitations_reciters_menu")
+    @Serializable @SerialName("reciters_menu_filter")
+    data object RecitersMenuFilter: Screen
 
-    data class RecitationSurasMenu(
-        val reciterId: String,
-        val narrationId: String
-    ): Screen("recitation_suras_menu/$reciterId/$narrationId")
+    @Serializable @SerialName("recitations_reciters_menu")
+    data object RecitationsRecitersMenu: Screen
 
-    data class RemembranceReader(
-        val id: String
-    ): Screen("remembrance_reader/$id")
+    @Serializable @SerialName("recitation_suras_menu")
+    data class RecitationSurasMenu(val reciterId: Int, val narrationId: Int): Screen
 
-    data class RemembrancesMenu(
-        val type: String,
-        val categoryId: String="0"
-    ): Screen("remembrances_menu/$type/$categoryId")
+    @Serializable @SerialName("remembrance_reader")
+    data class RemembranceReader(val id: Int): Screen
 
-    data object Settings: Screen("settings")
+    @Serializable @SerialName("remembrances_menu")
+    data class RemembrancesMenu(val type: MenuType, val categoryId: Int = 0): Screen
 
-    data object Tv: Screen("tv")
+    @Serializable @SerialName("settings")
+    data object Settings: Screen
 
-    data class VerseInfo(
-        val verseId: String
-    ): Screen("verse_info/$verseId")
+    @Serializable @SerialName("tv")
+    data object Tv: Screen
+
+    @Serializable @SerialName("verse_info")
+    data class VerseInfo(val verseId: Int): Screen
 
 }
+
+/** For passing a destination through an Intent extra. */
+fun Screen.toJson() = Json.encodeToString(serializer<Screen>(), this)
+
+/** Null if [json] isn't a known destination (e.g. an extra from an older app version). */
+fun screenFromJson(json: String): Screen? =
+    try {
+        Json.decodeFromString(serializer<Screen>(), json)
+    } catch (_: IllegalArgumentException) {  // Includes SerializationException
+        null
+    }
+
+/** The route name, e.g. "book_reader", without argument values. */
+val Screen.analyticsName: String
+    get() = Json.encodeToJsonElement(serializer<Screen>(), this)
+        .jsonObject["type"]!!.jsonPrimitive.content

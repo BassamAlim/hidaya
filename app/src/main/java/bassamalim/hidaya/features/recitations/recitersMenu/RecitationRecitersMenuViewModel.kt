@@ -101,7 +101,7 @@ class RecitationRecitersMenuViewModel @Inject constructor(
         val context = navigator.getContext()
         if ((context as Activity).isTaskRoot) {
             navigator.navigate(Screen.Main) {
-                popUpTo(Screen.RecitationsRecitersMenu.route) {
+                popUpTo<Screen.RecitationsRecitersMenu> {
                     inclusive = true
                 }
             }
@@ -161,10 +161,7 @@ class RecitationRecitersMenuViewModel @Inject constructor(
 
     fun onNarrationClick(reciterId: Int, narrationId: Int) {
         navigator.navigate(
-            Screen.RecitationSurasMenu(
-                reciterId = reciterId.toString(),
-                narrationId = narrationId.toString()
-            )
+            Screen.RecitationSurasMenu(reciterId = reciterId, narrationId = narrationId)
         )
     }
 

@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.navigation.toRoute
 
 @HiltViewModel
 class QuizTestViewModel @Inject constructor(
@@ -28,7 +29,7 @@ class QuizTestViewModel @Inject constructor(
     private val navigator: Navigator
 ): ViewModel() {
 
-    private val category = savedStateHandle.get<String>("category") ?: "all"
+    private val category = savedStateHandle.toRoute<Screen.QuizTest>().category
 
     val totalQuestions = 10
     private lateinit var questions: List<QuizFullQuestion>
@@ -114,7 +115,7 @@ class QuizTestViewModel @Inject constructor(
         )
 
         navigator.navigate(Screen.QuizResult) {
-            popUpTo(Screen.QuizTest(category).route) { inclusive = true }
+            popUpTo<Screen.QuizTest> { inclusive = true }
         }
     }
 

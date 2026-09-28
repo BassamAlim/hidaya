@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.navigation.toRoute
 
 @HiltViewModel
 class BookChaptersViewModel @Inject constructor(
@@ -31,7 +32,7 @@ class BookChaptersViewModel @Inject constructor(
     private val navigator: Navigator
 ): ViewModel() {
 
-    private val bookId = savedStateHandle.get<Int>("book_id")?: 0
+    private val bookId = savedStateHandle.toRoute<Screen.BookChaptersMenu>().bookId
 
     private lateinit var language: Language
     private lateinit var book: Flow<Book>
@@ -76,7 +77,7 @@ class BookChaptersViewModel @Inject constructor(
     fun onContinueReadingClick() {
         val chapterId = _uiState.value.continueReading?.chapterId ?: return
         navigator.navigate(
-            Screen.BookReader(bookId = bookId.toString(), chapterId = chapterId.toString())
+            Screen.BookReader(bookId = bookId, chapterId = chapterId)
         )
     }
 
@@ -100,7 +101,7 @@ class BookChaptersViewModel @Inject constructor(
 
     fun onItemClick(chapter: Book.Chapter) {
         navigator.navigate(
-            Screen.BookReader(bookId = bookId.toString(), chapterId = chapter.id.toString())
+            Screen.BookReader(bookId = bookId, chapterId = chapter.id)
         )
     }
 

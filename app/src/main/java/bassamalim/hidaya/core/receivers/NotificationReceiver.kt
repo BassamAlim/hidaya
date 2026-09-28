@@ -29,6 +29,7 @@ import bassamalim.hidaya.core.enums.NotificationType
 import bassamalim.hidaya.core.enums.Reminder
 import bassamalim.hidaya.core.enums.ThemeColor
 import bassamalim.hidaya.core.nav.Screen
+import bassamalim.hidaya.core.nav.toJson
 import bassamalim.hidaya.core.services.AthanService
 import bassamalim.hidaya.core.ui.theme.getThemeColor
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
@@ -255,24 +256,24 @@ class NotificationReceiver : BroadcastReceiver() {
     private suspend fun onClick(context: Context, reminder: Reminder): PendingIntent {
         val intent = Intent(context, Activity::class.java)
 
-        val route = when (reminder) {
-            Reminder.Devotional.MorningRemembrances -> Screen.RemembranceReader(0.toString()).route
-            Reminder.Devotional.EveningRemembrances -> Screen.RemembranceReader(1.toString()).route
+        val destination = when (reminder) {
+            Reminder.Devotional.MorningRemembrances -> Screen.RemembranceReader(0)
+            Reminder.Devotional.EveningRemembrances -> Screen.RemembranceReader(1)
             Reminder.Devotional.DailyWerd -> {
                 Screen.QuranReader(
-                    targetType = QuranTarget.PAGE.name,
-                    targetValue = quranRepository.getWerdPageNum().first().toString()
-                ).route
+                    targetType = QuranTarget.PAGE,
+                    targetValue = quranRepository.getWerdPageNum().first()
+                )
             }
             Reminder.Devotional.FridayKahf -> {
                 Screen.QuranReader(
-                    targetType = QuranTarget.SURA.name,
-                    targetValue = 17.toString() // surat al-kahf
-                ).route
+                    targetType = QuranTarget.SURA,
+                    targetValue = 17 // surat al-kahf
+                )
             }
-            else -> Screen.Main.route
+            else -> Screen.Main
         }
-        intent.putExtra("start_route", route)
+        intent.putExtra("start_route", destination.toJson())
 
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 

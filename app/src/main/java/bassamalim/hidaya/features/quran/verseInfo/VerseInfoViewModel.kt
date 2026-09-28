@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.navigation.toRoute
+import bassamalim.hidaya.core.nav.Screen
 
 @HiltViewModel
 class VerseInfoViewModel @Inject constructor(
@@ -26,7 +28,7 @@ class VerseInfoViewModel @Inject constructor(
     private val navigator: Navigator
 ): ViewModel() {
 
-    private val verseId = savedStateHandle.get<Int>("verse_id")!!
+    private val verseId = savedStateHandle.toRoute<Screen.VerseInfo>().verseId
 
     private val _uiState = MutableStateFlow(VerseInfoUiState())
     val uiState = combine(

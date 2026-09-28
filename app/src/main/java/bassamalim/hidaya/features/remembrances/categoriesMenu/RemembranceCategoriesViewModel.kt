@@ -14,26 +14,26 @@ class RemembranceCategoriesViewModel @Inject constructor(
 
     fun onAllRemembrancesClick() {
         navigator.navigate(
-            Screen.RemembrancesMenu(MenuType.ALL.name)
+            Screen.RemembrancesMenu(MenuType.ALL)
         )
     }
 
     fun onFavoriteRemembrancesClick() {
         navigator.navigate(
-            Screen.RemembrancesMenu(MenuType.FAVORITES.name)
+            Screen.RemembrancesMenu(MenuType.FAVORITES)
         )
     }
 
     /** Opens a remembrance directly; 0 and 1 are morning and evening (same ids the reminders use) */
     fun onRemembranceClick(remembranceId: Int) {
-        navigator.navigate(Screen.RemembranceReader(remembranceId.toString()))
+        navigator.navigate(Screen.RemembranceReader(remembranceId))
     }
 
     fun onCategoryClick(categoryId: Int) {
         navigator.navigate(
             Screen.RemembrancesMenu(
-                type = MenuType.CUSTOM.name,
-                categoryId = categoryId.toString()
+                type = MenuType.CUSTOM,
+                categoryId = categoryId
             )
         )
     }

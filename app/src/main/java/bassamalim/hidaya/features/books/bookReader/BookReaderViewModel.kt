@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.navigation.toRoute
 
 @HiltViewModel
 class BookReaderViewModel @Inject constructor(
@@ -25,8 +26,8 @@ class BookReaderViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ): ViewModel() {
 
-    private val bookId = savedStateHandle.get<Int>("book_id") ?: 0
-    private val chapterId = savedStateHandle.get<Int>("chapter_id") ?: 0
+    private val bookId = savedStateHandle.toRoute<Screen.BookReader>().bookId
+    private val chapterId = savedStateHandle.toRoute<Screen.BookReader>().chapterId
 
     private val _uiState = MutableStateFlow(BookReaderUiState())
     val uiState = combine(
@@ -83,10 +84,10 @@ class BookReaderViewModel @Inject constructor(
 
     private fun openChapter(targetChapterId: Int) {
         navigator.navigate(
-            Screen.BookReader(bookId = bookId.toString(), chapterId = targetChapterId.toString())
+            Screen.BookReader(bookId = bookId, chapterId = targetChapterId)
         ) {
             // Replace this chapter instead of stacking one reader per chapter on the back stack
-            popUpTo(Screen.BookReader("{book_id}", "{chapter_id}").route) { inclusive = true }
+            popUpTo<Screen.BookReader> { inclusive = true }
         }
     }
 

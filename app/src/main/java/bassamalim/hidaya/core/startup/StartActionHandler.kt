@@ -10,7 +10,7 @@ import bassamalim.hidaya.core.services.AthanService
 import bassamalim.hidaya.core.utils.report
 import javax.inject.Inject
 
-data class StartActionResult(val overrideRoute: String? = null)
+data class StartActionResult(val overrideDestination: Screen? = null)
 
 class StartActionHandler @Inject constructor(
     private val dbRecoveryHelper: DbRecoveryHelper,
@@ -31,7 +31,7 @@ class StartActionHandler @Inject constructor(
                     val mediaId = intent.getStringExtra("media_id")
                     if (mediaId != null) {
                         return StartActionResult(
-                            overrideRoute = Screen.RecitationPlayer("back", mediaId).route
+                            overrideDestination = Screen.RecitationPlayer("back", mediaId)
                         )
                     }
                     else {

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.navigation.toRoute
 
 @HiltViewModel
 class RemembrancesMenuViewModel @Inject constructor(
@@ -27,8 +28,8 @@ class RemembrancesMenuViewModel @Inject constructor(
 
     private lateinit var language: Language
 
-    private val menuType = MenuType.valueOf(savedStateHandle["type"] ?: MenuType.ALL.name)
-    private val categoryId = savedStateHandle["category_id"] ?: 0
+    private val menuType = savedStateHandle.toRoute<Screen.RemembrancesMenu>().type
+    private val categoryId = savedStateHandle.toRoute<Screen.RemembrancesMenu>().categoryId
 
     private val _uiState = MutableStateFlow(RemembrancesMenuUiState(
         menuType = menuType
@@ -84,7 +85,7 @@ class RemembrancesMenuViewModel @Inject constructor(
     }
 
     fun onItemClick(item: RemembrancesItem) {
-        navigator.navigate(Screen.RemembranceReader(id = item.id.toString()))
+        navigator.navigate(Screen.RemembranceReader(id = item.id))
 
         domain.trackRemembranceViewed(remembranceId = item.id, remembranceName = item.name)
     }

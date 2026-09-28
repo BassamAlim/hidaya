@@ -11,12 +11,10 @@ import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import bassamalim.hidaya.core.ui.inFromBottom
 import bassamalim.hidaya.core.ui.inFromLeft
 import bassamalim.hidaya.core.ui.inFromRight
@@ -60,7 +58,7 @@ import bassamalim.hidaya.features.settings.SettingsScreen
 import bassamalim.hidaya.features.tv.TvScreen
 
 @Composable
-fun Navigation(navigator: Navigator, thenTo: String? = null, shouldOnboard: Boolean = false) {
+fun Navigation(navigator: Navigator, thenTo: Screen? = null, shouldOnboard: Boolean = false) {
     val navController = rememberNavController()
 
     // Rebind on every start, not just first composition: with several Activity instances
@@ -74,8 +72,8 @@ fun Navigation(navigator: Navigator, thenTo: String? = null, shouldOnboard: Bool
     }
 
     val startDest =
-        if (shouldOnboard) Screen.Onboarding.route
-        else Screen.Main.route
+        if (shouldOnboard) Screen.Onboarding
+        else Screen.Main
 
     NavGraph(navController = navController, startDest = startDest)
 
@@ -88,10 +86,9 @@ fun Navigation(navigator: Navigator, thenTo: String? = null, shouldOnboard: Bool
 }
 
 @Composable
-fun NavGraph(navController: NavHostController, startDest: String) {
+fun NavGraph(navController: NavHostController, startDest: Screen) {
     NavHost(navController = navController, startDestination = startDest) {
-        composable(
-            route = Screen.About.route,
+        composable<Screen.About>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -100,9 +97,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             AboutScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.BookChaptersMenu("{book_id}").route,
-            arguments = listOf(navArgument("book_id") { type = NavType.IntType }),
+        composable<Screen.BookChaptersMenu>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -111,12 +106,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             BookChaptersScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.BookReader("{book_id}", "{chapter_id}").route,
-            arguments = listOf(
-                navArgument("book_id") { type = NavType.IntType },
-                navArgument("chapter_id") { type = NavType.IntType }
-            ),
+        composable<Screen.BookReader>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -125,8 +115,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             BookReaderScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.BookSearcher.route,
+        composable<Screen.BookSearcher>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -135,8 +124,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             BookSearcherScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.BooksMenu.route,
+        composable<Screen.BooksMenu>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -145,12 +133,11 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             BooksMenuScreen(hiltViewModel())
         }
 
-        dialog(route = Screen.BooksMenuFilter.route) {
+        dialog<Screen.BooksMenuFilter> {
             BooksMenuFilterDialog(hiltViewModel())
         }
 
-        composable(
-            route = Screen.DateConverter.route,
+        composable<Screen.DateConverter>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -159,16 +146,15 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             DateConverterScreen(hiltViewModel())
         }
 
-        dialog(route = Screen.DateEditor.route) {
+        dialog<Screen.DateEditor> {
             DateEditorDialog(hiltViewModel())
         }
 
-        dialog(route = Screen.HijriDatePicker("{initial_date}").route) {
+        dialog<Screen.HijriDatePicker> {
             HijriDatePickerDialog(hiltViewModel())
         }
 
-        composable(
-            route = Screen.Leaderboard.route,
+        composable<Screen.Leaderboard>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -177,8 +163,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             LeaderboardScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.LocationPicker.route,
+        composable<Screen.LocationPicker>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -187,9 +172,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             LocationPickerScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.Locator("{is_initial}").route,
-            arguments = listOf(navArgument("is_initial") { type = NavType.BoolType }),
+        composable<Screen.Locator>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -198,8 +181,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             LocatorScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.Main.route,
+        composable<Screen.Main>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -208,8 +190,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             MainScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.Misbaha.route,
+        composable<Screen.Misbaha>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -218,8 +199,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             MisbahaScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.Onboarding.route,
+        composable<Screen.Onboarding>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -228,26 +208,19 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             OnboardingScreen(hiltViewModel())
         }
 
-        dialog(
-            route = Screen.PrayerExtraReminderSettings("{prayer_name}").route,
-            arguments = listOf(navArgument("prayer_name") { type = NavType.StringType })
-        ) {
+        dialog<Screen.PrayerExtraReminderSettings> {
             PrayerExtraReminderSettingsDialog(hiltViewModel())
         }
 
-        dialog(
-            route = Screen.PrayerSettings("{prayer_name}").route,
-            arguments = listOf(navArgument("prayer_name") { type = NavType.StringType })
-        ) {
+        dialog<Screen.PrayerSettings> {
             PrayerNotificationSettingsDialog(hiltViewModel())
         }
 
-        dialog(route = Screen.PrayerTimeCalculationSettings.route) {
+        dialog<Screen.PrayerTimeCalculationSettings> {
             PrayerTimeCalculationSettingsDialog(hiltViewModel())
         }
 
-        composable(
-            route = Screen.Qibla.route,
+        composable<Screen.Qibla>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -256,8 +229,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             QiblaScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.QuizLobby.route,
+        composable<Screen.QuizLobby>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -266,8 +238,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             QuizLobbyScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.QuizResult.route,
+        composable<Screen.QuizResult>(
             enterTransition = inFromLeft,
             exitTransition = outToLeft,
             popEnterTransition = inFromRight,
@@ -276,9 +247,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             QuizResultScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.QuizTest("{category}").route,
-            arguments = listOf(navArgument("category") { type = NavType.StringType }),
+        composable<Screen.QuizTest>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -287,12 +256,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             QuizTestScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.QuranReader("{target_type}", "{target_value}").route,
-            arguments = listOf(
-                navArgument("target_type") { type = NavType.StringType },
-                navArgument("target_value") { type = NavType.IntType },
-            ),
+        composable<Screen.QuranReader>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -301,12 +265,11 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             QuranReaderScreen(hiltViewModel())
         }
 
-        dialog(route = Screen.QuranSettings.route) {
+        dialog<Screen.QuranSettings> {
             QuranSettingsDialog(hiltViewModel())
         }
 
-        composable(
-            route = Screen.Radio.route,
+        composable<Screen.Radio>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -317,12 +280,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             }
         }
 
-        composable(
-            route = Screen.RecitationPlayer("{action}", "{media_id}").route,
-            arguments = listOf(
-                navArgument("action") { type = NavType.StringType },
-                navArgument("media_id") { type = NavType.StringType }
-            ),
+        composable<Screen.RecitationPlayer>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -333,12 +291,11 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             }
         }
 
-        dialog(route = Screen.RecitersMenuFilter.route) {
+        dialog<Screen.RecitersMenuFilter> {
             RecitersMenuFilterDialog(hiltViewModel())
         }
 
-        composable(
-            route = Screen.RecitationsRecitersMenu.route,
+        composable<Screen.RecitationsRecitersMenu>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -349,12 +306,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             }
         }
 
-        composable(
-            route = Screen.RecitationSurasMenu("{reciter_id}", "{narration_id}").route,
-            arguments = listOf(
-                navArgument("reciter_id") { type = NavType.IntType },
-                navArgument("narration_id") { type = NavType.IntType }
-            ),
+        composable<Screen.RecitationSurasMenu>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -363,9 +315,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             RecitationSurasMenuScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.RemembranceReader("{remembrance_id}").route,
-            arguments = listOf(navArgument("remembrance_id") { type = NavType.IntType }),
+        composable<Screen.RemembranceReader>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -374,12 +324,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             RemembranceReaderScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.RemembrancesMenu("{type}", "{category_id}").route,
-            arguments = listOf(
-                navArgument("type") { type = NavType.StringType },
-                navArgument("category_id") { type = NavType.IntType }
-            ),
+        composable<Screen.RemembrancesMenu>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -388,8 +333,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             RemembrancesMenuScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.Settings.route,
+        composable<Screen.Settings>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -398,8 +342,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             SettingsScreen(hiltViewModel())
         }
 
-        composable(
-            route = Screen.Tv.route,
+        composable<Screen.Tv>(
             enterTransition = inFromBottom,
             exitTransition = outToBottom,
             popEnterTransition = inFromTop,
@@ -408,10 +351,7 @@ fun NavGraph(navController: NavHostController, startDest: String) {
             TvScreen(hiltViewModel())
         }
 
-        dialog(
-            route = Screen.VerseInfo("{verse_id}").route,
-            arguments = listOf(navArgument("verse_id") { type = NavType.IntType })
-        ) {
+        dialog<Screen.VerseInfo> {
             VerseInfoDialog(hiltViewModel())
         }
     }

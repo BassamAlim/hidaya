@@ -118,18 +118,18 @@ class QuranSurasViewModel @Inject constructor(
     fun onSuraClick(suraId: Int) {
         navigator.navigate(
             Screen.QuranReader(
-                targetType = QuranTarget.SURA.name,
-                targetValue = suraId.toString()
+                targetType = QuranTarget.SURA,
+                targetValue = suraId
             )
         )
 
         data?.let { domain.trackSuraViewed(it.suraNames[suraId]) }
     }
 
-    fun onPageClick(pageNum: String) {
+    fun onPageClick(pageNum: Int) {
         navigator.navigate(
             Screen.QuranReader(
-                targetType = QuranTarget.PAGE.name,
+                targetType = QuranTarget.PAGE,
                 targetValue = pageNum
             )
         )
@@ -138,8 +138,8 @@ class QuranSurasViewModel @Inject constructor(
     fun onBookmarkClick(verseId: Int) {
         navigator.navigate(
             Screen.QuranReader(
-                targetType = QuranTarget.VERSE.name,
-                targetValue = verseId.toString()
+                targetType = QuranTarget.VERSE,
+                targetValue = verseId
             )
         )
     }
@@ -196,6 +196,7 @@ class QuranSurasViewModel @Inject constructor(
                 val pageSuraId = data.allVerses.first { verse -> verse.pageNum == num }.suraNum - 1
                 listOf(
                     PageMatch(
+                        page = num,
                         num = translateNums(
                             string = query,
                             numeralsLanguage = data.numeralsLanguage
@@ -230,8 +231,8 @@ class QuranSurasViewModel @Inject constructor(
     fun onVerseClick(verseId: Int) {
         navigator.navigate(
             Screen.QuranReader(
-                targetType = QuranTarget.VERSE.name,
-                targetValue = verseId.toString()
+                targetType = QuranTarget.VERSE,
+                targetValue = verseId
             )
         )
     }

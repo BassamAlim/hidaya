@@ -102,7 +102,7 @@ class QiblaViewModel @Inject constructor(
 
     fun onSetLocationClick() {
         isReturningFromLocator = true
-        navigator.navigate(Screen.Locator(isInitial = false.toString()))
+        navigator.navigate(Screen.Locator(isInitial = false))
     }
 
     fun onAccuracyIndicatorClick() {
