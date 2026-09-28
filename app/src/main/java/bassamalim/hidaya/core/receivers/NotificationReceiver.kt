@@ -41,7 +41,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.time.DayOfWeek
+import java.time.LocalDate
 import javax.inject.Inject
 import kotlin.math.abs
 
@@ -116,7 +117,7 @@ class NotificationReceiver : BroadcastReceiver() {
 
     private suspend fun isAlreadyNotified(reminder: Reminder): Boolean {
         val lastDate = notificationsRepository.getLastNotificationDates().first()[reminder]
-        return lastDate == Calendar.getInstance()[Calendar.DAY_OF_YEAR]
+        return lastDate == LocalDate.now().dayOfYear
     }
 
     private suspend fun showNotification(
@@ -219,7 +220,7 @@ class NotificationReceiver : BroadcastReceiver() {
 
     private fun getTitle(context: Context, reminder: Reminder): String {
         return if ((reminder == Reminder.Prayer.Dhuhr || reminder == Reminder.PrayerExtra.Dhuhr) &&
-            Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY) {
+            LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY) {
             if (reminder is Reminder.PrayerExtra)
                 context.resources.getString(R.string.jumuah_reminder_title)
             else
@@ -237,7 +238,7 @@ class NotificationReceiver : BroadcastReceiver() {
                     if (offset < 0) context.resources.getString(R.string.reminder_before)
                     else context.resources.getString(R.string.reminder_after),
                     if (reminder == Reminder.PrayerExtra.Dhuhr &&
-                        Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY)
+                        LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY)
                         context.resources.getString(R.string.jumuah)
                     else
                         context.resources.getStringArray(R.array.prayer_names)
@@ -247,7 +248,7 @@ class NotificationReceiver : BroadcastReceiver() {
         }
         else {
             if (reminder == Reminder.Prayer.Dhuhr &&
-                Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY)
+                LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY)
                 context.resources.getString(R.string.jumuah_subtitle)
             else context.resources.getStringArray(R.array.prayer_subtitles)[reminder.id-1]
         }
@@ -340,7 +341,7 @@ class NotificationReceiver : BroadcastReceiver() {
     private fun markAsNotified(reminder: Reminder) {
         notificationsRepository.setLastNotificationDate(
             reminder = reminder,
-            dayOfYear = Calendar.getInstance()[Calendar.DAY_OF_YEAR]
+            dayOfYear = LocalDate.now().dayOfYear
         )
     }
 

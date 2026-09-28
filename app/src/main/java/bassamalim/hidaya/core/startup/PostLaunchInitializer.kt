@@ -23,7 +23,7 @@ import bassamalim.hidaya.core.utils.report
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import kotlinx.coroutines.flow.first
-import java.util.Calendar
+import java.time.LocalDate
 import javax.inject.Inject
 
 class PostLaunchInitializer @Inject constructor(
@@ -106,7 +106,7 @@ class PostLaunchInitializer @Inject constructor(
                     settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
                     selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
                     location = location,
-                    calendar = Calendar.getInstance()
+                    date = LocalDate.now()
                 )
                 alarm.setAll(prayerTimes)
                 Log.d(Globals.TAG, "Prayer alarms set successfully")

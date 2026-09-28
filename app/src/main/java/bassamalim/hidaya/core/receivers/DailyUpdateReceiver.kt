@@ -29,6 +29,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.Calendar
 import java.util.Random
 import javax.inject.Inject
@@ -51,7 +55,7 @@ class DailyUpdateReceiver : BroadcastReceiver() {
             try {
                 // No DB revival here: deleting the file under the app's open Room instance
                 // corrupts it. The next app launch checks and revives (DbRecoveryHelper).
-                val now = Calendar.getInstance()
+                val now = ZonedDateTime.now()
                 if ((intent.action == "daily" && notUpdatedToday(now)) || intent.action == "boot") {
                     val location = locationRepository.getLocation().first() ?: return@launch
                     when (location.type) {
@@ -78,10 +82,9 @@ class DailyUpdateReceiver : BroadcastReceiver() {
         }
     }
 
-    private suspend fun notUpdatedToday(now: Calendar): Boolean {
-        val lastUpdate = Calendar.getInstance()
-        lastUpdate.timeInMillis = appStateRepository.getLastDailyUpdateMillis().first()
-        return !isSameDay(lastUpdate, now)
+    private suspend fun notUpdatedToday(now: ZonedDateTime): Boolean {
+        val lastUpdateMillis = appStateRepository.getLastDailyUpdateMillis().first()
+        return !isOnDate(lastUpdateMillis, now.toLocalDate(), now.zone)
     }
 
     /** Null without permission or on failure (e.g. no background location access). */
@@ -105,7 +108,7 @@ class DailyUpdateReceiver : BroadcastReceiver() {
         }
     }
 
-    private suspend fun update(context: Context, location: Location?, now: Calendar) {
+    private suspend fun update(context: Context, location: Location?, now: ZonedDateTime) {
         if (location != null)
             locationRepository.setLocation(location)
 
@@ -119,7 +122,7 @@ class DailyUpdateReceiver : BroadcastReceiver() {
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(latestLocation.ids.cityId),
             location = latestLocation,
-            calendar = now
+            date = now.toLocalDate()
         )
 
         alarm.setAll(prayerTimes)
@@ -129,8 +132,8 @@ class DailyUpdateReceiver : BroadcastReceiver() {
         setUpdated(now)
     }
 
-    private fun setUpdated(now: Calendar) {
-        appStateRepository.setLastDailyUpdateMillis(now.timeInMillis)
+    private fun setUpdated(now: ZonedDateTime) {
+        appStateRepository.setLastDailyUpdateMillis(now.toInstant().toEpochMilli())
     }
 
     private suspend fun pickWerd() {
@@ -143,7 +146,7 @@ class DailyUpdateReceiver : BroadcastReceiver() {
         val intent = Intent(context.applicationContext, DailyUpdateReceiver::class.java)
         intent.action = "daily"
 
-        val time = nextDailyUpdateTime(Calendar.getInstance())
+        val time = nextDailyUpdateTime(ZonedDateTime.now())
 
         val pendIntent = PendingIntent.getBroadcast(
             context.applicationContext, 1210, intent,
@@ -152,7 +155,9 @@ class DailyUpdateReceiver : BroadcastReceiver() {
 
         val alarm = context.applicationContext
             .getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        alarm.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time.timeInMillis, pendIntent)
+        alarm.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP, time.toInstant().toEpochMilli(), pendIntent
+        )
     }
 
 }
@@ -161,11 +166,15 @@ class DailyUpdateReceiver : BroadcastReceiver() {
 internal fun isSameDay(a: Calendar, b: Calendar) =
     a[Calendar.YEAR] == b[Calendar.YEAR] && a[Calendar.DAY_OF_YEAR] == b[Calendar.DAY_OF_YEAR]
 
-/** The next day's update time, in [now]'s time zone. */
-internal fun nextDailyUpdateTime(now: Calendar): Calendar = (now.clone() as Calendar).apply {
-    add(Calendar.DATE, 1)
-    set(Calendar.HOUR_OF_DAY, Globals.DAILY_UPDATE_HOUR)
-    set(Calendar.MINUTE, Globals.DAILY_UPDATE_MINUTE)
-    set(Calendar.SECOND, 0)
-    set(Calendar.MILLISECOND, 0)
-}
+/** Whether the moment [millis] falls on [date] in [zone]. */
+internal fun isOnDate(millis: Long, date: LocalDate, zone: ZoneId) =
+    Instant.ofEpochMilli(millis).atZone(zone).toLocalDate() == date
+
+/**
+ * The next day's update time, in [now]'s time zone. Where DST skips it (a midnight switch),
+ * it's moved later by the length of the gap; where DST repeats it, it's the later one.
+ */
+internal fun nextDailyUpdateTime(now: ZonedDateTime): ZonedDateTime =
+    now.toLocalDate().plusDays(1)
+        .atTime(Globals.DAILY_UPDATE_HOUR, Globals.DAILY_UPDATE_MINUTE)
+        .atZone(now.zone).withLaterOffsetAtOverlap()

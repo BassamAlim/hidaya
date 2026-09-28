@@ -16,8 +16,12 @@ import bassamalim.hidaya.core.enums.Reminder
 import bassamalim.hidaya.core.receivers.NotificationReceiver
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import kotlinx.coroutines.flow.first
-import java.util.Calendar
-import java.util.SortedMap
+import java.time.DayOfWeek
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 class Alarm(
     private val app: Application,
@@ -26,7 +30,7 @@ class Alarm(
     private val locationRepository: LocationRepository
 ) {
 
-    suspend fun setAll(prayerTimes: SortedMap<Prayer, Calendar?>) {
+    suspend fun setAll(prayerTimes: Map<Prayer, ZonedDateTime?>) {
         val reminderTimes = prayerTimes.map { (prayer, time) ->
             prayer.toReminder() to time
         }.toMap()
@@ -37,9 +41,9 @@ class Alarm(
                 notificationsRepository.getNotificationType(it).first()
             },
             extraReminderOffsets = notificationsRepository.getPrayerExtraReminderTimeOffsets().first(),
-            now = System.currentTimeMillis()
+            now = Instant.now()
         )
-        for ((reminder, millis) in plan) schedule(reminder, millis)
+        for ((reminder, time) in plan) schedule(reminder, time)
 
         setDevotionalAlarms()
     }
@@ -52,11 +56,11 @@ class Alarm(
                     settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
                     selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
                     location = location,
-                    calendar = Calendar.getInstance()
+                    date = LocalDate.now()
                 ).map { (prayer, time) -> prayer.toReminder() to time }.toMap()
 
                 val time = prayerTimes[reminder] ?: return
-                scheduleIfAhead(reminder, time.timeInMillis)
+                scheduleIfAhead(reminder, time.toInstant())
             }
             is Reminder.PrayerExtra -> {
                 val location = locationRepository.getLocation().first() ?: return
@@ -64,12 +68,12 @@ class Alarm(
                     settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
                     selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
                     location = location,
-                    calendar = Calendar.getInstance()
+                    date = LocalDate.now()
                 )[reminder.toPrayer()] ?: return
 
                 val offset =
                     notificationsRepository.getPrayerExtraReminderTimeOffsets().first()[reminder] ?: 0
-                scheduleIfAhead(reminder, extraReminderMillis(prayerTime.timeInMillis, offset))
+                scheduleIfAhead(reminder, extraReminderTime(prayerTime.toInstant(), offset))
             }
             is Reminder.Devotional -> {
                 setDevotionalAlarm(reminder)
@@ -79,12 +83,13 @@ class Alarm(
 
     // An alarm set in the past fires immediately and is then dropped by the receiver's on-time
     // check, so there is nothing to schedule; the daily update sets tomorrow's.
-    private fun scheduleIfAhead(reminder: Reminder, millis: Long) {
-        if (millis >= System.currentTimeMillis()) schedule(reminder, millis)
+    private fun scheduleIfAhead(reminder: Reminder, time: Instant) {
+        if (!time.isBefore(Instant.now())) schedule(reminder, time)
         else Log.i(Globals.TAG, "$reminder Passed")
     }
 
-    private fun schedule(reminder: Reminder, millis: Long) {
+    private fun schedule(reminder: Reminder, time: Instant) {
+        val millis = time.toEpochMilli()
         val intent = Intent(app, NotificationReceiver::class.java).apply {
             action = getAction(reminder)
             putExtra("id", reminder.id)
@@ -105,7 +110,7 @@ class Alarm(
     private suspend fun setDevotionalAlarms() {
         Log.i(Globals.TAG, "in Alarm.setDevotionalAlarms")
 
-        val today = Calendar.getInstance()
+        val today = LocalDate.now()
 
         val devotionAlarmEnabledMap =
             notificationsRepository.getDevotionalReminderEnabledMap().first()
@@ -113,7 +118,7 @@ class Alarm(
         for ((devotion, enabled) in devotionAlarmEnabledMap) {
             if (enabled) {
                 if (devotion is Reminder.Devotional.FridayKahf) {
-                    if (today[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY)
+                    if (today.dayOfWeek == DayOfWeek.FRIDAY)
                         setDevotionalAlarm(devotion)
                 }
                 else setDevotionalAlarm(devotion)
@@ -124,11 +129,11 @@ class Alarm(
     private suspend fun setDevotionalAlarm(devotion: Reminder.Devotional) {
         Log.i(Globals.TAG, "in Alarm.setDevotionalAlarm")
 
-        scheduleIfAhead(devotion, getDevotionalReminderTime(devotion).timeInMillis)
+        scheduleIfAhead(devotion, getDevotionalReminderTime(devotion).toInstant())
     }
 
-    suspend fun getDevotionalReminderTime(devotion: Reminder.Devotional): Calendar {
-        val time = when (devotion) {
+    suspend fun getDevotionalReminderTime(devotion: Reminder.Devotional): ZonedDateTime =
+        when (devotion) {
             Reminder.Devotional.MorningRemembrances, Reminder.Devotional.EveningRemembrances -> {
                 val referencePrayer =
                     if (devotion == Reminder.Devotional.MorningRemembrances) Prayer.FAJR
@@ -137,24 +142,16 @@ class Alarm(
                     todayPrayer = getPrayerTime(referencePrayer, dayOffset = 0),
                     tomorrowPrayer = getPrayerTime(referencePrayer, dayOffset = 1),
                     minutesAfter = 30,
-                    now = System.currentTimeMillis()
-                ) ?: return Calendar.getInstance()
+                    now = Instant.now()
+                ) ?: ZonedDateTime.now()
             }
             Reminder.Devotional.DailyWerd, Reminder.Devotional.FridayKahf -> {
                 val timeOfDay =
                     notificationsRepository.getDevotionalReminderTimes().first()[devotion]!!
-                Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, timeOfDay.hour)
-                    set(Calendar.MINUTE, timeOfDay.minute)
-                }
+                LocalDate.now().atTime(timeOfDay.hour, timeOfDay.minute)
+                    .atZone(ZoneId.systemDefault()).withLaterOffsetAtOverlap()
             }
         }
-
-        time[Calendar.SECOND] = 0
-        time[Calendar.MILLISECOND] = 0
-
-        return time
-    }
 
     fun cancelAlarm(reminder: Reminder) {
         // AlarmManager matches alarms by PendingIntent, and PendingIntents by request code plus
@@ -187,61 +184,59 @@ class Alarm(
         is Reminder.Devotional -> "devotion"
     }
 
-    private suspend fun getPrayerTime(prayer: Prayer, dayOffset: Int): Calendar? {
+    private suspend fun getPrayerTime(prayer: Prayer, dayOffset: Int): ZonedDateTime? {
         val location = locationRepository.getLocation().first() ?: return null
         return PrayerTimeUtils.getPrayerTimes(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, dayOffset) }
+            date = LocalDate.now().plusDays(dayOffset.toLong())
         )[prayer]
     }
 
 }
 
 /**
- * The alarms [Alarm.setAll] schedules, as epoch millis: each prayer whose notifications aren't
- * off, and each extra reminder with a non-zero offset (independent of its prayer's setting).
- * Times already behind [now] are left out; tomorrow's daily update sets them.
+ * The alarms [Alarm.setAll] schedules: each prayer whose notifications aren't off, and each
+ * extra reminder with a non-zero offset (independent of its prayer's setting). Times already
+ * behind [now] are left out; tomorrow's daily update sets them.
  */
 internal fun planPrayerAlarms(
-    prayerTimes: Map<Reminder.Prayer, Calendar?>,
+    prayerTimes: Map<Reminder.Prayer, ZonedDateTime?>,
     notificationTypes: Map<Reminder.Prayer, NotificationType>,
     extraReminderOffsets: Map<Reminder.PrayerExtra, Int>,
-    now: Long
-): Map<Reminder, Long> {
-    val plan = mutableMapOf<Reminder, Long>()
-    for ((prayer, time) in prayerTimes) {
-        val millis = time?.timeInMillis ?: continue
+    now: Instant
+): Map<Reminder, Instant> {
+    val plan = mutableMapOf<Reminder, Instant>()
+    for ((prayer, zonedTime) in prayerTimes) {
+        val time = zonedTime?.toInstant() ?: continue
 
         val type = notificationTypes[prayer]
-        if (type != null && type != NotificationType.OFF && millis >= now) plan[prayer] = millis
+        if (type != null && type != NotificationType.OFF && !time.isBefore(now)) plan[prayer] = time
 
         val extra = prayer.toPrayerExtra()
         val offset = extraReminderOffsets[extra] ?: 0
-        val extraMillis = extraReminderMillis(millis, offset)
-        if (offset != 0 && extraMillis >= now) plan[extra] = extraMillis
+        val extraTime = extraReminderTime(time, offset)
+        if (offset != 0 && !extraTime.isBefore(now)) plan[extra] = extraTime
     }
     return plan
 }
 
 /** [offsetMinutes] is negative for a reminder before the prayer. */
-internal fun extraReminderMillis(prayerMillis: Long, offsetMinutes: Int) =
-    prayerMillis + offsetMinutes * 60_000L
+internal fun extraReminderTime(prayerTime: Instant, offsetMinutes: Int): Instant =
+    prayerTime.plus(Duration.ofMinutes(offsetMinutes.toLong()))
 
 /**
  * [minutesAfter] today's prayer, or after tomorrow's once today's has passed. Deciding by the
  * prayer time instead skipped today's reminder when set between the prayer and the reminder.
  */
 internal fun nextTimeAfterPrayer(
-    todayPrayer: Calendar?,
-    tomorrowPrayer: Calendar?,
+    todayPrayer: ZonedDateTime?,
+    tomorrowPrayer: ZonedDateTime?,
     minutesAfter: Int,
-    now: Long
-): Calendar? {
-    fun after(prayer: Calendar?) =
-        (prayer?.clone() as Calendar?)?.apply { add(Calendar.MINUTE, minutesAfter) }
-
-    val today = after(todayPrayer)
-    return if (today != null && today.timeInMillis >= now) today else after(tomorrowPrayer)
+    now: Instant
+): ZonedDateTime? {
+    val today = todayPrayer?.plusMinutes(minutesAfter.toLong())
+    return if (today != null && !today.toInstant().isBefore(now)) today
+    else tomorrowPrayer?.plusMinutes(minutesAfter.toLong())
 }

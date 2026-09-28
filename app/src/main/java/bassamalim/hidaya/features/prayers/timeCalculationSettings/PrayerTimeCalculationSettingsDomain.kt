@@ -11,7 +11,7 @@ import bassamalim.hidaya.core.models.PrayerTimeCalculatorSettings
 import bassamalim.hidaya.core.services.PrayersNotificationService
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import kotlinx.coroutines.flow.first
-import java.util.Calendar
+import java.time.LocalDate
 import javax.inject.Inject
 
 class PrayerTimeCalculationSettingsDomain @Inject constructor(
@@ -56,7 +56,7 @@ class PrayerTimeCalculationSettingsDomain @Inject constructor(
             settings = prayersRepository.getPrayerTimesCalculatorSettings().first(),
             selectedTimeZoneId = locationRepository.getTimeZone(location.ids.cityId),
             location = location,
-            calendar = Calendar.getInstance()
+            date = LocalDate.now()
         )
 
         alarm.setAll(prayerTimes)

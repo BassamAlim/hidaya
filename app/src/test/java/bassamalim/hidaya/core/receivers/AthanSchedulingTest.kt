@@ -5,6 +5,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -24,49 +27,78 @@ class AthanSchedulingTest {
             set(year, month - 1, day, hour, minute)
         }
 
-    private fun updateTimeOn(zone: TimeZone, year: Int, month: Int, day: Int) =
-        at(zone, year, month, day, Globals.DAILY_UPDATE_HOUR, Globals.DAILY_UPDATE_MINUTE)
+    private val riyadhZone = ZoneId.of("Asia/Riyadh")
+    private val beirutZone = ZoneId.of("Asia/Beirut")
+
+    private fun zonedAt(
+        zone: ZoneId, year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0
+    ) = ZonedDateTime.of(year, month, day, hour, minute, 0, 0, zone)
+
+    private fun ZonedDateTime.millis() = toInstant().toEpochMilli()
+
+    private fun updateTimeOn(zone: ZoneId, year: Int, month: Int, day: Int) =
+        zonedAt(zone, year, month, day, Globals.DAILY_UPDATE_HOUR, Globals.DAILY_UPDATE_MINUTE)
 
     // nextDailyUpdateTime
 
     @Test
     fun `next update is tomorrow at the update time`() {
-        val next = nextDailyUpdateTime(updateTimeOn(riyadh, 2026, 9, 23))
-        assertEquals(updateTimeOn(riyadh, 2026, 9, 24).timeInMillis, next.timeInMillis)
+        val next = nextDailyUpdateTime(updateTimeOn(riyadhZone, 2026, 9, 23))
+        assertEquals(updateTimeOn(riyadhZone, 2026, 9, 24), next)
     }
 
     @Test
     fun `a late run still schedules tomorrow, not the day after`() {
-        val next = nextDailyUpdateTime(at(riyadh, 2026, 9, 23, hour = 23, minute = 59))
-        assertEquals(updateTimeOn(riyadh, 2026, 9, 24).timeInMillis, next.timeInMillis)
+        val next = nextDailyUpdateTime(zonedAt(riyadhZone, 2026, 9, 23, hour = 23, minute = 59))
+        assertEquals(updateTimeOn(riyadhZone, 2026, 9, 24), next)
     }
 
     @Test
     fun `rolls over month, year and leap day`() {
         assertEquals(
-            updateTimeOn(riyadh, 2026, 10, 1).timeInMillis,
-            nextDailyUpdateTime(at(riyadh, 2026, 9, 30, hour = 12)).timeInMillis
+            updateTimeOn(riyadhZone, 2026, 10, 1),
+            nextDailyUpdateTime(zonedAt(riyadhZone, 2026, 9, 30, hour = 12))
         )
         assertEquals(
-            updateTimeOn(riyadh, 2027, 1, 1).timeInMillis,
-            nextDailyUpdateTime(at(riyadh, 2026, 12, 31, hour = 12)).timeInMillis
+            updateTimeOn(riyadhZone, 2027, 1, 1),
+            nextDailyUpdateTime(zonedAt(riyadhZone, 2026, 12, 31, hour = 12))
         )
         assertEquals(
-            updateTimeOn(riyadh, 2028, 2, 29).timeInMillis,
-            nextDailyUpdateTime(at(riyadh, 2028, 2, 28, hour = 12)).timeInMillis
+            updateTimeOn(riyadhZone, 2028, 2, 29),
+            nextDailyUpdateTime(zonedAt(riyadhZone, 2028, 2, 28, hour = 12))
         )
     }
 
     @Test
     fun `lands on the next date when DST skips the update time`() {
-        val now = updateTimeOn(beirut, 2026, 3, 28)
+        val now = updateTimeOn(beirutZone, 2026, 3, 28)
         val next = nextDailyUpdateTime(now)
 
-        assertEquals(29, next[Calendar.DAY_OF_MONTH])
-        assertTrue(next.after(now))
+        assertEquals(29, next.dayOfMonth)
+        assertTrue(next.isAfter(now))
     }
 
-    // isSameDay (guards the "already updated today" check)
+    // isOnDate (the "already updated today" check)
+
+    @Test
+    fun `an update earlier today is on today's date`() {
+        val update = zonedAt(riyadhZone, 2026, 9, 23, hour = 0, minute = 10)
+        assertTrue(isOnDate(update.millis(), LocalDate.of(2026, 9, 23), riyadhZone))
+    }
+
+    @Test
+    fun `an update just before midnight is not on the next date`() {
+        val update = zonedAt(riyadhZone, 2026, 9, 23, hour = 23, minute = 59)
+        assertFalse(isOnDate(update.millis(), LocalDate.of(2026, 9, 24), riyadhZone))
+    }
+
+    @Test
+    fun `an update on the same date a year earlier is not on today's date`() {
+        val update = zonedAt(riyadhZone, 2025, 9, 23, hour = 12)
+        assertFalse(isOnDate(update.millis(), LocalDate.of(2026, 9, 23), riyadhZone))
+    }
+
+    // isSameDay (the prayers board's "is today" check)
 
     @Test
     fun `same date at different times is the same day`() {

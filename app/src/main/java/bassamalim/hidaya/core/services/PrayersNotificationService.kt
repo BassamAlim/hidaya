@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
 import java.util.Calendar
 import java.util.Locale
 import java.util.SortedMap
@@ -182,7 +183,7 @@ class PrayersNotificationService : Service() {
         val devotionAlarmEnabledMap =
             notificationsRepository.getDevotionalReminderEnabledMap().first()
 
-        val devotionReminderTimes = mutableMapOf<Reminder.Devotional, Calendar>()
+        val devotionReminderTimes = mutableMapOf<Reminder.Devotional, ZonedDateTime>()
         for ((devotion, enabled) in devotionAlarmEnabledMap) {
             if (enabled) {
                 if (devotion is Reminder.Devotional.FridayKahf) {
@@ -192,7 +193,9 @@ class PrayersNotificationService : Service() {
                 else devotionReminderTimes[devotion] = alarm.getDevotionalReminderTime(devotion)
             }
         }
-        return devotionReminderTimes.toMap()
+        return devotionReminderTimes.mapValues { (_, time) ->
+            Calendar.getInstance().apply { timeInMillis = time.toInstant().toEpochMilli() }
+        }
     }
 
     private fun startCountdown(prayerData: PrayerData) {

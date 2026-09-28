@@ -19,6 +19,38 @@ import java.util.TimeZone
 
 object PrayerTimeUtils {
 
+    /**
+     * Prayer times on [date] at [location], as moments in [zone]. Their wall-clock times are the
+     * location's; [zone] only matters for a manual location in another zone than the device's.
+     */
+    fun getPrayerTimes(
+        settings: PrayerTimeCalculatorSettings,
+        selectedTimeZoneId: String,
+        location: Location,
+        date: LocalDate,
+        zone: ZoneId = ZoneId.systemDefault()
+    ): SortedMap<Prayer, ZonedDateTime?> {
+        val locationZone = when (location.type) {
+            LocationType.AUTO -> ZoneId.systemDefault()
+            // Through TimeZone, which falls back to GMT for an unknown id instead of throwing
+            LocationType.MANUAL -> ZoneId.of(TimeZone.getTimeZone(selectedTimeZoneId).id)
+            LocationType.NONE -> ZoneOffset.UTC
+        }
+        // The offset at midday of the date, not at the time of the call: the daily update runs
+        // at midnight, and DST switches happen at night, so a midnight sample would apply the
+        // pre-switch offset to the whole day, putting every time an hour off on those days
+        val utcOffset = date.atTime(LocalTime.NOON).atZone(locationZone).offset
+
+        return PrayerTimeCalculator(settings)
+            .getPrayerTimes(location.coordinates, date, utcOffset)
+            .mapValuesTo(sortedMapOf<Prayer, ZonedDateTime?>()) { (_, time) ->
+                // A time repeated when clocks go back is the later one, as the offset used is
+                // midday's, the post-switch one
+                time?.let { ZonedDateTime.of(date, it, zone).withLaterOffsetAtOverlap() }
+            }
+    }
+
+    /** Prayer times on [calendar]'s date, as calendars in its zone; see the other overload. */
     fun getPrayerTimes(
         settings: PrayerTimeCalculatorSettings,
         selectedTimeZoneId: String = "",
@@ -30,27 +62,16 @@ object PrayerTimeUtils {
             calendar[Calendar.MONTH] + 1,
             calendar[Calendar.DAY_OF_MONTH]
         )
-        val zone = when (location.type) {
-            LocationType.AUTO -> ZoneId.systemDefault()
-            // Through TimeZone, which falls back to GMT for an unknown id instead of throwing
-            LocationType.MANUAL -> ZoneId.of(TimeZone.getTimeZone(selectedTimeZoneId).id)
-            LocationType.NONE -> ZoneOffset.UTC
-        }
-        // The offset at midday of the date, not at the calendar's time of day: the daily update
-        // runs at midnight, and DST switches happen at night, so a midnight sample would apply
-        // the pre-switch offset to the whole day, putting every time an hour off on those days
-        val utcOffset = date.atTime(LocalTime.NOON).atZone(zone).offset
-
-        val times = PrayerTimeCalculator(settings)
-            .getPrayerTimes(location.coordinates, date, utcOffset)
-
-        // As wall-clock times of the calendar's own zone
-        val calendarZone = ZoneId.of(calendar.timeZone.id)
-        return times.mapValuesTo(sortedMapOf<Prayer, Calendar?>()) { (_, time) ->
+        return getPrayerTimes(
+            settings = settings,
+            selectedTimeZoneId = selectedTimeZoneId,
+            location = location,
+            date = date,
+            zone = ZoneId.of(calendar.timeZone.id)
+        ).mapValuesTo(sortedMapOf<Prayer, Calendar?>()) { (_, time) ->
             time?.let {
                 (calendar.clone() as Calendar).apply {
-                    timeInMillis =
-                        ZonedDateTime.of(date, it, calendarZone).toInstant().toEpochMilli()
+                    timeInMillis = it.toInstant().toEpochMilli()
                 }
             }
         }
