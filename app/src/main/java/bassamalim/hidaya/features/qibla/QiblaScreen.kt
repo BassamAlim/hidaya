@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -57,12 +58,12 @@ import bassamalim.hidaya.core.ui.components.MyText
 import bassamalim.hidaya.core.ui.theme.Negative
 import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
-import coil.ImageLoader
-import coil.compose.rememberAsyncImagePainter
-import coil.decode.GifDecoder
-import coil.decode.ImageDecoderDecoder
-import coil.request.ImageRequest
-import coil.size.Size
+import coil3.ImageLoader
+import coil3.compose.rememberAsyncImagePainter
+import coil3.gif.AnimatedImageDecoder
+import coil3.gif.GifDecoder
+import coil3.request.ImageRequest
+import coil3.size.Size
 
 @Composable
 fun QiblaScreen(viewModel: QiblaViewModel) {
@@ -391,14 +392,17 @@ private fun CalibrationDialog(
 }
 
 @Composable
-private fun getImageLoader(context: Context) =
+private fun getImageLoader(context: Context) = remember(context) {
     ImageLoader.Builder(context).components {
-        if (Build.VERSION.SDK_INT >= 28) add(ImageDecoderDecoder.Factory())
+        if (Build.VERSION.SDK_INT >= 28) add(AnimatedImageDecoder.Factory())
         else add(GifDecoder.Factory())
     }.build()
+}
 
 @Composable
-private fun getImageRequest(context: Context) =
+private fun getImageRequest(context: Context) = remember(context) {
     ImageRequest.Builder(context)
-    .data(R.drawable.compass_calibration)
-    .apply(block = { size(Size.ORIGINAL) }).build()
+        .data(R.drawable.compass_calibration)
+        .size(Size.ORIGINAL)
+        .build()
+}

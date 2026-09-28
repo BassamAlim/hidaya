@@ -1,7 +1,7 @@
 [versions]
 activityKtx = "1.13.0"
 appcompat = "1.7.1"
-coilCompose = "2.7.0"
+coilCompose = "3.3.0"
 constraintlayout = "2.2.1"
 constraintlayoutCompose = "1.1.1"
 coreKtx = "1.18.0"
@@ -84,8 +84,8 @@ androidx-ui = { module = "androidx.compose.ui:ui", version.ref = "uiViewbinding"
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "uiViewbinding" }
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "uiViewbinding" }
 androidx-ui-viewbinding = { module = "androidx.compose.ui:ui-viewbinding", version.ref = "uiViewbinding" }
-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
-coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coilCompose" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
+coil-gif = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coilCompose" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
