@@ -22,6 +22,9 @@ class LeaderboardViewModel @Inject constructor(
 
     lateinit var numeralsLanguage: Language
 
+    /** (user id, value) pairs fetched so far, best first */
+    private val rawRanks = mutableMapOf<RankType, List<Pair<Int, Long>>>()
+
     private val _uiState = MutableStateFlow(LeaderboardUiState())
     val uiState = _uiState.onStart {
         initializeData()
@@ -38,9 +41,7 @@ class LeaderboardViewModel @Inject constructor(
             val userRecord = domain.getUserRecord()?.data
             val ranks = domain.getRanks()
 
-            val isError = userRecord == null || userRecord.userId == -1
-                    || ranks == null || ranks.values.any { it is Response.Error<*> }
-            if (isError) {
+            if (userRecord == null || ranks == null || ranks.values.any { it is Response.Error<*> }) {
                 _uiState.update { it.copy(
                     isLoading = false,
                     isError = true
@@ -48,65 +49,56 @@ class LeaderboardViewModel @Inject constructor(
                 return@launch
             }
 
-            val userRankRaw = domain.getUserRank(userRecord.userId)
-            val userRank = userRankRaw.mapValues { (_, rank) ->
-                if (rank == -1) translateNums("--", numeralsLanguage)
-                else translateNums(rank.toString(), numeralsLanguage)
-            }
+            rawRanks.clear()
+            ranks.forEach { (rankType, response) -> rawRanks[rankType] = response.data!! }
 
-            val ranksList = mapOf(
-                RankType.BY_READING to (ranks[RankType.BY_READING]?.data ?: emptyMap())
-                    .map { (userId, value) ->
-                        translateNums(userId.toString(), numeralsLanguage) to
-                                translateNums(value.toString(), numeralsLanguage)
-                    },
-                RankType.BY_LISTENING to (ranks[RankType.BY_LISTENING]?.data ?: emptyMap())
-                    .map { (userId, value) ->
-                        translateNums(userId.toString(), numeralsLanguage) to
-                                formatRecitationsTime(value)
-                    }
-            )
+            val userRankRaw = domain.getUserRanks(userRecord)
 
             _uiState.update { it.copy(
                 isLoading = false,
                 userId = translateNums(userRecord.userId.toString(), numeralsLanguage),
-                userRanks = userRank,
-                userRankInts = userRankRaw,
-                ranks = ranksList
+                userRanks = userRankRaw.mapValues { (_, rank) ->
+                    translateNums(rank?.toString() ?: "--", numeralsLanguage)
+                },
+                userRankInts = userRankRaw.mapValues { (_, rank) -> rank ?: -1 },
+                ranks = rawRanks.mapValues { (rankType, raw) -> toItems(rankType, raw) }
             )}
         }
     }
 
     fun loadMore(rankType: RankType) {
-        if (_uiState.value.isLoadingItems[rankType] == true) return
+        if (_uiState.value.isLoadingItems[rankType] == true || !domain.hasMore(rankType)) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(
-                isLoadingItems = it.isLoadingItems.toMutableMap().also { map ->
-                    map[rankType] = true
-                }
+                isLoadingItems = it.isLoadingItems + (rankType to true)
             )}
 
-            val newRanksMap = domain.getMoreRanks(rankType = rankType)?.data ?: emptyMap()
-            val newRanks = when (rankType) {
-                RankType.BY_READING -> newRanksMap.map { (userId, value) ->
-                    translateNums(userId.toString(), numeralsLanguage) to
-                            translateNums(value.toString(), numeralsLanguage)
-                }
-                RankType.BY_LISTENING -> newRanksMap.map { (userId, value) ->
-                    translateNums(userId.toString(), numeralsLanguage) to
-                            formatRecitationsTime(value)
-                }
-            }
+            val newRanks = domain.getMoreRanks(rankType)?.data.orEmpty()
+            // records can change between pages, so a user may come up twice
+            val raw = (rawRanks[rankType].orEmpty() + newRanks).distinctBy { it.first }
+            rawRanks[rankType] = raw
 
             _uiState.update { it.copy(
-                isLoadingItems = it.isLoadingItems.toMutableMap().also { map ->
-                    map[rankType] = false
-                },
-                ranks = it.ranks.toMutableMap().also { map ->
-                    map[rankType] = (it.ranks[rankType] ?: emptyList()) + newRanks
-                }
+                isLoadingItems = it.isLoadingItems + (rankType to false),
+                ranks = it.ranks + (rankType to toItems(rankType, raw))
             )}
+        }
+    }
+
+    /** Competition ranking (1, 2, 2, 4), matching how the user's own rank is counted. */
+    private fun toItems(rankType: RankType, raw: List<Pair<Int, Long>>): List<RankItem> {
+        var rank = 0
+        return raw.mapIndexed { i, (userId, value) ->
+            if (i == 0 || value != raw[i - 1].second) rank = i + 1
+            RankItem(
+                userId = translateNums(userId.toString(), numeralsLanguage),
+                value = when (rankType) {
+                    RankType.BY_READING -> translateNums(value.toString(), numeralsLanguage)
+                    RankType.BY_LISTENING -> formatRecitationsTime(value)
+                },
+                rank = rank
+            )
         }
     }
 

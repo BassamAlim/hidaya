@@ -10,8 +10,6 @@ import bassamalim.hidaya.core.data.repositories.UserRepository
 import bassamalim.hidaya.core.enums.Prayer
 import bassamalim.hidaya.core.models.AnalyticsEvent
 import bassamalim.hidaya.core.models.Location
-import bassamalim.hidaya.core.models.Response
-import bassamalim.hidaya.core.models.UserRecord
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.OsUtils
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
@@ -20,7 +18,6 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.max
 
 @Singleton
 class HomeDomain @Inject constructor(
@@ -114,60 +111,10 @@ class HomeDomain @Inject constructor(
 
     fun getPrayerNames() = prayersRepository.getPrayerNames()
 
-    suspend fun syncRecords(): Boolean {
-        val remoteRecord = userRepository.getRemoteRecord(deviceId)
-
-        if (remoteRecord == null) return false
-
-        return when (val response = remoteRecord.first()) {
-            is Response.Success -> {
-                val remoteRecord = response.data!!
-
-                val localRecord = getLocalRecord().first()
-
-                val latestRecord = UserRecord(
-                    userId = remoteRecord.userId,
-                    quranPages = max(
-                        localRecord.quranPages,
-                        remoteRecord.quranPages
-                    ),
-                    recitationsTime = max(
-                        localRecord.recitationsTime,
-                        remoteRecord.recitationsTime
-                    )
-                )
-
-                if (remoteRecord.quranPages != latestRecord.quranPages ||
-                    remoteRecord.recitationsTime != latestRecord.recitationsTime) {
-                    userRepository.setRemoteRecord(
-                        deviceId = deviceId,
-                        record = latestRecord
-                    )
-                }
-
-                if (localRecord.quranPages != latestRecord.quranPages ||
-                    localRecord.recitationsTime != latestRecord.recitationsTime) {
-                    userRepository.setLocalRecord(latestRecord)
-                }
-
-                true
-            }
-            is Response.Error -> {
-                if (response.message == "Device not registered") {
-                    val remoteRecord = registerDevice(deviceId)
-                    if (remoteRecord != null) {
-                        userRepository.setLocalRecord(remoteRecord)
-                        true
-                    } else false
-                } else false
-            }
-        }
-    }
+    suspend fun syncRecords() = userRepository.syncRecords(deviceId)
 
     fun trackDailyWerdViewed() {
         analyticsRepository.trackEvent(AnalyticsEvent.DailyWerdViewed)
     }
-
-    private suspend fun registerDevice(deviceId: String) = userRepository.registerDevice(deviceId)
 
 }

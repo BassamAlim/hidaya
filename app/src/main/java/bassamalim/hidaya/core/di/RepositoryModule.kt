@@ -176,9 +176,8 @@ object RepositoryModule {
     fun provideUserRepository(
         app: Application,
         userPreferencesDataSource: UserPreferencesDataSource,
-        firestore: FirebaseFirestore,
-        @ApplicationScope scope: CoroutineScope
-    ) = UserRepository(app, userPreferencesDataSource, firestore, scope)
+        firestore: FirebaseFirestore
+    ) = UserRepository(app, userPreferencesDataSource, firestore)
 
     @Provides @Singleton
     fun provideFirebaseAnalyticsRepository(

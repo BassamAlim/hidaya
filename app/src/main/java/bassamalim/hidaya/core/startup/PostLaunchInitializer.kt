@@ -13,7 +13,6 @@ import bassamalim.hidaya.core.data.repositories.LocationRepository
 import bassamalim.hidaya.core.data.repositories.PrayersRepository
 import bassamalim.hidaya.core.data.repositories.UserRepository
 import bassamalim.hidaya.core.helpers.Alarm
-import bassamalim.hidaya.core.models.Response
 import bassamalim.hidaya.core.receivers.DailyUpdateReceiver
 import bassamalim.hidaya.core.receivers.DeviceBootReceiver
 import bassamalim.hidaya.core.services.PrayersNotificationService
@@ -158,15 +157,7 @@ class PostLaunchInitializer @Inject constructor(
     }
 
     private suspend fun registerLeaderboardUser() {
-        val deviceId = OsUtils.getDeviceId(app)
-        val remoteRecord = userRepository.getRemoteRecord(deviceId)?.first()
-
-        if (remoteRecord is Response.Error && remoteRecord.message == "Device not registered") {
-            val newRecord = userRepository.registerDevice(deviceId)
-            if (newRecord != null) {
-                userRepository.setLocalRecord(newRecord)
-            }
-        }
+        userRepository.syncRecords(OsUtils.getDeviceId(app))
     }
 
 }

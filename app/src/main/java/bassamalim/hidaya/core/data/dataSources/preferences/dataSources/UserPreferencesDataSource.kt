@@ -31,10 +31,10 @@ class UserPreferencesDataSource(
     }
 
     fun getUserRecord() = flow.map { it.userRecord }
-    suspend fun updateUserRecord(userRecord: UserRecord) {
+    /** Atomic read-modify-write, so concurrent page and listening updates don't overwrite each other. */
+    suspend fun updateUserRecord(transform: (UserRecord) -> UserRecord): UserRecord =
         dataStore.updateData {
-            it.copy(userRecord = userRecord)
-        }
-    }
+            it.copy(userRecord = transform(it.userRecord))
+        }.userRecord
 
 }

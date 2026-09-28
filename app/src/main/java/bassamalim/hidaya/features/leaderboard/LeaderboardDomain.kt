@@ -4,6 +4,7 @@ import android.app.Application
 import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
 import bassamalim.hidaya.core.data.repositories.UserRepository
 import bassamalim.hidaya.core.models.Response
+import bassamalim.hidaya.core.models.UserRecord
 import bassamalim.hidaya.core.utils.OsUtils
 import com.google.firebase.firestore.DocumentSnapshot
 import kotlinx.coroutines.flow.first
@@ -18,54 +19,36 @@ class LeaderboardDomain @Inject constructor(
 ) {
 
     private val deviceId = OsUtils.getDeviceId(app)
-    private val previousLastDocuments: MutableMap<RankType, DocumentSnapshot?> = mutableMapOf(
-        RankType.BY_READING to null,
-        RankType.BY_LISTENING to null
+    private val lastDocuments = mutableMapOf<RankType, DocumentSnapshot?>()
+    private val reachedEnd = mutableSetOf<RankType>()
+
+    suspend fun getUserRanks(record: UserRecord) = mapOf(
+        RankType.BY_READING to
+                userRepository.getUserRank(RankType.BY_READING.field, record.quranPages.toLong()),
+        RankType.BY_LISTENING to
+                userRepository.getUserRank(RankType.BY_LISTENING.field, record.recitationsTime)
     )
 
-    suspend fun getUserRank(userId: Int): Map<RankType, Int> {
-        val readingRank = userRepository.getUserReadingRank(userId) ?: -1
-        val listeningRank = userRepository.getUserListeningRank(userId) ?: -1
-        return mapOf(
-            RankType.BY_READING to readingRank,
-            RankType.BY_LISTENING to listeningRank
-        )
+    suspend fun getUserRecord() = userRepository.getRemoteRecord(deviceId)
+
+    /** Fetches the first page of each ranking, resetting pagination. */
+    suspend fun getRanks(): Map<RankType, Response<List<Pair<Int, Long>>>>? {
+        lastDocuments.clear()
+        reachedEnd.clear()
+        return RankType.entries.associateWith { getMoreRanks(it) ?: return null }
     }
 
-    suspend fun getUserRecord() = userRepository.getRemoteRecord(deviceId)?.first()
+    fun hasMore(rankType: RankType) = rankType !in reachedEnd
 
-    suspend fun getRanks(): Map<RankType, Response<Map<Int, Long>>>? {
-        val rawReadingRanks = userRepository.getReadingRanks()
-        val rawListeningRanks = userRepository.getListeningRanks()
+    suspend fun getMoreRanks(rankType: RankType): Response<List<Pair<Int, Long>>>? {
+        val (ranks, last) = userRepository.getRanks(rankType.field, lastDocuments[rankType])
+            ?: return null
 
-        if (rawReadingRanks == null || rawListeningRanks == null) return null
-
-        val (readingRanks, lastReading) = rawReadingRanks
-        val (listeningRanks, lastListening) = rawListeningRanks
-
-        previousLastDocuments[RankType.BY_READING] = lastReading
-        previousLastDocuments[RankType.BY_LISTENING] = lastListening
-
-        return mapOf(
-            RankType.BY_READING to readingRanks,
-            RankType.BY_LISTENING to listeningRanks
-        )
-    }
-
-    suspend fun getMoreRanks(rankType: RankType): Response<Map<Int, Long>>? {
-        val rawRanks =  when (rankType) {
-            RankType.BY_READING -> {
-                userRepository.getReadingRanks(previousLastDocuments[rankType])
-            }
-            RankType.BY_LISTENING -> {
-                userRepository.getListeningRanks(previousLastDocuments[rankType])
-            }
+        if (ranks is Response.Success) {
+            // an empty page means the end; keep the old cursor so we never restart from the top
+            if (last == null) reachedEnd += rankType
+            else lastDocuments[rankType] = last
         }
-        if (rawRanks == null) return null
-        val (ranks, last) = rawRanks
-
-        previousLastDocuments[rankType] = last
-
         return ranks
     }
 

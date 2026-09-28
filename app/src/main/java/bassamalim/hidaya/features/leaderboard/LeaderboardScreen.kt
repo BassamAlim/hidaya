@@ -76,7 +76,7 @@ private fun UsersList(
     userId: String,
     userRankMap: Map<RankType, String>,
     userRankIntMap: Map<RankType, Int>,
-    ranksMap: Map<RankType, List<Pair<String, String>>>,
+    ranksMap: Map<RankType, List<RankItem>>,
     isLoadingItems: Map<RankType, Boolean>,
     loadMoreItems: (RankType) -> Unit,
     numeralsLanguage: Language
@@ -147,7 +147,7 @@ private fun UserRankCard(userId: String, userRank: String, userRankInt: Int) {
 
 @Composable
 private fun UsersList(
-    items: List<Pair<String, String>>,
+    items: List<RankItem>,
     rankType: RankType,
     listState: LazyListState,
     isLoading: Boolean,
@@ -159,15 +159,14 @@ private fun UsersList(
         loadMoreItems = loadMoreItems,
         listState = listState,
         isLoading = isLoading,
-        key = { _, item -> item.first },
-        itemComponent = { index, item -> ItemCard(item, index+1, rankType, numeralsLanguage) }
+        key = { _, item -> item.userId },
+        itemComponent = { _, item -> ItemCard(item, rankType, numeralsLanguage) }
     )
 }
 
 @Composable
 private fun ItemCard(
-    item: Pair<String, String>,
-    rank: Int,
+    item: RankItem,
     rankType: RankType,
     numeralsLanguage: Language
 ) {
@@ -179,15 +178,18 @@ private fun ItemCard(
             .padding(horizontal = dims.spaceLg, vertical = dims.spaceMd),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RankBadge(rankText = translateNums(rank.toString(), numeralsLanguage), rank = rank)
+        RankBadge(
+            rankText = translateNums(item.rank.toString(), numeralsLanguage),
+            rank = item.rank
+        )
 
         Text(
-            text = "${stringResource(R.string.user)} ${item.first}",
+            text = "${stringResource(R.string.user)} ${item.userId}",
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = dims.spaceMd),
             style = MaterialTheme.appTypography.title.copy(
-                fontWeight = if (rank <= 3) FontWeight.Bold else FontWeight.Medium
+                fontWeight = if (item.rank <= 3) FontWeight.Bold else FontWeight.Medium
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -195,8 +197,8 @@ private fun ItemCard(
 
         Text(
             text = when (rankType) {
-                RankType.BY_READING -> "${item.second} ${stringResource(R.string.pages)}"
-                RankType.BY_LISTENING -> item.second
+                RankType.BY_READING -> "${item.value} ${stringResource(R.string.pages)}"
+                RankType.BY_LISTENING -> item.value
             },
             style = MaterialTheme.appTypography.label.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.primary

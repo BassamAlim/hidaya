@@ -13,7 +13,6 @@ import bassamalim.hidaya.core.di.ApplicationScope
 import bassamalim.hidaya.core.utils.LangUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -45,8 +44,7 @@ class QuranReaderDomain @Inject constructor(
     }
 
     private suspend fun updateRecords() {
-        val newRecord = getPagesRecord().first() + 1
-        setPagesRecord(newRecord)
+        userRepository.addQuranPage()
 
         val pageNum = getPageNumCallback()
         if (pageNum == getWerdPage().first())
@@ -94,18 +92,6 @@ class QuranReaderDomain @Inject constructor(
     fun getKeepScreenOn() = quranRepository.getKeepScreenOn()
 
     fun getBookmarks() = quranRepository.getBookmarks()
-
-    private fun getPagesRecord() = userRepository.getLocalRecord().map {
-        it.quranPages
-    }
-
-    private suspend fun setPagesRecord(record: Int) {
-        userRepository.setLocalRecord(
-            userRepository.getLocalRecord().first().copy(
-                quranPages = record
-            )
-        )
-    }
 
     private fun getWerdPage() = quranRepository.getWerdPageNum()
 

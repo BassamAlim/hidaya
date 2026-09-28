@@ -21,7 +21,6 @@ import bassamalim.hidaya.core.data.repositories.UserRepository
 import bassamalim.hidaya.core.enums.PlaybackStatus
 import bassamalim.hidaya.core.utils.report
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
@@ -155,8 +154,7 @@ class ListeningTimeRecorder(
         val elapsed = SystemClock.elapsedRealtime() - since
 
         scope.launch {
-            val old = userRepository.getRecitationsRecord().first()
-            userRepository.setRecitationsRecord(old + elapsed)
+            userRepository.addRecitationsTime(elapsed)
         }
     }
 
