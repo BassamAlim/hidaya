@@ -26,7 +26,6 @@ import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.report
 import bassamalim.hidaya.features.recitations.RecitationMediaId
 import bassamalim.hidaya.features.recitations.recitersMenu.LastPlayedMedia
-import com.google.gson.Gson
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import androidx.core.net.toUri
 
@@ -48,8 +48,7 @@ class RecitationsRepository @Inject constructor(
     private val verseRecitersDao: VerseRecitersDao,
     private val recitationNarrationsDao: RecitationNarrationsDao,
     @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
-    @ApplicationScope private val scope: CoroutineScope,
-    private val gson: Gson
+    @ApplicationScope private val scope: CoroutineScope
 ) {
 
     val prefix = "/Telawat/"
@@ -162,7 +161,7 @@ class RecitationsRepository @Inject constructor(
                     Language.ENGLISH -> it.nameEn
                 },
                 server = it.url,
-                availableSuras = gson.fromJson(it.availableSuras, IntArray::class.java)
+                availableSuras = Json.decodeFromString<IntArray>(it.availableSuras)
             )
         }
     }
@@ -177,7 +176,7 @@ class RecitationsRepository @Inject constructor(
                         Language.ENGLISH -> it.nameEn
                     },
                     server = it.url,
-                    availableSuras = gson.fromJson(it.availableSuras, IntArray::class.java)
+                    availableSuras = Json.decodeFromString<IntArray>(it.availableSuras)
                 )
             }
         }
@@ -317,7 +316,7 @@ class RecitationsRepository @Inject constructor(
                         Language.ENGLISH -> it.nameEn
                     },
                     server = it.url,
-                    availableSuras = gson.fromJson(it.availableSuras, IntArray::class.java)
+                    availableSuras = Json.decodeFromString<IntArray>(it.availableSuras)
                 )
             }
         }

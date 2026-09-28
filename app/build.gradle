@@ -130,7 +130,6 @@ dependencies {
     implementation(libs.material)
     // Google
     implementation(libs.play.services.location)
-    implementation(libs.gson)
     // Firebase
     implementation platform(libs.firebase.bom)
     implementation(libs.firebase.config)

@@ -1,27 +1,32 @@
 package bassamalim.hidaya.core.models
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class BookContent(
-    @SerializedName("bookInfo") val info: Info,
-    @SerializedName("chapters") val chapters: Array<Chapter>
+    @SerialName("bookInfo") val info: Info,
+    @SerialName("chapters") val chapters: Array<Chapter>
 ) {
 
+    @Serializable
     data class Info(
-        @SerializedName("bookId") val id: Int,
-        @SerializedName("bookTitle") val title: String,
-        @SerializedName("author") val author: String
+        @SerialName("bookId") val id: Int,
+        @SerialName("bookTitle") val title: String,
+        @SerialName("author") val author: String
     )
 
+    @Serializable
     data class Chapter(
-        @SerializedName("chapterId") val id: Int,
-        @SerializedName("chapterTitle") val title: String,
-        @SerializedName("doors") val doors: Array<Door>
+        @SerialName("chapterId") val id: Int,
+        @SerialName("chapterTitle") val title: String,
+        @SerialName("doors") val doors: Array<Door>
     ) {
+        @Serializable
         class Door(
-            @SerializedName("doorId") val id: Int,
-            @SerializedName("doorTitle") val title: String,
-            @SerializedName("text") val text: String
+            @SerialName("doorId") val id: Int,
+            @SerialName("doorTitle") val title: String,
+            @SerialName("text") val text: String
         )
 
         override fun equals(other: Any?): Boolean {

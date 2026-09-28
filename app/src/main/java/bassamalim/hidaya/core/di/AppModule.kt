@@ -8,7 +8,6 @@ import bassamalim.hidaya.core.data.repositories.PrayersRepository
 import bassamalim.hidaya.core.helpers.Alarm
 import bassamalim.hidaya.core.nav.Navigator
 import com.google.firebase.inappmessaging.internal.injection.qualifiers.Analytics
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,9 +21,6 @@ object AppModule {
     @Provides @Singleton  // Sets how many instances of this dependency can be created
     fun provideApplicationContext(application: Application) =
         application.applicationContext!!
-
-    @Provides @Singleton
-    fun provideGson() = Gson()
 
     @Provides @Singleton
     fun provideAnalytics() = Analytics()

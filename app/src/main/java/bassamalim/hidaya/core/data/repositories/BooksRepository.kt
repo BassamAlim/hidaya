@@ -15,8 +15,6 @@ import bassamalim.hidaya.core.utils.report
 import com.google.firebase.Firebase
 import com.google.firebase.storage.FileDownloadTask
 import com.google.firebase.storage.storage
-import com.google.gson.Gson
-import com.google.gson.JsonParseException
 import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
@@ -28,6 +26,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
 
@@ -36,11 +36,11 @@ class BooksRepository @Inject constructor(
     private val booksDao: BooksDao,
     private val booksPreferencesDataSource: BooksPreferencesDataSource,
     private val appSettingsRepository: AppSettingsRepository,
-    private val gson: Gson,
     @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
+    private val json = Json { ignoreUnknownKeys = true }
     private val prefix = "/Books/"
     private val dir = "${app.getExternalFilesDir(null)}/Books/"
 
@@ -88,8 +88,8 @@ class BooksRepository @Inject constructor(
         if (!isDownloaded(bookId)) return null
         val jsonStr = FileUtils.getJsonFromDownloads("$dir$bookId.json")
         return try {
-            gson.fromJson(jsonStr, BookContent::class.java)
-        } catch (e: JsonParseException) {
+            json.decodeFromString<BookContent>(jsonStr)
+        } catch (e: SerializationException) {
             e.report()
             null
         }

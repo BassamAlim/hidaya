@@ -43,7 +43,6 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.logger.Logger
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -75,7 +74,6 @@ object RepositoryModule {
         booksDao: BooksDao,
         booksPreferencesDataSource: BooksPreferencesDataSource,
         appSettingsRepository: AppSettingsRepository,
-        gson: Gson,
         @DefaultDispatcher dispatcher: CoroutineDispatcher,
         @ApplicationScope scope: CoroutineScope
     ) = BooksRepository(
@@ -83,7 +81,6 @@ object RepositoryModule {
         booksDao,
         booksPreferencesDataSource,
         appSettingsRepository,
-        gson,
         dispatcher,
         scope
     )
@@ -140,8 +137,7 @@ object RepositoryModule {
         verseRecitersDao: VerseRecitersDao,
         recitationNarrationsDao: RecitationNarrationsDao,
         @DefaultDispatcher dispatcher: CoroutineDispatcher,
-        @ApplicationScope scope: CoroutineScope,
-        gson: Gson
+        @ApplicationScope scope: CoroutineScope
     ) = RecitationsRepository(
         app,
         recitationsPreferencesDataSource,
@@ -150,8 +146,7 @@ object RepositoryModule {
         verseRecitersDao,
         recitationNarrationsDao,
         dispatcher,
-        scope,
-        gson
+        scope
     )
 
     @Provides @Singleton
