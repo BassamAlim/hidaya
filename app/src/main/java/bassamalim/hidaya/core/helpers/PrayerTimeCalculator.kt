@@ -13,7 +13,9 @@ import bassamalim.hidaya.core.enums.PrayerTimeCalculationMethod
 import bassamalim.hidaya.core.enums.PrayerTimeJuristicMethod
 import bassamalim.hidaya.core.models.Coordinates
 import bassamalim.hidaya.core.models.PrayerTimeCalculatorSettings
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneOffset
 import java.util.SortedMap
 import kotlin.math.abs
 import kotlin.math.acos
@@ -49,8 +51,15 @@ class PrayerTimeCalculator(private val settings: PrayerTimeCalculatorSettings) {
     )
 
     // -------------------- Interface Functions --------------------
-    // returns prayer times in Calendar object
-    fun getPrayerTimes(coordinates: Coordinates, calendar: Calendar): SortedMap<Prayer, Calendar?> {
+    /**
+     * Wall-clock prayer times on [date] at a place [utcOffset] ahead of UTC. A time past midnight
+     * wraps to the small hours of the same [date]. Null where the sun never reaches the angle.
+     */
+    fun getPrayerTimes(
+        coordinates: Coordinates,
+        date: LocalDate,
+        utcOffset: ZoneOffset
+    ): SortedMap<Prayer, LocalTime?> {
         // Horizon dip from observer elevation: ~0.0347 * sqrt(h_m) degrees.
         // Applied to sunrise only — matches awqaf.gov.jo, which displays an elevation-shifted
         // sunrise but uses geometric sunset for the Maghrib offset.
@@ -60,18 +69,18 @@ class PrayerTimeCalculator(private val settings: PrayerTimeCalculatorSettings) {
 
         val times = computeDayTimes(
             coordinates = coordinates,
-            utcOffset = calendar[Calendar.ZONE_OFFSET].toDouble() / 3600000.0,
-            jDate = getJulianDate(calendar = calendar, longitude = coordinates.longitude)
+            utcOffset = utcOffset.totalSeconds / 3600.0,
+            jDate = getJulianDate(date = date, longitude = coordinates.longitude)
         )
 
         return sortedMapOf(
-            FAJR to buildCalendar(times[FAJR]!!, calendar, roundingFor(FAJR)),
-            SUNRISE to buildCalendar(times[SUNRISE]!!, calendar, roundingFor(SUNRISE)),
-            DHUHR to buildCalendar(times[DHUHR]!!, calendar, roundingFor(DHUHR)),
-            ASR to buildCalendar(times[ASR]!!, calendar, roundingFor(ASR)),
+            FAJR to toLocalTime(times[FAJR]!!, roundingFor(FAJR)),
+            SUNRISE to toLocalTime(times[SUNRISE]!!, roundingFor(SUNRISE)),
+            DHUHR to toLocalTime(times[DHUHR]!!, roundingFor(DHUHR)),
+            ASR to toLocalTime(times[ASR]!!, roundingFor(ASR)),
             // skipping sunset time
-            MAGHRIB to buildCalendar(times[MAGHRIB]!!, calendar, roundingFor(MAGHRIB)),
-            ISHAA to buildCalendar(times[ISHAA]!!, calendar, roundingFor(ISHAA))
+            MAGHRIB to toLocalTime(times[MAGHRIB]!!, roundingFor(MAGHRIB)),
+            ISHAA to toLocalTime(times[ISHAA]!!, roundingFor(ISHAA))
         )
     }
 
@@ -87,7 +96,7 @@ class PrayerTimeCalculator(private val settings: PrayerTimeCalculatorSettings) {
         }
     }
 
-    private fun buildCalendar(time: Double, date: Calendar, mode: RoundingMode): Calendar? {
+    private fun toLocalTime(time: Double, mode: RoundingMode): LocalTime? {
         if (time.isNaN()) return null
         val rawMinutes = fixHour(time) * 60.0
         val totalMinutes = when (mode) {
@@ -98,24 +107,19 @@ class PrayerTimeCalculator(private val settings: PrayerTimeCalculatorSettings) {
         val hours = (totalMinutes / 60) % 24
         val minutes = totalMinutes % 60
 
-        val cal = date.clone() as Calendar
-        cal[Calendar.HOUR_OF_DAY] = hours
-        cal[Calendar.MINUTE] = minutes
-        cal[Calendar.SECOND] = 0
-        cal[Calendar.MILLISECOND] = 0
-        return cal
+        return LocalTime.of(hours, minutes)
     }
 
     // ---------------------- Julian Date Functions -----------------------
     // calculate julian date from a calendar date
-    private fun getJulianDate(calendar: Calendar, longitude: Double): Double {
-        var year = calendar[Calendar.YEAR]
-        var month = calendar[Calendar.MONTH] + 1
+    private fun getJulianDate(date: LocalDate, longitude: Double): Double {
+        var year = date.year
+        var month = date.monthValue
         if (month <= 2) {
             year -= 1
             month += 12
         }
-        val day = calendar[Calendar.DATE]
+        val day = date.dayOfMonth
 
         val a = floor(year / 100.0)
         val b = 2 - a + floor(a / 4.0)

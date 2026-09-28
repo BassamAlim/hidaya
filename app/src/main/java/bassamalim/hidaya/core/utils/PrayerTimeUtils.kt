@@ -7,6 +7,11 @@ import bassamalim.hidaya.core.enums.TimeFormat
 import bassamalim.hidaya.core.helpers.PrayerTimeCalculator
 import bassamalim.hidaya.core.models.Location
 import bassamalim.hidaya.core.models.PrayerTimeCalculatorSettings
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.util.Calendar
 import java.util.Locale
 import java.util.SortedMap
@@ -20,20 +25,35 @@ object PrayerTimeUtils {
         location: Location,
         calendar: Calendar = Calendar.getInstance()
     ): SortedMap<Prayer, Calendar?> {
-        // Sample the UTC offset at midday of the target date, not at the calendar's own
-        // time-of-day: the daily update runs at midnight, and DST transitions happen between
-        // 00:00 and 04:00, so a midnight sample would apply the pre-transition offset to the
-        // whole day, putting every prayer time and athan alarm off by an hour on those days.
-        val midday = (calendar.clone() as Calendar).apply {
-            this[Calendar.HOUR_OF_DAY] = 12
-            this[Calendar.MINUTE] = 0
-        }
-        calendar[Calendar.ZONE_OFFSET] = getZoneOffset(
-            locationType = location.type,
-            date = midday.timeInMillis,
-            selectedTimeZone = selectedTimeZoneId
+        val date = LocalDate.of(
+            calendar[Calendar.YEAR],
+            calendar[Calendar.MONTH] + 1,
+            calendar[Calendar.DAY_OF_MONTH]
         )
-        return PrayerTimeCalculator(settings).getPrayerTimes(location.coordinates, calendar)
+        val zone = when (location.type) {
+            LocationType.AUTO -> ZoneId.systemDefault()
+            // Through TimeZone, which falls back to GMT for an unknown id instead of throwing
+            LocationType.MANUAL -> ZoneId.of(TimeZone.getTimeZone(selectedTimeZoneId).id)
+            LocationType.NONE -> ZoneOffset.UTC
+        }
+        // The offset at midday of the date, not at the calendar's time of day: the daily update
+        // runs at midnight, and DST switches happen at night, so a midnight sample would apply
+        // the pre-switch offset to the whole day, putting every time an hour off on those days
+        val utcOffset = date.atTime(LocalTime.NOON).atZone(zone).offset
+
+        val times = PrayerTimeCalculator(settings)
+            .getPrayerTimes(location.coordinates, date, utcOffset)
+
+        // As wall-clock times of the calendar's own zone
+        val calendarZone = ZoneId.of(calendar.timeZone.id)
+        return times.mapValuesTo(sortedMapOf<Prayer, Calendar?>()) { (_, time) ->
+            time?.let {
+                (calendar.clone() as Calendar).apply {
+                    timeInMillis =
+                        ZonedDateTime.of(date, it, calendarZone).toInstant().toEpochMilli()
+                }
+            }
+        }
     }
 
     fun formatPrayerTimes(
@@ -53,16 +73,6 @@ object PrayerTimeUtils {
                 )
             )
         }
-    }
-
-    private fun getZoneOffset(
-        locationType: LocationType,
-        date: Long,
-        selectedTimeZone: String = ""
-    ) = when (locationType) {
-        LocationType.AUTO -> TimeZone.getDefault().getOffset(date)
-        LocationType.MANUAL -> TimeZone.getTimeZone(selectedTimeZone).getOffset(date)
-        LocationType.NONE -> 0
     }
 
     fun formatPrayerTime(

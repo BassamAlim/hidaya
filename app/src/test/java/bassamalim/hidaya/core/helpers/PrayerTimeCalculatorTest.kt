@@ -11,18 +11,16 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.util.Calendar
-import java.util.Locale
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneOffset
 import java.util.SortedMap
-import java.util.TimeZone
 
 /**
  * Expected times are characterization values generated from a line-by-line port of the
  * algorithm, sanity-checked against real-world sources (Umm al-Qura calendar for Mecca,
  * observed sunrise/sunset for Oslo on the June solstice).
- *
- * Fixed-offset time zones (GMT+XX:00) are used because the calculator reads
- * Calendar.ZONE_OFFSET, which does not include DST.
  */
 class PrayerTimeCalculatorTest {
 
@@ -43,27 +41,22 @@ class PrayerTimeCalculatorTest {
         )
     )
 
-    private fun dayAt(year: Int, month: Int, day: Int, utcOffsetHours: Int): Calendar {
-        val zone = TimeZone.getTimeZone(String.format(Locale.US, "GMT+%02d:00", utcOffsetHours))
-        return Calendar.getInstance(zone).apply {
-            clear()
-            set(year, month - 1, day, 12, 0, 0)
-        }
-    }
+    private data class Day(val date: LocalDate, val utcOffset: ZoneOffset)
 
-    private fun format(calendar: Calendar?): String {
-        assertNotNull(calendar)
-        return String.format(
-            Locale.US,
-            "%02d:%02d",
-            calendar!![Calendar.HOUR_OF_DAY],
-            calendar[Calendar.MINUTE]
-        )
+    private fun dayAt(year: Int, month: Int, day: Int, utcOffsetHours: Int) =
+        Day(LocalDate.of(year, month, day), ZoneOffset.ofHours(utcOffsetHours))
+
+    private fun PrayerTimeCalculator.getPrayerTimes(coordinates: Coordinates, day: Day) =
+        getPrayerTimes(coordinates, day.date, day.utcOffset)
+
+    private fun format(time: LocalTime?): String {
+        assertNotNull(time)
+        return time.toString()
     }
 
     private fun assertTimes(
         expected: Map<Prayer, String>,
-        actual: SortedMap<Prayer, Calendar?>
+        actual: SortedMap<Prayer, LocalTime?>
     ) {
         for ((prayer, time) in expected)
             assertEquals("$prayer", time, format(actual[prayer]))
@@ -90,8 +83,10 @@ class PrayerTimeCalculatorTest {
     fun `mecca method sets ishaa to ninety minutes after maghrib`() {
         val times = calculator().getPrayerTimes(mecca, dayAt(2024, 3, 20, 3))
 
-        val diffMillis = times[Prayer.ISHAA]!!.timeInMillis - times[Prayer.MAGHRIB]!!.timeInMillis
-        assertEquals(90L * 60 * 1000, diffMillis)
+        assertEquals(
+            Duration.ofMinutes(90),
+            Duration.between(times[Prayer.MAGHRIB], times[Prayer.ISHAA])
+        )
     }
 
     @Test
@@ -211,24 +206,20 @@ class PrayerTimeCalculatorTest {
             order.zipWithNext().forEach { (earlier, later) ->
                 assertTrue(
                     "$method: $earlier should be before $later",
-                    times[earlier]!!.timeInMillis < times[later]!!.timeInMillis
+                    times[earlier]!! < times[later]!!
                 )
             }
         }
     }
 
     @Test
-    fun `returned calendars preserve the input date and zero out seconds`() {
-        val date = dayAt(2024, 3, 20, 3)
-        val times = calculator().getPrayerTimes(mecca, date)
+    fun `returned times are whole minutes`() {
+        val times = calculator().getPrayerTimes(mecca, dayAt(2024, 3, 20, 3))
 
         for ((prayer, time) in times) {
             assertNotNull("$prayer", time)
-            assertEquals("$prayer year", 2024, time!![Calendar.YEAR])
-            assertEquals("$prayer month", Calendar.MARCH, time[Calendar.MONTH])
-            assertEquals("$prayer day", 20, time[Calendar.DATE])
-            assertEquals("$prayer second", 0, time[Calendar.SECOND])
-            assertEquals("$prayer millisecond", 0, time[Calendar.MILLISECOND])
+            assertEquals("$prayer second", 0, time!!.second)
+            assertEquals("$prayer nano", 0, time.nano)
         }
     }
 
