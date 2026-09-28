@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import java.time.temporal.ChronoField
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -40,12 +41,14 @@ class MainViewModel @Inject constructor(
     }
 
     private fun getHijriDate(dateOffset: Int, numeralsLanguage: Language): String {
-        val hijri = domain.getHijriDateCalendar(dateOffset)
-        val hijriNoOffset = domain.getHijriDateCalendar(dateOffset = 0)
+        val hijri = domain.getHijriDate(dateOffset)
+        val hijriNoOffset = domain.getHijriDate(dateOffset = 0)
 
-        val hDayName = domain.getWeekDays()[hijriNoOffset[Calendar.DAY_OF_WEEK] - 1]
-        val hMonth = domain.getHijriMonths()[hijri[Calendar.MONTH]]
-        val hijriStr = "$hDayName ${hijri[Calendar.DATE]} $hMonth ${hijri[Calendar.YEAR]}"
+        // Week days start on Sunday; ISO counts Monday as 1 and Sunday as 7
+        val hDayName = domain.getWeekDays()[hijriNoOffset.get(ChronoField.DAY_OF_WEEK) % 7]
+        val hMonth = domain.getHijriMonths()[hijri.get(ChronoField.MONTH_OF_YEAR) - 1]
+        val hijriStr = "$hDayName ${hijri.get(ChronoField.DAY_OF_MONTH)} $hMonth " +
+                "${hijri.get(ChronoField.YEAR)}"
         return translateNums(numeralsLanguage = numeralsLanguage, string = hijriStr)
     }
 

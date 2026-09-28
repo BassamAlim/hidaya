@@ -13,7 +13,6 @@ import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import bassamalim.hidaya.features.prayers.notificationSettings.PrayerNotificationSettings
-import com.github.msarhan.ummalqura.calendar.UmmalquraCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -29,6 +28,9 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.chrono.HijrahDate
+import java.time.temporal.ChronoField
 import java.util.Calendar
 import java.util.SortedMap
 import javax.inject.Inject
@@ -329,17 +331,22 @@ class PrayersBoardViewModel @Inject constructor(
     }
 
     private fun getDateText(newDate: Calendar): String {
-        val hijri = UmmalquraCalendar()
-        hijri.time = newDate.time
+        val hijri = HijrahDate.from(
+            LocalDate.of(
+                newDate[Calendar.YEAR],
+                newDate[Calendar.MONTH] + 1,
+                newDate[Calendar.DATE]
+            )
+        )
 
         val year = translateNums(
             numeralsLanguage = numeralsLanguage,
-            string = hijri[Calendar.YEAR].toString()
+            string = hijri.get(ChronoField.YEAR).toString()
         )
-        val month = domain.getHijriMonths()[hijri[Calendar.MONTH]]
+        val month = domain.getHijriMonths()[hijri.get(ChronoField.MONTH_OF_YEAR) - 1]
         val day = translateNums(
             numeralsLanguage = numeralsLanguage,
-            string = hijri[Calendar.DATE].toString()
+            string = hijri.get(ChronoField.DAY_OF_MONTH).toString()
         )
 
         return "$day $month $year"

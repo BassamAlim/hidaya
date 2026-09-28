@@ -12,7 +12,6 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import bassamalim.hidaya.features.hijriDatePicker.HijriDatePickerDomain
-import com.github.msarhan.ummalqura.calendar.UmmalquraCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +20,8 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.time.chrono.HijrahDate
+import java.time.temporal.ChronoField
 import javax.inject.Inject
 import kotlin.properties.Delegates
 import androidx.navigation.toRoute
@@ -150,8 +150,7 @@ class HijriDatePickerViewModel @Inject constructor(
     fun onSelectClicked() {
         navigator.navigateBackWithResult(
             Bundle().apply {
-                // A copy: the domain keeps reusing its instance for the next picking
-                putSerializable("selected_date", domain.getSelectedDate().clone() as UmmalquraCalendar)
+                putLong("selected_date", domain.getSelectedDate().toEpochDay())
             }
         )
     }
@@ -166,8 +165,8 @@ class HijriDatePickerViewModel @Inject constructor(
         displayedMonth = month
 
         val selectedDate = domain.getSelectedDate()
-        val isCurrent = year == selectedDate[Calendar.YEAR]
-                && month == selectedDate[Calendar.MONTH] + 1
+        val isCurrent = year == selectedDate.get(ChronoField.YEAR)
+                && month == selectedDate.get(ChronoField.MONTH_OF_YEAR)
 
         _uiState.update { it.copy(
             displayedYearText = translateNums(
@@ -187,14 +186,15 @@ class HijriDatePickerViewModel @Inject constructor(
 
     private fun getMainText(): String {
         val selectedDate = domain.getSelectedDate()
-        return "${weekDays[selectedDate[Calendar.DAY_OF_WEEK] - 1]} " +
+        // weekDays starts on Sunday; ISO counts Monday as 1 and Sunday as 7
+        return "${weekDays[selectedDate.get(ChronoField.DAY_OF_WEEK) % 7]} " +
                 "${
                     translateNums(
-                        string = selectedDate[Calendar.DATE].toString(),
+                        string = selectedDate.get(ChronoField.DAY_OF_MONTH).toString(),
                         numeralsLanguage = numeralsLanguage
                     )
                 } " +
-                monthsNames[selectedDate[Calendar.MONTH]]
+                monthsNames[selectedDate.get(ChronoField.MONTH_OF_YEAR) - 1]
     }
 
     private fun getYearSelectorItems() =
@@ -212,15 +212,14 @@ class HijriDatePickerViewModel @Inject constructor(
 
     fun getDaysGrid(page: Int): List<List<DayCell>> {
         val (year, month) = getYearAndMonth(page)
-        val calendar = UmmalquraCalendar()
-        calendar[Calendar.YEAR] = year
-        calendar[Calendar.MONTH] = month - 1
+        val firstDay = HijrahDate.of(year, month, 1)
 
-        val offset = calendar[Calendar.DAY_OF_WEEK]
-        val grid = Array(5) { row ->  // 1 hijri month spans 5 weeks at most
+        // Columns start on Sunday; ISO counts Monday as 1 and Sunday as 7
+        val offset = firstDay.get(ChronoField.DAY_OF_WEEK) % 7
+        val grid = Array(6) { row ->  // 1 hijri month spans 6 weeks at most
             Array(7) { col ->  // 7 days a week
                 val idx = row * 7 + col - offset
-                if (row == 0 && col < offset || idx >= calendar.lengthOfMonth()) 0
+                if (idx < 0 || idx >= firstDay.lengthOfMonth()) 0
                 else idx + 1
             }.toList()
         }.toList()
@@ -235,9 +234,9 @@ class HijriDatePickerViewModel @Inject constructor(
                             string = cell.toString(),
                             numeralsLanguage = numeralsLanguage
                         ),
-                    isToday = year == currentDate[Calendar.YEAR]
-                            && month == currentDate[Calendar.MONTH]+1
-                            && cell == currentDate[Calendar.DATE],
+                    isToday = year == currentDate.get(ChronoField.YEAR)
+                            && month == currentDate.get(ChronoField.MONTH_OF_YEAR)
+                            && cell == currentDate.get(ChronoField.DAY_OF_MONTH),
                 )
             }
         }

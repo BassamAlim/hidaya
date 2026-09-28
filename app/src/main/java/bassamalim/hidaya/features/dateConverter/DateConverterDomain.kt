@@ -2,9 +2,9 @@ package bassamalim.hidaya.features.dateConverter
 
 import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
 import bassamalim.hidaya.core.data.repositories.AppStateRepository
-import com.github.msarhan.ummalqura.calendar.UmmalquraCalendar
 import kotlinx.coroutines.flow.first
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.chrono.HijrahDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,16 +20,9 @@ class DateConverterDomain @Inject constructor(
 
     fun getGregorianMonths() = appStateRepository.getNumberedGregorianMonthNames()
 
-    fun gregorianToHijri(gregorian: Calendar): Calendar {
-        val hijri = UmmalquraCalendar()
-        hijri.time = gregorian.time
-        return hijri
-    }
+    // Supported from 1882 to 2174; the Gregorian date picker is limited to 1900-2100
+    fun gregorianToHijri(gregorian: LocalDate): HijrahDate = HijrahDate.from(gregorian)
 
-    fun hijriToGregorian(hijri: Calendar): Calendar {
-        val gregorian = Calendar.getInstance()
-        gregorian.time = hijri.time
-        return gregorian
-    }
+    fun hijriToGregorian(hijri: HijrahDate): LocalDate = LocalDate.from(hijri)
 
 }

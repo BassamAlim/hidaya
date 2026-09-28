@@ -1,13 +1,11 @@
 package bassamalim.hidaya.features.dateConverter
 
-import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
-import com.github.msarhan.ummalqura.calendar.UmmalquraCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,7 +15,12 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.chrono.HijrahChronology
+import java.time.chrono.HijrahDate
+import java.time.temporal.ChronoField
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,8 +29,8 @@ class DateConverterViewModel @Inject constructor(
     private val navigator: Navigator
 ): ViewModel() {
 
-    private var hijriCalendar = UmmalquraCalendar()
-    private var gregorianCalendar = Calendar.getInstance()
+    private var hijriDate = HijrahDate.now()
+    private var gregorianDate = LocalDate.now()
     private val hijriMonth = domain.getHijriMonths()
     private val gregorianMonths = domain.getGregorianMonths()
     private var numeralsLanguage: Language? = null
@@ -43,15 +46,10 @@ class DateConverterViewModel @Inject constructor(
 
     init {
         navigator.results("selected_date").onEach { result ->
-            val date =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                    result.getSerializable("selected_date", UmmalquraCalendar::class.java)
-                else
-                    result.getSerializable("selected_date") as UmmalquraCalendar?
-            if (date == null) return@onEach
+            val date = HijrahChronology.INSTANCE.dateEpochDay(result.getLong("selected_date"))
 
-            hijriCalendar = date
-            gregorianCalendar = domain.hijriToGregorian(date)
+            hijriDate = date
+            gregorianDate = domain.hijriToGregorian(date)
 
             updateDates()
         }.launchIn(viewModelScope)
@@ -62,7 +60,7 @@ class DateConverterViewModel @Inject constructor(
             numeralsLanguage = domain.getNumeralsLanguage()
 
             _uiState.update { it.copy(
-                gregorianDatePickerMillis = gregorianCalendar.timeInMillis
+                gregorianDatePickerMillis = toDatePickerMillis(gregorianDate)
             )}
         }
     }
@@ -76,18 +74,18 @@ class DateConverterViewModel @Inject constructor(
     fun onGregorianDatePicked(millis: Long?) {
         if (millis == null) return
 
-        val pickedDate = Calendar.getInstance().apply {
-            timeInMillis = millis
-        }
+        // The date picker works in UTC; reading it in the local zone gave the previous day west
+        // of UTC
+        val pickedDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
 
-        gregorianCalendar = pickedDate
+        gregorianDate = pickedDate
 
-        hijriCalendar = domain.gregorianToHijri(pickedDate) as UmmalquraCalendar
+        hijriDate = domain.gregorianToHijri(pickedDate)
 
         updateDates()
 
         _uiState.update { it.copy(
-            gregorianDatePickerMillis = pickedDate.timeInMillis,
+            gregorianDatePickerMillis = toDatePickerMillis(pickedDate),
             isGregorianDatePickerShown = false
         )}
     }
@@ -99,9 +97,9 @@ class DateConverterViewModel @Inject constructor(
     }
 
     fun onPickHijriClick() {
-        val dateStr = "${hijriCalendar[Calendar.YEAR]}" +
-                "-${hijriCalendar[Calendar.MONTH] + 1}" +
-                "-${hijriCalendar[Calendar.DATE]}"
+        val dateStr = "${hijriDate.get(ChronoField.YEAR)}" +
+                "-${hijriDate.get(ChronoField.MONTH_OF_YEAR)}" +
+                "-${hijriDate.get(ChronoField.DAY_OF_MONTH)}"
 
         navigator.navigate(Screen.HijriDatePicker(initialDate = dateStr))
     }
@@ -113,26 +111,29 @@ class DateConverterViewModel @Inject constructor(
             hijriDate = Date(
                 year = translateNums(
                     numeralsLanguage = numeralsLanguage,
-                    string = hijriCalendar[Calendar.YEAR].toString()
+                    string = hijriDate.get(ChronoField.YEAR).toString()
                 ),
-                month = hijriMonth[hijriCalendar[Calendar.MONTH]],
+                month = hijriMonth[hijriDate.get(ChronoField.MONTH_OF_YEAR) - 1],
                 day = translateNums(
                     numeralsLanguage = numeralsLanguage,
-                    string = hijriCalendar[Calendar.DATE].toString()
+                    string = hijriDate.get(ChronoField.DAY_OF_MONTH).toString()
                 )
             ),
             gregorianDate = Date(
                 year = translateNums(
                     numeralsLanguage = numeralsLanguage,
-                    string = gregorianCalendar[Calendar.YEAR].toString()
+                    string = gregorianDate.year.toString()
                 ),
-                month = gregorianMonths[gregorianCalendar[Calendar.MONTH]],
+                month = gregorianMonths[gregorianDate.monthValue - 1],
                 day = translateNums(
                     numeralsLanguage = numeralsLanguage,
-                    string = gregorianCalendar[Calendar.DATE].toString()
+                    string = gregorianDate.dayOfMonth.toString()
                 )
             )
         )}
     }
+
+    private fun toDatePickerMillis(date: LocalDate) =
+        date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
 }

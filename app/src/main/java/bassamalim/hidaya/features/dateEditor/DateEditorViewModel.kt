@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.utils.LangUtils
-import com.github.msarhan.ummalqura.calendar.UmmalquraCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,7 +12,9 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.time.chrono.HijrahDate
+import java.time.temporal.ChronoField
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -87,14 +88,12 @@ class DateEditorViewModel @Inject constructor(
     }
 
     private fun getDateText(numeralsLanguage: Language): String {
-        val cal = UmmalquraCalendar().apply {
-            val millisInDay = 1000 * 60 * 60 * 24
-            timeInMillis += (domain.getDateOffset() * millisInDay).toLong()
-        }
+        val date = HijrahDate.now().plus(domain.getDateOffset().toLong(), ChronoUnit.DAYS)
 
         return LangUtils.translateNums(
             numeralsLanguage = numeralsLanguage,
-            string = "${cal[Calendar.DATE]}/${cal[Calendar.MONTH] + 1}/${cal[Calendar.YEAR]}"
+            string = "${date.get(ChronoField.DAY_OF_MONTH)}/" +
+                    "${date.get(ChronoField.MONTH_OF_YEAR)}/${date.get(ChronoField.YEAR)}"
         )
     }
 
