@@ -30,10 +30,12 @@ import androidx.compose.material.icons.filled.DisplaySettings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -136,71 +138,75 @@ fun QuranReaderScreen(viewModel: QuranReaderViewModel) {
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-        ) {
-        TopBar(
-            suraName = state.suraName,
-            pageNumText = state.pageNum,
-            juzNumText = state.juzNum
-        )
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .tutorialTarget(tutorialState, "reader_content")
-        ) {
-            PageContent(
-                viewType = state.viewType,
-                fillPage = state.fillPage,
-                selectedVerse = state.selectedVerse,
-                trackedVerseId = state.trackedVerseId,
-                textSize = state.textSize.toInt(),
-                language = viewModel.language,
-                scrollTo = viewModel.scrollTo,
-                onScrolled = viewModel::onScrolled,
-                pagerState = pagerState,
-                scrollToVersePosition = state.scrollToVersePosition,
-                onScrollToVerseConsumed = viewModel::onScrollToVerseConsumed,
-                onPageChange = viewModel::onPageChange,
-                buildPage = viewModel.pageBuilder::buildPage,
-                buildListPage = viewModel.pageBuilder::buildListPage,
-                onSuraHeaderGloballyPositioned = viewModel::onSuraHeaderGloballyPositioned,
-                onVerseGloballyPositioned = viewModel::onVerseGloballyPositioned,
-                onVersePointerInput = viewModel::onVersePointerInput,
-                onContentTap = onInteraction,
-                configuration = configuration
+    // The reader draws straight on the window with no Surface to set a content color, so
+    // text without an explicit color would default to black, unreadable in dark mode
+    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .safeDrawingPadding()
+            ) {
+            TopBar(
+                suraName = state.suraName,
+                pageNumText = state.pageNum,
+                juzNumText = state.juzNum
             )
-        }
 
-        AnimatedBottomBar(
-            visible = barsVisible || state.isTutorialActive,
-            playerState = state.playerState,
-            onBookmarksClick = {
-                onInteraction()
-                viewModel.onBookmarksClick()
-            },
-            onPreviousVerseClick = {
-                onInteraction()
-                viewModel.onPreviousVerseClick()
-            },
-            onPlayPauseClick = {
-                onInteraction()
-                viewModel.onPlayPauseClick(activity)
-            },
-            onNextVerseClick = {
-                onInteraction()
-                viewModel.onNextVerseClick()
-            },
-            onSettingsClick = viewModel::onSettingsClick,
-            playButtonModifier = Modifier.tutorialTarget(tutorialState, "reader_play")
-        )
-        }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .tutorialTarget(tutorialState, "reader_content")
+            ) {
+                PageContent(
+                    viewType = state.viewType,
+                    fillPage = state.fillPage,
+                    selectedVerse = state.selectedVerse,
+                    trackedVerseId = state.trackedVerseId,
+                    textSize = state.textSize.toInt(),
+                    language = viewModel.language,
+                    scrollTo = viewModel.scrollTo,
+                    onScrolled = viewModel::onScrolled,
+                    pagerState = pagerState,
+                    scrollToVersePosition = state.scrollToVersePosition,
+                    onScrollToVerseConsumed = viewModel::onScrollToVerseConsumed,
+                    onPageChange = viewModel::onPageChange,
+                    buildPage = viewModel.pageBuilder::buildPage,
+                    buildListPage = viewModel.pageBuilder::buildListPage,
+                    onSuraHeaderGloballyPositioned = viewModel::onSuraHeaderGloballyPositioned,
+                    onVerseGloballyPositioned = viewModel::onVerseGloballyPositioned,
+                    onVersePointerInput = viewModel::onVersePointerInput,
+                    onContentTap = onInteraction,
+                    configuration = configuration
+                )
+            }
 
-        TutorialOverlay(state = tutorialState)
+            AnimatedBottomBar(
+                visible = barsVisible || state.isTutorialActive,
+                playerState = state.playerState,
+                onBookmarksClick = {
+                    onInteraction()
+                    viewModel.onBookmarksClick()
+                },
+                onPreviousVerseClick = {
+                    onInteraction()
+                    viewModel.onPreviousVerseClick()
+                },
+                onPlayPauseClick = {
+                    onInteraction()
+                    viewModel.onPlayPauseClick(activity)
+                },
+                onNextVerseClick = {
+                    onInteraction()
+                    viewModel.onNextVerseClick()
+                },
+                onSettingsClick = viewModel::onSettingsClick,
+                playButtonModifier = Modifier.tutorialTarget(tutorialState, "reader_play")
+            )
+            }
+
+            TutorialOverlay(state = tutorialState)
+        }
     }
 
     if (state.isBookmarksSheetShown) {
@@ -224,11 +230,15 @@ private fun TopBar(suraName: String, pageNumText: String, juzNumText: String) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        // A plain Row gets no content color from a Surface or app bar, so set it explicitly
+        val color = MaterialTheme.colorScheme.onSurface
+
         // Sura name
         MyText(
             text = "${stringResource(R.string.sura)} $suraName",
             modifier = Modifier.weight(1f),
             fontSize = 20.sp,
+            color = color,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Start,
             maxLines = 1,
@@ -240,6 +250,7 @@ private fun TopBar(suraName: String, pageNumText: String, juzNumText: String) {
             text = "${stringResource(R.string.page)} $pageNumText",
             modifier = Modifier.weight(1f),
             fontSize = 20.sp,
+            color = color,
             fontWeight = FontWeight.Medium,
             maxLines = 1,
             minFontSize = 12.sp
@@ -250,6 +261,7 @@ private fun TopBar(suraName: String, pageNumText: String, juzNumText: String) {
             text = "${stringResource(R.string.juz)} $juzNumText",
             modifier = Modifier.weight(1f),
             fontSize = 20.sp,
+            color = color,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.End,
             maxLines = 1,
@@ -372,6 +384,13 @@ private fun BookmarksSheet(
                 vertical = dims.spaceSm
             ),
             style = MaterialTheme.appTypography.headline
+        )
+
+        Text(
+            text = stringResource(R.string.bookmarks_hint),
+            modifier = Modifier.padding(horizontal = dims.screenPaddingHorizontal),
+            style = MaterialTheme.appTypography.label,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         if (bookmarks.isEmpty()) {

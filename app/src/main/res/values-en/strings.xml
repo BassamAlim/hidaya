@@ -204,6 +204,7 @@
     <string name="fill_page">Fill page</string>
     <string name="sources">Sources</string>
     <string name="bookmarked_verses">Bookmarked verses</string>
+    <string name="bookmarks_hint">To save a verse, press and hold it, then pick one of the colored bookmarks.</string>
     <string name="bookmarked_verse">Bookmarked verse</string>
     <string name="notification_type">Alert type</string>
     <string name="reset_tutorials">Reset tutorials</string>

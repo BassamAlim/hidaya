@@ -196,6 +196,7 @@
     <string name="fill_page">ملئ الصفحة</string>
     <string name="sources">المصادر</string>
     <string name="bookmarked_verses">الآيات المحفوظة</string>
+    <string name="bookmarks_hint">لحفظ آية، اضغط عليها ضغطة مطولة ثم اختر إحدى العلامات الملونة.</string>
     <string name="bookmarked_verse">آية محفوظة</string>
     <string name="notification_type">نوع التنبيه</string>
     <string name="reset_tutorials">إعادة إظهار المساعدات</string>
