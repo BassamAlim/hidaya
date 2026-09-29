@@ -22,12 +22,9 @@ class LeaderboardDomain @Inject constructor(
     private val lastDocuments = mutableMapOf<RankType, DocumentSnapshot?>()
     private val reachedEnd = mutableSetOf<RankType>()
 
-    suspend fun getUserRanks(record: UserRecord) = mapOf(
-        RankType.BY_READING to
-                userRepository.getUserRank(RankType.BY_READING.field, record.quranPages.toLong()),
-        RankType.BY_LISTENING to
-                userRepository.getUserRank(RankType.BY_LISTENING.field, record.recitationsTime)
-    )
+    suspend fun getUserRanks(record: UserRecord) = RankType.entries.associateWith {
+        userRepository.getUserRank(it.field, it.valueIn(record))
+    }
 
     suspend fun getUserRecord() = userRepository.getRemoteRecord(deviceId)
 

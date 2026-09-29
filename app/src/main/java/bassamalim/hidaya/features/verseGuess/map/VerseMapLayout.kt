@@ -4,6 +4,7 @@ import kotlin.math.abs
 
 /** A verse as the map shows it. The texts are already in the user's numerals. */
 data class VerseMapItem(
+    val id: Int,
     val suraNum: Int,
     val verseNum: Int,
     val pageNum: Int,

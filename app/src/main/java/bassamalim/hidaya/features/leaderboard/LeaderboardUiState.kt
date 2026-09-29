@@ -7,10 +7,7 @@ data class LeaderboardUiState(
     val userRanks: Map<RankType, String> = emptyMap(),
     val userRankInts: Map<RankType, Int> = emptyMap(),
     val ranks: Map<RankType, List<RankItem>> = emptyMap(),
-    val isLoadingItems: Map<RankType, Boolean> = mapOf(
-        RankType.BY_READING to false,
-        RankType.BY_LISTENING to false
-    )
+    val isLoadingItems: Map<RankType, Boolean> = RankType.entries.associateWith { false }
 )
 
 /** A row in a ranking, with display-ready (translated) [userId] and [value]. */

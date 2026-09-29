@@ -8,6 +8,7 @@ import org.junit.Test
 class VerseMapLayoutTest {
 
     private fun verse(sura: Int, num: Int, page: Int) = VerseMapItem(
+        id = 0,
         suraNum = sura,
         verseNum = num,
         pageNum = page,

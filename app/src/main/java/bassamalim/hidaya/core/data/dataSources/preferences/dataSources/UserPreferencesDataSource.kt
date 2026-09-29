@@ -5,6 +5,7 @@ import androidx.datastore.core.IOException
 import bassamalim.hidaya.core.data.dataSources.preferences.objects.UserPreferences
 import bassamalim.hidaya.core.models.Location
 import bassamalim.hidaya.core.models.UserRecord
+import bassamalim.hidaya.core.models.VerseGuessStats
 import bassamalim.hidaya.core.utils.report
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -36,5 +37,16 @@ class UserPreferencesDataSource(
         dataStore.updateData {
             it.copy(userRecord = transform(it.userRecord))
         }.userRecord
+
+    fun getVerseGuessStats() = flow.map { it.verseGuessStats }
+    /** Atomic across both, since a game round updates the local stats and the synced record. */
+    suspend fun updateVerseGuess(
+        transform: (VerseGuessStats, UserRecord) -> Pair<VerseGuessStats, UserRecord>
+    ) {
+        dataStore.updateData {
+            val (stats, record) = transform(it.verseGuessStats, it.userRecord)
+            it.copy(verseGuessStats = stats, userRecord = record)
+        }
+    }
 
 }

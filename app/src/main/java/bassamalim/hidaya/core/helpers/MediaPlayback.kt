@@ -22,6 +22,7 @@ import bassamalim.hidaya.core.enums.PlaybackStatus
 import bassamalim.hidaya.core.utils.report
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.util.Locale
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
 
@@ -65,6 +66,11 @@ fun Context.mediaNotificationProvider(
         .build()
         .apply { setSmallIcon(R.drawable.small_launcher_foreground) }
 }
+
+/** Where everyayah.com serves one verse, for a verse recitation's [source] folder. */
+fun verseAudioUrl(source: String, suraNum: Int, verseNum: Int) =
+    "https://www.everyayah.com/data/${source.removeSuffix("/")}/" +
+            String.format(Locale.US, "%03d%03d.mp3", suraNum, verseNum)
 
 fun Player.playbackStatus() = when {
     playerError != null -> PlaybackStatus.ERROR

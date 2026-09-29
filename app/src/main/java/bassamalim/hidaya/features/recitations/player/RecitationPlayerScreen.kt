@@ -35,8 +35,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -58,9 +56,9 @@ import bassamalim.hidaya.core.ui.components.MyIconButton
 import bassamalim.hidaya.core.ui.components.MyIconPlayerButton
 import bassamalim.hidaya.core.ui.components.MyProgressSlider
 import bassamalim.hidaya.core.ui.components.MyScaffold
+import bassamalim.hidaya.core.ui.components.drawEightPointStar
 import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
-import kotlin.math.sqrt
 
 private val CoverMaxSize = 320.dp
 private val SkipButtonSize = 56.dp
@@ -218,23 +216,13 @@ private fun Cover(suraName: String, isPlaying: Boolean, modifier: Modifier = Mod
 private fun StarPattern(color: Color, rotation: () -> Float, modifier: Modifier = Modifier) {
     Canvas(modifier) {
         val radius = size.minDimension * 0.4f
-        val side = radius * sqrt(2f)
         val stroke = Stroke(width = 2.dp.toPx())
 
         drawCircle(color = color, radius = radius * 1.1f, style = stroke)
         drawCircle(color = color, radius = radius * 0.62f, style = stroke)
 
         rotate(rotation()) {
-            repeat(2) { i ->
-                rotate(45f * i) {
-                    drawRect(
-                        color = color,
-                        topLeft = center - Offset(side / 2, side / 2),
-                        size = Size(side, side),
-                        style = stroke
-                    )
-                }
-            }
+            drawEightPointStar(color = color, center = center, radius = radius, style = stroke)
         }
     }
 }

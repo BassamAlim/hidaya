@@ -1,101 +1,103 @@
 package bassamalim.hidaya.features.verseGuess
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
-import bassamalim.hidaya.core.ui.components.MyDropDownMenu
+import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.ui.components.MyScaffold
-import bassamalim.hidaya.core.ui.theme.appTypography
-import bassamalim.hidaya.core.ui.theme.dimensions
-import bassamalim.hidaya.features.verseGuess.map.VerseMap
-import bassamalim.hidaya.features.verseGuess.map.locationText
+import bassamalim.hidaya.core.utils.LangUtils.translateNums
+import java.util.Locale
+import kotlin.math.roundToInt
 
 @Composable
 fun VerseGuessScreen(viewModel: VerseGuessViewModel) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val activity = LocalActivity.current!!
+
+    LifecycleStartEffect(Unit) {
+        onStopOrDispose {
+            // The activity is recreated on rotation, and the clip should play through it
+            if (!activity.isChangingConfigurations) viewModel.onStop()
+        }
+    }
+
+    BackHandler(enabled = state.phase != VerseGuessPhase.SETUP, onBack = viewModel::onBackPressed)
 
     if (state.isLoading) return
 
-    val dims = MaterialTheme.dimensions
-
     MyScaffold(title = stringResource(R.string.verse_guess_title)) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = dims.screenPaddingHorizontal),
-                contentAlignment = Alignment.Center
-            ) {
-                ScopeMenu(
-                    scopeJuz = state.scopeJuz,
-                    juzNumTexts = state.juzNumTexts,
-                    onChange = viewModel::onScopeChange
-                )
-            }
+        val modifier = Modifier.padding(padding)
 
-            VerseMap(
-                items = state.items,
-                suraNames = state.suraNames,
-                selectedIndex = state.selectedIndex,
-                onSelect = viewModel::onVerseSelect,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+        when (state.phase) {
+            VerseGuessPhase.SETUP -> VerseGuessSetup(
+                state = state,
+                onScopeChange = viewModel::onScopeChange,
+                onReciterChange = viewModel::onReciterChange,
+                onStartClick = viewModel::onStartClick,
+                modifier = modifier
             )
-
-            SelectionBar(
-                text = state.selectedIndex?.let { state.items.getOrNull(it) }
-                    ?.locationText(state.suraNames)
-                    ?: stringResource(R.string.verse_map_hint)
+            VerseGuessPhase.ROUND -> VerseGuessRound(
+                state = state,
+                readVerseProgress = viewModel::readVerseProgress,
+                onPlayPauseClick = viewModel::onPlayPauseClick,
+                onReplayClick = viewModel::onReplayClick,
+                onClipVerseClick = viewModel::onClipVerseClick,
+                onVerseSelect = viewModel::onVerseSelect,
+                onSelectClick = viewModel::onSelectClick,
+                onNextClick = viewModel::onNextClick,
+                onOpenInQuranClick = viewModel::onOpenInQuranClick,
+                modifier = modifier
             )
         }
     }
 }
 
-@Composable
-private fun ScopeMenu(scopeJuz: Int, juzNumTexts: List<String>, onChange: (Int) -> Unit) {
-    val juzLabel = stringResource(R.string.juz)
+/** With thousands separators, in the user's numerals. */
+internal fun formatNumber(value: Long, numeralsLanguage: Language) =
+    translateNums(String.format(Locale.US, "%,d", value), numeralsLanguage)
 
-    MyDropDownMenu(
-        selection = scopeJuz,
-        items = (0..VerseGuessViewModel.JUZ_COUNT).toList().toTypedArray(),
-        entries = (listOf(stringResource(R.string.whole_quran)) +
-                juzNumTexts.map { "$juzLabel $it" }).toTypedArray(),
-        onChoice = onChange
+internal fun formatNumber(value: Int, numeralsLanguage: Language) =
+    formatNumber(value.toLong(), numeralsLanguage)
+
+/** Sura, verse range and page of the clip starting at [clipStart]. */
+@Composable
+internal fun clipLocationText(state: VerseGuessUiState, clipStart: Int): String {
+    val first = state.items[clipStart]
+    val last = state.items[clipStart + CLIP_LENGTH - 1]
+    return stringResource(
+        R.string.verse_range_location,
+        state.suraNames[first.suraNum - 1],
+        first.verseNumText,
+        last.verseNumText,
+        first.pageNumText
     )
 }
 
+/** How far off the guess was: spot on, on one of the clip's pages, or so many pages away. */
 @Composable
-private fun SelectionBar(text: String) {
-    val dims = MaterialTheme.dimensions
+internal fun distanceText(state: VerseGuessUiState, result: RoundResult): String {
+    val clipPages = (result.clipStart until result.clipStart + CLIP_LENGTH)
+        .map { state.items[it].pageNum }
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        tonalElevation = dims.elevationSm
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(
-                horizontal = dims.screenPaddingHorizontal,
-                vertical = dims.spaceLg
-            ),
-            style = MaterialTheme.appTypography.title
-        )
+    return when {
+        result.distancePages == 0.0 -> stringResource(R.string.verse_guess_exact)
+        state.items[result.guessIndex].pageNum in clipPages ->
+            stringResource(R.string.verse_guess_same_page)
+        else -> {
+            val pages = result.distancePages.roundToInt().coerceAtLeast(1)
+            pluralStringResource(
+                R.plurals.verse_guess_pages_away,
+                pages,
+                formatNumber(pages, state.numeralsLanguage)
+            )
+        }
     }
 }

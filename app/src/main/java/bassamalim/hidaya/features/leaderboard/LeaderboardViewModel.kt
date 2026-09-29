@@ -41,7 +41,8 @@ class LeaderboardViewModel @Inject constructor(
             val userRecord = domain.getUserRecord()?.data
             val ranks = domain.getRanks()
 
-            if (userRecord == null || ranks == null || ranks.values.any { it is Response.Error<*> }) {
+            // One failed ranking (say, a missing index) shouldn't take the others down with it
+            if (userRecord == null || ranks == null || ranks.values.all { it is Response.Error<*> }) {
                 _uiState.update { it.copy(
                     isLoading = false,
                     isError = true
@@ -50,7 +51,7 @@ class LeaderboardViewModel @Inject constructor(
             }
 
             rawRanks.clear()
-            ranks.forEach { (rankType, response) -> rawRanks[rankType] = response.data!! }
+            ranks.forEach { (rankType, response) -> rawRanks[rankType] = response.data.orEmpty() }
 
             val userRankRaw = domain.getUserRanks(userRecord)
 
@@ -94,8 +95,13 @@ class LeaderboardViewModel @Inject constructor(
             RankItem(
                 userId = translateNums(userId.toString(), numeralsLanguage),
                 value = when (rankType) {
-                    RankType.BY_READING -> translateNums(value.toString(), numeralsLanguage)
+                    RankType.BY_READING, RankType.BY_VERSE_GUESS_STREAK ->
+                        translateNums(value.toString(), numeralsLanguage)
                     RankType.BY_LISTENING -> formatRecitationsTime(value)
+                    RankType.BY_VERSE_GUESS_POINTS -> translateNums(
+                        String.format(Locale.US, "%,d", value),
+                        numeralsLanguage
+                    )
                 },
                 rank = rank
             )

@@ -42,6 +42,18 @@ class UserRepository @Inject constructor(
     suspend fun addRecitationsTime(millis: Long) =
         updateLocalRecord { it.copy(recitationsTime = it.recitationsTime + millis) }
 
+    fun getVerseGuessStats() = userPreferencesDataSource.getVerseGuessStats()
+
+    /** Adds a where's-the-verse round to the local stats and the record synced for ranking. */
+    suspend fun addVerseGuessRound(points: Int, isExact: Boolean) =
+        userPreferencesDataSource.updateVerseGuess { stats, record ->
+            val newStats = stats.afterRound(points, isExact)
+            newStats to record.copy(
+                verseGuessPoints = record.verseGuessPoints + points,
+                verseGuessBestStreak = max(record.verseGuessBestStreak, newStats.currentStreak)
+            )
+        }
+
     suspend fun getRemoteRecord(deviceId: String): Response<UserRecord>? {
         if (!OsUtils.isNetworkAvailable(app)) return null
 
@@ -75,7 +87,9 @@ class UserRepository @Inject constructor(
             UserRecord(
                 userId = remote.userId,
                 quranPages = max(local.quranPages, remote.quranPages),
-                recitationsTime = max(local.recitationsTime, remote.recitationsTime)
+                recitationsTime = max(local.recitationsTime, remote.recitationsTime),
+                verseGuessPoints = max(local.verseGuessPoints, remote.verseGuessPoints),
+                verseGuessBestStreak = max(local.verseGuessBestStreak, remote.verseGuessBestStreak)
             )
         }
         if (merged != remote) setRemoteRecord(deviceId, merged)
@@ -90,7 +104,9 @@ class UserRepository @Inject constructor(
                     mapOf(
                         "user_id" to record.userId,
                         "reading_record" to record.quranPages,
-                        "listening_record" to record.recitationsTime
+                        "listening_record" to record.recitationsTime,
+                        "verse_guess_points" to record.verseGuessPoints,
+                        "verse_guess_streak" to record.verseGuessBestStreak
                     ),
                     SetOptions.merge()
                 )
@@ -132,14 +148,12 @@ class UserRepository @Inject constructor(
                     "user_id" to newUserId,
                     "reading_record" to localRecord.quranPages,
                     "listening_record" to localRecord.recitationsTime,
+                    "verse_guess_points" to localRecord.verseGuessPoints,
+                    "verse_guess_streak" to localRecord.verseGuessBestStreak,
                     "created_at" to System.currentTimeMillis()
                 ))
 
-                UserRecord(
-                    userId = newUserId,
-                    quranPages = localRecord.quranPages,
-                    recitationsTime = localRecord.recitationsTime
-                )
+                localRecord.copy(userId = newUserId)
             }.await()
         } catch (e: Exception) {
             e.report()
@@ -204,7 +218,10 @@ class UserRepository @Inject constructor(
         return UserRecord(
             userId = getLong("user_id")?.toInt() ?: return null,
             quranPages = getLong("reading_record")?.toInt() ?: return null,
-            recitationsTime = getLong("listening_record") ?: return null
+            recitationsTime = getLong("listening_record") ?: return null,
+            // Records from before the game have neither field
+            verseGuessPoints = getLong("verse_guess_points") ?: 0L,
+            verseGuessBestStreak = getLong("verse_guess_streak")?.toInt() ?: 0
         )
     }
 

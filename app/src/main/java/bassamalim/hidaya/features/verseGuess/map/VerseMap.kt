@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerInputScope
@@ -97,12 +98,16 @@ private val RAIL_THUMB_WIDTH = 6.dp
 private val RAIL_THUMB_HEIGHT = 28.dp
 private val RAIL_TICK_LENGTH = 8.dp
 private val RAIL_MIN_LABEL_SPACING = 12.dp
+private val RAIL_MARKER_RADIUS = 5.dp
 
 /** About one dp per four letters, so long verses read as long, but never too small to hit. */
 private fun boxWidth(textLength: Int) = maxOf(MIN_BOX_WIDTH.value, textLength / 4f).dp
 
 /** Where the rail thumb sits when row [rowIndex] is at the top of the map. */
 private class JuzTick(val rowIndex: Int, val juzNumText: String)
+
+/** A dot on the rail for a verse on row [rowIndex], placed like a [JuzTick]. */
+private class RailMarker(val rowIndex: Int, val color: Color)
 
 @Composable
 fun VerseMapItem.locationText(suraNames: List<String>) =
@@ -113,6 +118,8 @@ fun VerseMapItem.locationText(suraNames: List<String>) =
  * Tap a box to select it, or hold and slide to scan with a label naming the verse under the
  * finger; sliding near the top or bottom edge scrolls the map. The rail on the right edge
  * jumps anywhere, with a tick at every juz.
+ *
+ * Once [answer] is set, the map scrolls to it and highlights it, and selection is locked.
  */
 @Composable
 fun VerseMap(
@@ -120,7 +127,8 @@ fun VerseMap(
     suraNames: List<String>,
     selectedIndex: Int?,
     onSelect: (index: Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    answer: IntRange? = null
 ) {
     val sidePadding = MaterialTheme.dimensions.spaceMd
     val density = LocalDensity.current
@@ -173,6 +181,12 @@ fun VerseMap(
         var railY by remember { mutableFloatStateOf(0f) }
         var railTargetRow by remember { mutableStateOf<Int?>(null) }
         var railJuz by remember { mutableIntStateOf(0) }
+        val isLocked = answer != null
+        val colors = MaterialTheme.colorScheme
+        val railMarkers = listOfNotNull(
+            answer?.let { RailMarker(verseRows[it.first], colors.tertiary) },
+            selectedIndex?.let { RailMarker(verseRows[it], colors.primary) }
+        )
 
         /** Whether [position] is still on verse [index]'s box, give or take the sticky slack. */
         fun isOnVerse(position: Offset, index: Int): Boolean {
@@ -219,6 +233,13 @@ fun VerseMap(
             }
         }
 
+        LaunchedEffect(answer, rows) {
+            val answerRow = verseRows[(answer ?: return@LaunchedEffect).first]
+            // Leaves a third of the screen above the answer, for context
+            val rowsAbove = listState.layoutInfo.visibleItemsInfo.size / 3
+            listState.animateScrollToItem((answerRow - rowsAbove).coerceAtLeast(0))
+        }
+
         LaunchedEffect(listState) {
             snapshotFlow { railTargetRow }
                 .filterNotNull()
@@ -250,7 +271,8 @@ fun VerseMap(
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .pointerInput(rows) {
+                        .pointerInput(rows, isLocked) {
+                            if (isLocked) return@pointerInput
                             detectSlide(
                                 onStart = {
                                     // The hold's own buzz stands in for the selection tick
@@ -265,7 +287,8 @@ fun VerseMap(
                                 onEnd = { slidePosition = null }
                             )
                         }
-                        .pointerInput(rows) {
+                        .pointerInput(rows, isLocked) {
+                            if (isLocked) return@pointerInput
                             detectTapGestures { selectAt(it, sticky = false) }
                         }
                 ) {
@@ -282,6 +305,7 @@ fun VerseMap(
                                 is VerseMapRow.Line -> VerseMapLine(
                                     line = row,
                                     selectedIndex = selectedIndex,
+                                    answer = answer,
                                     lineEndPx = lineEndPx,
                                     textMeasurer = textMeasurer
                                 )
@@ -295,6 +319,7 @@ fun VerseMap(
                 listState = listState,
                 scrollRange = scrollRange,
                 juzTicks = juzTicks,
+                markers = railMarkers,
                 dragFraction = railFraction,
                 onDrag = ::onRailDrag,
                 modifier = Modifier
@@ -376,6 +401,7 @@ private fun ScrollRail(
     listState: LazyListState,
     scrollRange: Int,
     juzTicks: List<JuzTick>,
+    markers: List<RailMarker>,
     dragFraction: Float?,
     onDrag: (fraction: Float?, y: Float) -> Unit,
     modifier: Modifier = Modifier
@@ -463,6 +489,14 @@ private fun ScrollRail(
             size = Size(thumbWidth, RAIL_THUMB_HEIGHT.toPx()),
             cornerRadius = CornerRadius(thumbWidth / 2)
         )
+
+        markers.forEach { marker ->
+            drawCircle(
+                color = marker.color,
+                radius = RAIL_MARKER_RADIUS.toPx(),
+                center = Offset(trackX, yOf(marker.rowIndex.toFloat() / scrollRange))
+            )
+        }
     }
 }
 
@@ -493,6 +527,7 @@ private fun SuraHeader(name: String, modifier: Modifier = Modifier) {
 private fun VerseMapLine(
     line: VerseMapRow.Line,
     selectedIndex: Int?,
+    answer: IntRange?,
     lineEndPx: Float,
     textMeasurer: TextMeasurer
 ) {
@@ -529,11 +564,15 @@ private fun VerseMapLine(
                     )
                 }
                 is VerseMapCell.VerseBox -> {
-                    // The selected box grows to the full line height
-                    val isSelected = cell.index == selectedIndex
-                    val inset = if (isSelected) 0f else verticalGap
+                    // Selected and answer boxes grow to the full line height
+                    val color = when {
+                        cell.index == selectedIndex -> colors.primary
+                        answer != null && cell.index in answer -> colors.tertiary
+                        else -> null
+                    }
+                    val inset = if (color != null) 0f else verticalGap
                     drawRoundRect(
-                        color = if (isSelected) colors.primary else colors.surfaceVariant,
+                        color = color ?: colors.surfaceVariant,
                         topLeft = Offset(left, inset),
                         size = Size(cell.width, size.height - 2 * inset),
                         cornerRadius = CornerRadius(BOX_CORNER.toPx())
