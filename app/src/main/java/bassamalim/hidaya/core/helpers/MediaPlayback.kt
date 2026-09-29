@@ -1,17 +1,23 @@
 package bassamalim.hidaya.core.helpers
 
 import android.content.ComponentName
+import android.content.ContentResolver
 import android.content.Context
+import android.net.Uri
 import android.os.SystemClock
 import androidx.annotation.OptIn
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.extractor.DefaultExtractorsFactory
+import androidx.media3.extractor.mp3.Mp3Extractor
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSessionService
@@ -29,10 +35,21 @@ import java.util.concurrent.ExecutionException
 /**
  * Player for the audio services. ExoPlayer handles audio focus (ducking included), pausing when
  * headphones are unplugged, and the wake and wifi locks.
+ *
+ * The MP3s' own ID3 tags are ignored: the services set the titles themselves, and embedded cover
+ * art (e.g. mp3quran's branding) would otherwise replace [mediaArtworkUri] in the notification,
+ * since Media3 prefers embedded artwork over an artwork uri.
  */
 @OptIn(UnstableApi::class)
 fun buildAudioPlayer(context: Context): ExoPlayer =
     ExoPlayer.Builder(context)
+        .setMediaSourceFactory(
+            DefaultMediaSourceFactory(
+                context,
+                DefaultExtractorsFactory()
+                    .setMp3ExtractorFlags(Mp3Extractor.FLAG_DISABLE_ID3_METADATA)
+            )
+        )
         .setAudioAttributes(
             AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)
@@ -66,6 +83,13 @@ fun Context.mediaNotificationProvider(
         .build()
         .apply { setSmallIcon(R.drawable.small_launcher_foreground) }
 }
+
+/**
+ * The app's cover art for media notifications and lock screen controls. A resource uri rather
+ * than artwork bytes, which would be copied into every item of a playlist sent to controllers.
+ */
+fun Context.mediaArtworkUri(): Uri =
+    "${ContentResolver.SCHEME_ANDROID_RESOURCE}://$packageName/${R.drawable.media_artwork}".toUri()
 
 fun Player.playbackStatus() = when {
     playerError != null -> PlaybackStatus.ERROR

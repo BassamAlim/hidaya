@@ -16,6 +16,7 @@ import bassamalim.hidaya.R
 import bassamalim.hidaya.core.Activity
 import bassamalim.hidaya.core.Globals
 import bassamalim.hidaya.core.helpers.buildAudioPlayer
+import bassamalim.hidaya.core.helpers.mediaArtworkUri
 import bassamalim.hidaya.core.helpers.mediaNotificationProvider
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.report
@@ -114,6 +115,7 @@ class RadioService : MediaSessionService() {
                     .setMediaMetadata(
                         MediaMetadata.Builder()
                             .setTitle(getString(R.string.quran_radio))
+                            .setArtworkUri(mediaArtworkUri())
                             .setIsPlayable(true)
                             .build()
                     )

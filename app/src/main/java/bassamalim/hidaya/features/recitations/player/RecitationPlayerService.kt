@@ -20,6 +20,7 @@ import bassamalim.hidaya.core.di.ApplicationScope
 import bassamalim.hidaya.core.enums.StartAction
 import bassamalim.hidaya.core.helpers.ListeningTimeRecorder
 import bassamalim.hidaya.core.helpers.buildAudioPlayer
+import bassamalim.hidaya.core.helpers.mediaArtworkUri
 import bassamalim.hidaya.core.helpers.mediaNotificationProvider
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
@@ -151,6 +152,7 @@ class RecitationPlayerService : MediaSessionService() {
         val narration = recitationsRepository.getNarration(reciterId, narrationId, language)
         val downloadDir =
             "${getExternalFilesDir(null)}${recitationsRepository.prefix}$reciterId/$narrationId/"
+        val artworkUri = mediaArtworkUri()
 
         return narration.availableSuras.sorted().map { suraNum ->
             val suraIdx = suraNum - 1
@@ -168,6 +170,7 @@ class RecitationPlayerService : MediaSessionService() {
                         .setArtist(reciterName)
                         .setAlbumTitle(narration.name)
                         .setTrackNumber(suraNum)
+                        .setArtworkUri(artworkUri)
                         .setIsPlayable(true)
                         .build()
                 )

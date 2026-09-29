@@ -21,6 +21,7 @@ import bassamalim.hidaya.core.di.ApplicationScope
 import bassamalim.hidaya.core.enums.VerseRepeatMode
 import bassamalim.hidaya.core.helpers.ListeningTimeRecorder
 import bassamalim.hidaya.core.helpers.buildAudioPlayer
+import bassamalim.hidaya.core.helpers.mediaArtworkUri
 import bassamalim.hidaya.core.helpers.mediaNotificationProvider
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
@@ -229,6 +230,7 @@ class VersePlayerService : MediaSessionService() {
                 MediaMetadata.Builder()
                     .setTitle(data.suraNames[verse.suraNum - 1])
                     .setArtist(data.reciterNames[recitation.reciterId])
+                    .setArtworkUri(mediaArtworkUri())
                     .setIsPlayable(true)
                     .build()
             )
