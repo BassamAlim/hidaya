@@ -21,6 +21,8 @@ import bassamalim.hidaya.core.ui.theme.dimensions
  * screen genuinely needs a different look.
  *
  * Pass `onClick` to make the whole card a clickable affordance (ripple included).
+ * `contentModifier` applies to the full card area inside the container (before padding), e.g.
+ * for a decorative background such as [starPattern].
  */
 @Composable
 fun MyCard(
@@ -34,6 +36,7 @@ fun MyCard(
         defaultElevation = MaterialTheme.dimensions.elevationSm
     ),
     contentPadding: PaddingValues = PaddingValues(MaterialTheme.dimensions.spaceLg),
+    contentModifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val cardModifier = modifier.fillMaxWidth()
@@ -41,6 +44,7 @@ fun MyCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .then(contentModifier)
                 .padding(contentPadding)
         ) {
             content()

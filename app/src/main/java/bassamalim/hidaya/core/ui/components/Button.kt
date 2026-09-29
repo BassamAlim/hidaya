@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import bassamalim.hidaya.core.ui.theme.dimensions
 import bassamalim.hidaya.core.ui.theme.nsp
 import bassamalim.hidaya.core.ui.theme.tajwal
 
@@ -49,7 +51,7 @@ fun MyButton(
     Button(
         onClick = { if (enabled) onClick() },
         modifier = modifier.padding(3.dp),
-        shape = RoundedCornerShape(10.dp),
+        shape = CircleShape,
         colors = colors
     ) {
         MyText(text = text, fontSize = fontSize, fontWeight = fontWeight)
@@ -70,7 +72,7 @@ fun MyFilledTonalButton(
     FilledTonalButton(
         onClick = { if (enabled) onClick() },
         modifier = modifier.padding(3.dp),
-        shape = RoundedCornerShape(10.dp),
+        shape = CircleShape,
         colors = colors,
         contentPadding = contentPadding
     ) {
@@ -91,7 +93,7 @@ fun MyOutlinedButton(
     OutlinedButton(
         onClick = { if (enabled) onClick() },
         modifier = modifier.padding(3.dp),
-        shape = RoundedCornerShape(10.dp),
+        shape = CircleShape,
         colors = colors
     ) {
         MyText(text = text, fontSize = fontSize, fontWeight = fontWeight)
@@ -114,7 +116,7 @@ fun MySquareButton(
     ElevatedButton(
         onClick = onClick,
         modifier = modifier.padding(padding),
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg),
         enabled = enabled
     ) {
         Column(
@@ -178,7 +180,7 @@ fun MyHorizontalButton(
     Button(
         onClick = { if (enabled) onClick() },
         modifier = modifier.padding(3.dp),
-        shape = RoundedCornerShape(10.dp),
+        shape = CircleShape,
         colors = colors
     ) {
         Row(
