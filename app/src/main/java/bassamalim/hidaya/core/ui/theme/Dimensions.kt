@@ -40,12 +40,13 @@ data class AppDimensions(
     val listItemHeight: Dp = 56.dp,
 
     // Corner radii (kept in sync with `shapes`).
-    val radiusSm: Dp = 4.dp,
-    val radiusMd: Dp = 8.dp,
-    val radiusLg: Dp = 16.dp,
+    val radiusSm: Dp = 8.dp,
+    val radiusMd: Dp = 12.dp,
+    val radiusLg: Dp = 20.dp,
+    val radiusXl: Dp = 28.dp,
 
-    // Elevation.
-    val elevationSm: Dp = 2.dp,
+    // Elevation. Kept low: surfaces separate mainly by color, shadows only soften the edge.
+    val elevationSm: Dp = 1.dp,
     val elevationMd: Dp = 4.dp,
     val elevationLg: Dp = 8.dp,
 

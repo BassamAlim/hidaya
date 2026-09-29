@@ -478,7 +478,7 @@ private fun PageContent(
     configuration: Configuration
 ) {
     val lineHeight = remember { getLineHeight(configuration) }
-    val defaultColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val defaultColor = MaterialTheme.colorScheme.onSurface
     val primaryColor = MaterialTheme.colorScheme.primary
     val tertiaryColor = MaterialTheme.colorScheme.tertiary
     val selectedVerseId = selectedVerse?.id
@@ -721,7 +721,7 @@ private fun PageViewScreen(
         style = TextStyle(
             fontFamily = hafs_smart,
             fontSize = textSize.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
     )
@@ -837,7 +837,7 @@ private fun ListViewScreen(
             color =
                 if (selectedVerse?.id == verseId) MaterialTheme.colorScheme.primary
                 else if (trackedVerseId == verseId) MaterialTheme.colorScheme.tertiary
-                else MaterialTheme.colorScheme.onSurfaceVariant,
+                else MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
     )
@@ -879,13 +879,14 @@ private fun SuraHeader(
                 .fillMaxSize()
                 .padding(vertical = 5.dp, horizontal = 5.dp),
             contentScale = ContentScale.FillBounds,
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+            // Gold frame, as in printed mushafs
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary)
         )
 
         MyText(
             text = "${stringResource(R.string.sura)} $suraName",
             fontSize = (textSize * 0.9).sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface,
             fontFamily = uthmanic_hafs
         )
     }
@@ -900,7 +901,7 @@ private fun Basmalah(textSize: Int, height: Dp? = null) {
             .fillMaxWidth(0.75f)
             .height(height ?: (textSize * 1.6).dp),
         contentScale = ContentScale.FillBounds,
-        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
     )
 }
 

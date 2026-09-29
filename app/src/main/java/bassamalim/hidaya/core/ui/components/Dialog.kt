@@ -10,7 +10,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -18,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import bassamalim.hidaya.R
+import bassamalim.hidaya.core.ui.theme.dimensions
 
 @Composable
 fun MyDialog(
@@ -33,15 +33,11 @@ fun MyDialog(
                 dismissOnClickOutside = true
             )
         ) {
-            Surface(color = Color.Transparent) {
-                Box(
-                    Modifier.background(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    content()
-                }
+            Surface(
+                shape = RoundedCornerShape(MaterialTheme.dimensions.radiusXl),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                content()
             }
         }
     }
@@ -62,7 +58,7 @@ fun FullScreenDialog(
                 Modifier
                     .fillMaxSize()
                     .background(
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(MaterialTheme.dimensions.radiusXl),
                         color = MaterialTheme.colorScheme.surface
                     )
             ) {

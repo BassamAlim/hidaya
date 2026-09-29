@@ -57,6 +57,7 @@ import bassamalim.hidaya.R
 import bassamalim.hidaya.core.ui.components.AnalogClock
 import bassamalim.hidaya.core.ui.components.MyCard
 import bassamalim.hidaya.core.ui.components.MySectionHeader
+import bassamalim.hidaya.core.ui.components.starPattern
 import bassamalim.hidaya.core.ui.theme.Positive
 import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
@@ -179,7 +180,8 @@ private fun NextPrayerCard(state: HomeUiState, onClick: () -> Unit) {
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = contentColor
         ),
-        contentPadding = PaddingValues(horizontal = dims.spaceLg, vertical = dims.spaceXl)
+        contentPadding = PaddingValues(horizontal = dims.spaceLg, vertical = dims.spaceXl),
+        contentModifier = Modifier.starPattern(color = contentColor.copy(alpha = 0.12f))
     ) {
         BoxWithConstraints {
             val clockSize = (maxWidth - HeroTextMinWidth)
