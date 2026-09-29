@@ -1,6 +1,5 @@
 package bassamalim.hidaya.features.quran.settings
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -31,7 +29,6 @@ import bassamalim.hidaya.core.ui.components.MyRow
 import bassamalim.hidaya.core.ui.components.MySquareButton
 import bassamalim.hidaya.core.ui.components.MyText
 import bassamalim.hidaya.core.enums.QuranViewType
-import bassamalim.hidaya.core.ui.theme.dimensions
 import bassamalim.hidaya.features.settings.CategoryTitle
 import bassamalim.hidaya.features.settings.MenuSetting
 import bassamalim.hidaya.features.settings.PreferenceTitle
@@ -179,15 +176,8 @@ private fun RepeatRadioGroup(
                     textColor =
                         if (items[i] == selection) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurface,
-                    modifier =
-                        if (items[i] == selection) Modifier
-                            .weight(1F)
-                            .border(
-                                width = 3.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg)
-                            )
-                        else Modifier.weight(1F),
+                    modifier = Modifier.weight(1F),
+                    isSelected = items[i] == selection,
                     padding = PaddingValues(horizontal = 5.dp),
                     onClick = { onSelect(items[i]) }
                 )
@@ -208,15 +198,8 @@ private fun RepeatRadioGroup(
                 textColor =
                     if (items[0] == selection) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurface,
-                modifier =
-                    if (items[0] == selection) Modifier
-                        .weight(1F)
-                        .border(
-                            width = 3.dp,
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg)
-                        )
-                    else Modifier.weight(1F),
+                modifier = Modifier.weight(1F),
+                isSelected = items[0] == selection,
                 padding = PaddingValues(horizontal = 5.dp),
                 onClick = { onSelect(items[0]) }
             )
@@ -228,15 +211,8 @@ private fun RepeatRadioGroup(
                 textColor =
                     if (items.last() == selection) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurface,
-                modifier =
-                    if (items.last() == selection) Modifier
-                        .weight(1F)
-                        .border(
-                            width = 3.dp,
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg)
-                        )
-                    else Modifier.weight(1F),
+                modifier = Modifier.weight(1F),
+                isSelected = items.last() == selection,
                 padding = PaddingValues(horizontal = 5.dp),
                 onClick = { onSelect(items.last()) }
             )

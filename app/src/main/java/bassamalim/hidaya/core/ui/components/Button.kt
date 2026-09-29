@@ -1,5 +1,6 @@
 package bassamalim.hidaya.core.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -108,6 +109,7 @@ fun MySquareButton(
     fontWeight: FontWeight = FontWeight.Normal,
     textColor: Color = MaterialTheme.colorScheme.onSurface,
     enabled: Boolean = true,
+    isSelected: Boolean = false,
     innerPadding: PaddingValues = PaddingValues(6.dp),
     icon: @Composable () -> Unit = {},
     onClick: () -> Unit
@@ -116,7 +118,14 @@ fun MySquareButton(
         onClick = onClick,
         modifier = modifier.padding(padding),
         shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg),
-        enabled = enabled
+        enabled = enabled,
+        // Drawn by the button itself so the outline always follows its shape and bounds
+        border =
+            if (isSelected) BorderStroke(
+                width = MaterialTheme.dimensions.borderThick,
+                color = MaterialTheme.colorScheme.primary
+            )
+            else null
     ) {
         Column(
             verticalArrangement = Arrangement.SpaceEvenly,
