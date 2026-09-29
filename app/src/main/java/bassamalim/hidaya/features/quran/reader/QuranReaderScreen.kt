@@ -214,7 +214,7 @@ fun QuranReaderScreen(viewModel: QuranReaderViewModel) {
 
 @Composable
 private fun TopBar(suraName: String, pageNumText: String, juzNumText: String) {
-    // Grows with the user's font size instead of clipping at a fixed height
+    // Follows the user's font size; labels shrink to fit a narrow screen instead of clipping
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -231,7 +231,8 @@ private fun TopBar(suraName: String, pageNumText: String, juzNumText: String) {
             fontSize = 20.sp,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Start,
-            maxLines = 2
+            maxLines = 1,
+            minFontSize = 12.sp
         )
 
         // Page number
@@ -240,7 +241,8 @@ private fun TopBar(suraName: String, pageNumText: String, juzNumText: String) {
             modifier = Modifier.weight(1f),
             fontSize = 20.sp,
             fontWeight = FontWeight.Medium,
-            maxLines = 2
+            maxLines = 1,
+            minFontSize = 12.sp
         )
 
         // Juz number
@@ -250,7 +252,8 @@ private fun TopBar(suraName: String, pageNumText: String, juzNumText: String) {
             fontSize = 20.sp,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.End,
-            maxLines = 2
+            maxLines = 1,
+            minFontSize = 12.sp
         )
     }
 }

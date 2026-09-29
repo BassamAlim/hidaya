@@ -124,12 +124,16 @@ fun MySquareButton(
         ) {
             icon()
 
+            // Square buttons often sit several to a row, so large font settings shrink the
+            // label to fit instead of breaking the row
             MyText(
                 text = text,
                 modifier = Modifier.padding(innerPadding),
                 fontSize = fontSize,
                 fontWeight = fontWeight,
-                color = textColor
+                color = textColor,
+                maxLines = 2,
+                minFontSize = 12.sp
             )
         }
     }

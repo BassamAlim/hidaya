@@ -135,6 +135,8 @@ private fun TopArea(
                 text = mainText,
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                minFontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
