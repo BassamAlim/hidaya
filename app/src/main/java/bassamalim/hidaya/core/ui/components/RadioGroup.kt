@@ -12,7 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import bassamalim.hidaya.core.ui.theme.nsp
+import androidx.compose.ui.unit.sp
+import bassamalim.hidaya.core.ui.theme.dimensions
 
 @Composable
 fun <V> HorizontalRadioGroup(
@@ -37,12 +38,12 @@ fun <V> HorizontalRadioGroup(
             if (item == selection) modifier = modifier.border(
                 width = 3.dp,
                 color = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg)
             )
 
             MySquareButton(
                 text = text,
-                fontSize = 18.nsp,
+                fontSize = 20.sp,
                 textColor =
                     if (item == selection) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurface,

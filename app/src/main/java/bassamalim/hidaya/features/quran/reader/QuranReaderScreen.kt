@@ -7,6 +7,7 @@ import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -26,7 +28,6 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.DisplaySettings
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +48,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.Globals
@@ -65,7 +67,6 @@ import bassamalim.hidaya.core.ui.theme.Bookmark3Color
 import bassamalim.hidaya.core.ui.theme.Bookmark4Color
 import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
-import bassamalim.hidaya.core.ui.theme.nsp
 import bassamalim.hidaya.features.quran.surasMenu.BookmarkItem
 import kotlinx.coroutines.delay
 
@@ -211,46 +212,47 @@ fun QuranReaderScreen(viewModel: QuranReaderViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(suraName: String, pageNumText: String, juzNumText: String) {
-    CenterAlignedTopAppBar(
+    // Grows with the user's font size instead of clipping at a fixed height
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(36.dp),
-        title = {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Sura name
-                MyText(
-                    text = "${stringResource(R.string.sura)} $suraName",
-                    fontSize = 18.nsp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Start
-                )
+            .heightIn(min = 36.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Sura name
+        MyText(
+            text = "${stringResource(R.string.sura)} $suraName",
+            modifier = Modifier.weight(1f),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Start,
+            maxLines = 2
+        )
 
-                // Page number
-                MyText(
-                    text = "${stringResource(R.string.page)} $pageNumText",
-                    fontSize = 18.nsp,
-                    fontWeight = FontWeight.Medium
-                )
+        // Page number
+        MyText(
+            text = "${stringResource(R.string.page)} $pageNumText",
+            modifier = Modifier.weight(1f),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 2
+        )
 
-                // Juz number
-                MyText(
-                    text = "${stringResource(R.string.juz)} $juzNumText",
-                    fontSize = 18.nsp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.End
-                )
-            }
-        }
-    )
+        // Juz number
+        MyText(
+            text = "${stringResource(R.string.juz)} $juzNumText",
+            modifier = Modifier.weight(1f),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.End,
+            maxLines = 2
+        )
+    }
 }
 
 @Composable

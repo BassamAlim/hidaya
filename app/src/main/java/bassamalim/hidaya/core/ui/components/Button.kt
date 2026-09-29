@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import bassamalim.hidaya.core.ui.theme.dimensions
-import bassamalim.hidaya.core.ui.theme.nsp
 import bassamalim.hidaya.core.ui.theme.tajwal
 
 @Composable
@@ -147,7 +146,7 @@ fun MySquareButton(
 ) {
     MySquareButton(
         text = text,
-        fontSize = 18.nsp,
+        fontSize = 20.sp,
         modifier = modifier
             .size(180.dp)
             .padding(vertical = 7.dp, horizontal = 7.dp),
@@ -209,7 +208,7 @@ fun MySquareButton(
 ) {
     MySquareButton(
         text = text,
-        fontSize = 18.nsp,
+        fontSize = 20.sp,
         modifier = modifier
             .size(180.dp)
             .padding(vertical = 7.dp, horizontal = 7.dp),

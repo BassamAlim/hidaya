@@ -45,7 +45,6 @@ import bassamalim.hidaya.core.ui.components.MyLazyColumn
 import bassamalim.hidaya.core.ui.components.MyRow
 import bassamalim.hidaya.core.ui.components.MyText
 import bassamalim.hidaya.core.ui.components.MyTextButton
-import bassamalim.hidaya.core.ui.theme.nsp
 
 @Composable
 fun HijriDatePickerDialog(
@@ -134,7 +133,7 @@ private fun TopArea(
             // main text
             MyText(
                 text = mainText,
-                fontSize = 22.nsp,
+                fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )

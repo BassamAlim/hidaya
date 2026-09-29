@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.enums.VerseRepeatMode
@@ -29,8 +30,8 @@ import bassamalim.hidaya.core.ui.components.MyHorizontalDivider
 import bassamalim.hidaya.core.ui.components.MyRow
 import bassamalim.hidaya.core.ui.components.MySquareButton
 import bassamalim.hidaya.core.ui.components.MyText
-import bassamalim.hidaya.core.ui.theme.nsp
 import bassamalim.hidaya.core.enums.QuranViewType
+import bassamalim.hidaya.core.ui.theme.dimensions
 import bassamalim.hidaya.features.settings.CategoryTitle
 import bassamalim.hidaya.features.settings.MenuSetting
 import bassamalim.hidaya.features.settings.PreferenceTitle
@@ -174,7 +175,7 @@ private fun RepeatRadioGroup(
             for (i in 1 until entries.lastIndex) {
                 MySquareButton(
                     text = entries[i],
-                    fontSize = 16.nsp,
+                    fontSize = 18.sp,
                     textColor =
                         if (items[i] == selection) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurface,
@@ -184,7 +185,7 @@ private fun RepeatRadioGroup(
                             .border(
                                 width = 3.dp,
                                 color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(10.dp)
+                                shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg)
                             )
                         else Modifier.weight(1F),
                     padding = PaddingValues(horizontal = 5.dp),
@@ -203,7 +204,7 @@ private fun RepeatRadioGroup(
             // No repeat
             MySquareButton(
                 text = entries[0],
-                fontSize = 18.nsp,
+                fontSize = 20.sp,
                 textColor =
                     if (items[0] == selection) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurface,
@@ -213,7 +214,7 @@ private fun RepeatRadioGroup(
                         .border(
                             width = 3.dp,
                             color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg)
                         )
                     else Modifier.weight(1F),
                 padding = PaddingValues(horizontal = 5.dp),
@@ -223,7 +224,7 @@ private fun RepeatRadioGroup(
             // Infinite repeat
             MySquareButton(
                 text = entries.last(),
-                fontSize = 16.nsp,
+                fontSize = 18.sp,
                 textColor =
                     if (items.last() == selection) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurface,
@@ -233,7 +234,7 @@ private fun RepeatRadioGroup(
                         .border(
                             width = 3.dp,
                             color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg)
                         )
                     else Modifier.weight(1F),
                 padding = PaddingValues(horizontal = 5.dp),

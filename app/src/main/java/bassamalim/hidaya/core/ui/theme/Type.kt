@@ -4,7 +4,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -88,11 +87,3 @@ val MaterialTheme.appTypography: AppTypography
     @Composable
     @ReadOnlyComposable
     get() = LocalTypography.current
-
-/**
- * Font-scale-normalised sp. Compensates 15% upward to match the project's
- * historical density expectations regardless of the user's font-scale setting.
- */
-val Int.nsp
-    @Composable
-    get() = (this / LocalDensity.current.fontScale * 1.15).sp
