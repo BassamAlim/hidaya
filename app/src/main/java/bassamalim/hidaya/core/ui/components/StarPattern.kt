@@ -19,20 +19,20 @@ import kotlin.math.sin
 private const val STAR_INNER_RATIO = 0.7654f
 
 /**
- * Draws a faint lattice of eight-pointed stars (Rub el Hizb) behind the content, with small
- * diamonds between them. It fades from invisible at the start edge to [color] at the end edge,
- * so text (which sits at the start) stays clean while the decoration shows beside it.
+ * Draws a sparse, faint lattice of large eight-pointed stars (Rub el Hizb) behind the content.
+ * It fades from invisible at the start edge to [color] at the end edge, so text (which sits at
+ * the start) stays clean while the decoration shows beside it.
  *
- * Meant for hero surfaces only; pass a low-alpha [color].
+ * Meant for hero surfaces only; pass a low-alpha [color]. Keep [cellSize] large: a dense
+ * lattice reads as wrapping paper rather than an accent.
  */
 fun Modifier.starPattern(
     color: Color,
-    cellSize: Dp = 44.dp,
+    cellSize: Dp = 88.dp,
     strokeWidth: Dp = 1.dp
 ): Modifier = drawWithCache {
     val cell = cellSize.toPx()
-    val starRadius = cell * 0.34f
-    val diamondRadius = cell * 0.1f
+    val starRadius = cell * 0.36f
 
     val path = Path()
     val rows = ceil(size.height / cell).toInt()
@@ -40,7 +40,6 @@ fun Modifier.starPattern(
     for (row in 0..rows) {
         for (col in 0..cols) {
             path.addStar(Offset(col * cell, row * cell), starRadius)
-            path.addDiamond(Offset((col + 0.5f) * cell, (row + 0.5f) * cell), diamondRadius)
         }
     }
 
@@ -66,13 +65,5 @@ private fun Path.addStar(center: Offset, radius: Float) {
         val y = center.y + r * sin(angle)
         if (i == 0) moveTo(x, y) else lineTo(x, y)
     }
-    close()
-}
-
-private fun Path.addDiamond(center: Offset, radius: Float) {
-    moveTo(center.x, center.y - radius)
-    lineTo(center.x + radius, center.y)
-    lineTo(center.x, center.y + radius)
-    lineTo(center.x - radius, center.y)
     close()
 }
