@@ -33,13 +33,17 @@ import com.google.common.util.concurrent.SettableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Locale
 import javax.inject.Inject
+
+private const val PERIODIC_SAVE_MILLIS = 5_000L
 
 /**
  * Plays a narration's suras. A controller sets one media item whose media id is a
@@ -57,6 +61,7 @@ class RecitationPlayerService : MediaSessionService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var session: MediaSession
     private lateinit var listeningTime: ListeningTimeRecorder
+    private var periodicSave: Job? = null
 
     // Notification text etc. in the app language (Services don't get it from AppCompat < API 33)
     override fun attachBaseContext(newBase: Context) {
@@ -80,11 +85,24 @@ class RecitationPlayerService : MediaSessionService() {
         player.addListener(listeningTime)
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (!isPlaying) saveForLater()
+                // Pauses and interruptions (calls, other apps) save right away; while playing,
+                // saving periodically covers the process being killed, when onDestroy never runs
+                periodicSave?.cancel()
+                if (isPlaying) {
+                    periodicSave = serviceScope.launch {
+                        while (true) {
+                            delay(PERIODIC_SAVE_MILLIS)
+                            saveForLater()
+                        }
+                    }
+                }
+                else saveForLater()
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 session.setSessionActivity(contentIntent(mediaItem?.mediaId))
+                // Moving on to the next sura keeps playing, so no pause would save it
+                saveForLater()
             }
         })
 
@@ -98,6 +116,7 @@ class RecitationPlayerService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = session
 
     override fun onDestroy() {
+        periodicSave?.cancel()
         saveForLater()
         listeningTime.flush()
         serviceScope.cancel()
@@ -181,9 +200,13 @@ class RecitationPlayerService : MediaSessionService() {
     private fun saveForLater() {
         val player = session.player
         val mediaId = player.currentMediaItem?.mediaId ?: return
+        // A finished sura resumes from its start rather than from its very end
+        val progress =
+            if (player.playbackState == Player.STATE_ENDED) 0L
+            else player.currentPosition
 
         recitationsRepository.setLastPlayedMedia(
-            LastPlayedMedia(mediaId = mediaId, progress = player.currentPosition)
+            LastPlayedMedia(mediaId = mediaId, progress = progress)
         )
     }
 

@@ -58,18 +58,25 @@ class RecitationRecitersMenuViewModel @Inject constructor(
             allRecitations = domain.observeRecitersWithNarrations(language)
             narrationSelections = domain.getNarrationSelections(language)
 
-            val lastPlayed = domain.getLastPlayed().first()
             val numeralsLanguage = domain.getNumeralsLanguage()
             _uiState.update { it.copy(
                 isLoading = false,
                 numeralsLanguage = numeralsLanguage,
-                playbackRecitationInfo = lastPlayed?.let {
-                    domain.getLastPlayedMedia(lastPlayed.mediaId)
-                },
                 isFiltered = narrationSelections.first().values.any { bool -> !bool }
             )}
 
             domain.cleanFiles()
+        }
+
+        // Follows the saved position, so the continue card stays current after more listening.
+        // While the player has an item loaded, onPlayerChange shows that one instead.
+        viewModelScope.launch {
+            domain.getLastPlayed().collect { lastPlayed ->
+                if (connection?.controller?.currentMediaItem != null) return@collect
+
+                val info = lastPlayed?.let { domain.getLastPlayedMedia(it.mediaId) }
+                _uiState.update { it.copy(playbackRecitationInfo = info) }
+            }
         }
     }
 
