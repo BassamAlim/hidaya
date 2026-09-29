@@ -57,6 +57,7 @@ import bassamalim.hidaya.R
 import bassamalim.hidaya.core.ui.components.AnalogClock
 import bassamalim.hidaya.core.ui.components.MyCard
 import bassamalim.hidaya.core.ui.components.MySectionHeader
+import bassamalim.hidaya.core.ui.components.alignIconWithText
 import bassamalim.hidaya.core.ui.components.starPattern
 import bassamalim.hidaya.core.ui.theme.Positive
 import bassamalim.hidaya.core.ui.theme.appTypography
@@ -400,17 +401,21 @@ private fun ProgressSection(
             trailing = if (isLeaderboardEnabled) {
                 {
                     TextButton(onClick = onLeaderboardClick) {
+                        val labelStyle = MaterialTheme.appTypography.label
+
                         Icon(
                             imageVector = Icons.Default.Leaderboard,
                             contentDescription = null,
-                            modifier = Modifier.size(dims.iconSm)
+                            modifier = alignIconWithText(labelStyle.fontSize)
+                                .size(dims.iconSm)
                         )
 
                         Spacer(Modifier.width(dims.spaceXs))
 
                         Text(
                             text = stringResource(R.string.leaderboard),
-                            style = MaterialTheme.appTypography.label
+                            modifier = Modifier.alignByBaseline(),
+                            style = labelStyle
                         )
                     }
                 }
