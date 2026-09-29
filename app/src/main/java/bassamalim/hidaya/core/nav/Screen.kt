@@ -129,7 +129,13 @@ fun screenFromJson(json: String): Screen? =
         null
     }
 
+// The default discriminator "type" clashes with RemembrancesMenu.type, and encoding a route
+// with a property named like the discriminator throws. toJson() keeps the default so extras
+// in already scheduled intents still decode; it just can't carry RemembrancesMenu.
+private const val ROUTE_DISCRIMINATOR = "#route"
+private val analyticsJson = Json { classDiscriminator = ROUTE_DISCRIMINATOR }
+
 /** The route name, e.g. "book_reader", without argument values. */
 val Screen.analyticsName: String
-    get() = Json.encodeToJsonElement(serializer<Screen>(), this)
-        .jsonObject["type"]!!.jsonPrimitive.content
+    get() = analyticsJson.encodeToJsonElement(serializer<Screen>(), this)
+        .jsonObject[ROUTE_DISCRIMINATOR]!!.jsonPrimitive.content
