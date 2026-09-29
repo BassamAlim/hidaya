@@ -1,30 +1,37 @@
-@file:OptIn(ExperimentalFoundationApi::class)
-
 package bassamalim.hidaya.features.hijriDatePicker
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -32,19 +39,26 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
-import bassamalim.hidaya.core.ui.components.MyColumn
 import bassamalim.hidaya.core.ui.components.MyDialog
-import bassamalim.hidaya.core.ui.components.MyIconButton
-import bassamalim.hidaya.core.ui.components.MyLazyColumn
-import bassamalim.hidaya.core.ui.components.MyRow
 import bassamalim.hidaya.core.ui.components.MyText
-import bassamalim.hidaya.core.ui.components.MyTextButton
+import bassamalim.hidaya.core.ui.theme.appTypography
+import bassamalim.hidaya.core.ui.theme.dimensions
+
+// Laid out like Material 3's date picker, which only supports the Gregorian calendar
+private val DayCellHeight = 44.dp
+private val DaySize = 40.dp
+private val WeekDaysRowHeight = 36.dp
+private const val MAX_WEEKS_IN_MONTH = 6
+// Same for both modes, so switching to the year list doesn't resize the dialog
+private val SelectorHeight = WeekDaysRowHeight + DayCellHeight * MAX_WEEKS_IN_MONTH
 
 @Composable
 fun HijriDatePickerDialog(
@@ -69,27 +83,29 @@ fun HijriDatePickerDialog(
         shown = true,
         onDismiss = viewModel::onCancelClicked
     ) {
-        Column(
-            Modifier.clip(RoundedCornerShape(16.dp))
-        ) {
-            TopArea(
+        Column {
+            Header(selectedDate = state.mainText)
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            Controls(
+                displayedMonth = state.displayedMonthText,
                 displayedYear = state.displayedYearText,
-                mainText = state.mainText,
-                onYearSelectorToggled = viewModel::onYearSelectorToggled
+                selectorMode = state.selectorMode,
+                onYearSelectorToggled = viewModel::onYearSelectorToggled,
+                onPreviousMonthClick = viewModel::onPreviousMonthClick,
+                onNextMonthClick = viewModel::onNextMonthClick
             )
 
-            Box(Modifier.height(350.dp)) {
+            Box(Modifier.height(SelectorHeight)) {
                 when (state.selectorMode) {
-                    SelectorMode.DAY_MONTH -> DayMonthSelector(
-                        displayedMonth = state.displayedMonthText,
-                        weekDaysAbb = state.weekDaysAbb,
+                    SelectorMode.DAY_MONTH -> DaySelector(
+                        weekDaysAbbreviations = state.weekDaysAbb,
                         pagerState = pagerState,
                         onMonthPageChanged = viewModel::onMonthPageChanged,
                         getDaysGrid = viewModel::getDaysGrid,
                         isSelectedDayDisplayed = state.isSelectedDayDisplayed,
                         selectedDay = state.selectedDay,
-                        onPreviousMonthClick = viewModel::onPreviousMonthClick,
-                        onNextMonthClick = viewModel::onNextMonthClick,
                         onDaySelected = viewModel::onDaySelected
                     )
                     SelectorMode.YEAR -> YearSelector(
@@ -100,7 +116,7 @@ fun HijriDatePickerDialog(
                 }
             }
 
-            BottomArea(
+            Actions(
                 onSelectClick = viewModel::onSelectClicked,
                 onCancelClick = viewModel::onCancelClicked
             )
@@ -109,100 +125,106 @@ fun HijriDatePickerDialog(
 }
 
 @Composable
-private fun TopArea(
-    displayedYear: String,
-    mainText: String,
-    onYearSelectorToggled: () -> Unit
-) {
-    Box(
-        Modifier.background(MaterialTheme.colorScheme.surfaceContainerLow)
+private fun Header(selectedDate: String) {
+    val dims = MaterialTheme.dimensions
+
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(
+                start = dims.spaceXl,
+                end = dims.spaceMd,
+                top = dims.spaceLg,
+                bottom = dims.spaceMd
+            )
     ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp, horizontal = 20.dp)
-        ) {
-            // year
-            MyTextButton(
-                text = displayedYear,
-                onClick = onYearSelectorToggled,
-                fontSize = 19.sp,
-                textColor = MaterialTheme.colorScheme.onSurface
-            )
-
-            // main text
-            MyText(
-                text = mainText,
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                minFontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-}
-
-@Composable
-private fun DayMonthSelector(
-    displayedMonth: String,
-    weekDaysAbb: List<String>,
-    pagerState: PagerState,
-    onMonthPageChanged: (Int) -> Unit,
-    getDaysGrid: (Int) -> List<List<DayCell>>,
-    isSelectedDayDisplayed: Boolean,
-    selectedDay: String,
-    onPreviousMonthClick: () -> Unit,
-    onNextMonthClick: () -> Unit,
-    onDaySelected: (Int, Int) -> Unit
-) {
-    MyColumn {
-        MonthSelector(
-            displayedMonth = displayedMonth,
-            onPreviousMonthClick = onPreviousMonthClick,
-            onNextMonthClick = onNextMonthClick
+        Text(
+            text = stringResource(R.string.pick_hijri_date),
+            style = MaterialTheme.appTypography.label,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        DaySelector(
-            weekDaysAbbreviations = weekDaysAbb,
-            pagerState = pagerState,
-            onMonthPageChanged = onMonthPageChanged,
-            getDaysGrid = getDaysGrid,
-            isSelectedDayDisplayed = isSelectedDayDisplayed,
-            selectedDay = selectedDay,
-            onDaySelected = onDaySelected
+        Spacer(Modifier.height(dims.spaceSm))
+
+        MyText(
+            text = selectedDate,
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = 28.sp,
+            textAlign = TextAlign.Start,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            minFontSize = 16.sp
         )
     }
 }
 
 @Composable
-private fun MonthSelector(
+private fun Controls(
     displayedMonth: String,
+    displayedYear: String,
+    selectorMode: SelectorMode,
+    onYearSelectorToggled: () -> Unit,
     onPreviousMonthClick: () -> Unit,
     onNextMonthClick: () -> Unit
 ) {
-    MyRow(
-        Modifier
+    val dims = MaterialTheme.dimensions
+
+    Row(
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp)
+            .height(dims.minTouchTarget + dims.spaceSm)
+            .padding(horizontal = dims.spaceMd),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        MyIconButton(
-            imageVector = Icons.AutoMirrored.Default.ArrowBackIos,
-            iconModifier = Modifier.size(16.dp),
-            onClick = onPreviousMonthClick
-        )
+        // Month and year; opens the year list
+        Row(
+            modifier = Modifier
+                .clip(CircleShape)
+                .clickable(onClick = onYearSelectorToggled)
+                .padding(
+                    start = dims.spaceMd,
+                    end = dims.spaceXs,
+                    top = dims.spaceSm,
+                    bottom = dims.spaceSm
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "$displayedMonth · $displayedYear",
+                style = MaterialTheme.appTypography.label,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
 
-        MyText(
-            text = displayedMonth,
-            modifier = Modifier.width(150.dp),
-            color = MaterialTheme.colorScheme.onSurface
-        )
+            Icon(
+                imageVector =
+                    if (selectorMode == SelectorMode.YEAR) Icons.Default.ArrowDropUp
+                    else Icons.Default.ArrowDropDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
-        MyIconButton(
-            imageVector = Icons.AutoMirrored.Default.ArrowForwardIos,
-            iconModifier = Modifier.size(16.dp),
-            onClick = onNextMonthClick
-        )
+        Spacer(Modifier.weight(1f))
+
+        // Month arrows only make sense over the days grid
+        if (selectorMode == SelectorMode.DAY_MONTH) {
+            IconButton(onClick = onPreviousMonthClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.KeyboardArrowLeft,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            IconButton(onClick = onNextMonthClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 
@@ -216,62 +238,40 @@ private fun DaySelector(
     selectedDay: String,
     onDaySelected: (Int, Int) -> Unit
 ) {
-    // week days
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        weekDaysAbbreviations.forEach {
-            MyText(
-                text = it,
-                modifier = Modifier.size(40.dp),
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
+    val dims = MaterialTheme.dimensions
+
+    Column(Modifier.padding(horizontal = dims.spaceMd)) {
+        Row(Modifier.fillMaxWidth()) {
+            weekDaysAbbreviations.forEach {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(WeekDaysRowHeight),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.appTypography.label,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth()
+        ) { page ->
+            onMonthPageChanged(page)
+
+            DaysGrid(
+                daysGrid = getDaysGrid(page),
+                isSelectedDayDisplayed = isSelectedDayDisplayed,
+                selectedDay = selectedDay,
+                onDaySelected = onDaySelected
             )
         }
-    }
-
-    // days grid
-    HorizontalPager(
-        state = pagerState,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp)
-    ) { page ->
-        onMonthPageChanged(page)
-
-        DaysGrid(
-            daysGrid = getDaysGrid(page),
-            isSelectedDayDisplayed = isSelectedDayDisplayed,
-            selectedDay = selectedDay,
-            onDaySelected = onDaySelected
-        )
-    }
-}
-
-@Composable
-private fun BottomArea(
-    onSelectClick: () -> Unit,
-    onCancelClick: () -> Unit
-) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(bottom = 16.dp)
-    ) {
-        // select
-        MyTextButton(
-            text = stringResource(R.string.select),
-            modifier = Modifier.padding(start = 10.dp),
-            onClick = onSelectClick
-        )
-
-        // cancel
-        MyTextButton(
-            text = stringResource(R.string.cancel),
-            modifier = Modifier.padding(start = 10.dp),
-            onClick = onCancelClick
-        )
     }
 }
 
@@ -282,40 +282,22 @@ private fun DaysGrid(
     selectedDay: String,
     onDaySelected: (Int, Int) -> Unit
 ) {
-    Box(
-        Modifier.height(250.dp)
-    ) {
-        Column(
-            Modifier.fillMaxWidth()
-        ) {
-            daysGrid.forEachIndexed { y, row ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    row.forEachIndexed { x, cell ->
-                        val isSelected = isSelectedDayDisplayed && cell.dayText == selectedDay
-                        if (cell.dayText.isEmpty()) {
-                            MyText(
+    Column(Modifier.fillMaxWidth()) {
+        daysGrid.forEachIndexed { y, row ->
+            Row(Modifier.fillMaxWidth()) {
+                row.forEachIndexed { x, cell ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(DayCellHeight),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (cell.dayText.isNotEmpty()) {
+                            Day(
                                 text = cell.dayText,
-                                modifier = Modifier.size(40.dp)
-                            )
-                        }
-                        else {
-                            MyText(
-                                text = cell.dayText,
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.surface
-                                    )
-                                    .clickable { onDaySelected(x, y) },
-                                color =
-                                    if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                    else if (cell.isToday) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.onSurface
+                                isSelected = isSelectedDayDisplayed && cell.dayText == selectedDay,
+                                isToday = cell.isToday,
+                                onClick = { onDaySelected(x, y) }
                             )
                         }
                     }
@@ -326,38 +308,109 @@ private fun DaysGrid(
 }
 
 @Composable
+private fun Day(text: String, isSelected: Boolean, isToday: Boolean, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+
+    Surface(
+        onClick = onClick,
+        modifier = Modifier
+            .size(DaySize)
+            .then(
+                // Today is outlined, as in Material's picker; the selection fill replaces it
+                if (isToday && !isSelected) Modifier.border(1.dp, colors.primary, CircleShape)
+                else Modifier
+            ),
+        shape = CircleShape,
+        color = if (isSelected) colors.primary else Color.Transparent,
+        contentColor = when {
+            isSelected -> colors.onPrimary
+            isToday -> colors.primary
+            else -> colors.onSurface
+        }
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = text,
+                style = MaterialTheme.appTypography.body.copy(
+                    fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal
+                )
+            )
+        }
+    }
+}
+
+@Composable
 private fun YearSelector(
     selectedYear: String,
     yearOptions: List<String>,
     onYearSelected: (String) -> Unit
 ) {
-    MyLazyColumn(
-        state = rememberLazyListState(
-            initialFirstVisibleItemIndex = yearOptions.indexOf(selectedYear) - 3,
-            initialFirstVisibleItemScrollOffset = 0
-        ),
-        lazyList = {
-            items(yearOptions, key = { it }) { item ->
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    MyTextButton(
-                        text = item,
-                        onClick = { onYearSelected(item) },
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(
-                                if (item == selectedYear) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surface
-                            ),
-                        textColor =
-                            if (item == selectedYear) MaterialTheme.colorScheme.onPrimary
-                            else MaterialTheme.colorScheme.onSurface,
-                        textModifier = Modifier.padding(vertical = 4.dp, horizontal = 36.dp)
+    val dims = MaterialTheme.dimensions
+    val colors = MaterialTheme.colorScheme
+    // Opens with the selected year about two rows down, so earlier years show above it
+    val gridState = rememberLazyGridState(
+        initialFirstVisibleItemIndex = (yearOptions.indexOf(selectedYear) - 6).coerceAtLeast(0)
+    )
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        state = gridState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = dims.spaceMd),
+        verticalArrangement = Arrangement.spacedBy(dims.spaceSm),
+        horizontalArrangement = Arrangement.spacedBy(dims.spaceSm)
+    ) {
+        items(yearOptions, key = { it }) { year ->
+            val isSelected = year == selectedYear
+
+            Surface(
+                onClick = { onYearSelected(year) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(dims.buttonHeight - dims.spaceSm),
+                shape = CircleShape,
+                color = if (isSelected) colors.primary else Color.Transparent,
+                contentColor = if (isSelected) colors.onPrimary else colors.onSurfaceVariant
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = year,
+                        style = MaterialTheme.appTypography.body.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        )
                     )
                 }
             }
         }
-    )
+    }
+}
+
+@Composable
+private fun Actions(
+    onSelectClick: () -> Unit,
+    onCancelClick: () -> Unit
+) {
+    val dims = MaterialTheme.dimensions
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = dims.spaceMd, vertical = dims.spaceSm),
+        horizontalArrangement = Arrangement.spacedBy(dims.spaceSm, Alignment.End)
+    ) {
+        TextButton(onClick = onCancelClick) {
+            Text(
+                text = stringResource(R.string.cancel),
+                style = MaterialTheme.appTypography.button
+            )
+        }
+
+        TextButton(onClick = onSelectClick) {
+            Text(
+                text = stringResource(R.string.select),
+                style = MaterialTheme.appTypography.button
+            )
+        }
+    }
 }
