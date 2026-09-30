@@ -23,6 +23,7 @@ import bassamalim.hidaya.core.helpers.ListeningTimeRecorder
 import bassamalim.hidaya.core.helpers.buildAudioPlayer
 import bassamalim.hidaya.core.helpers.mediaArtworkUri
 import bassamalim.hidaya.core.helpers.mediaNotificationProvider
+import bassamalim.hidaya.core.helpers.verseAudioUrl
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.LangUtils.withAppLocale
 import bassamalim.hidaya.core.utils.report
@@ -36,7 +37,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -220,8 +220,7 @@ class VersePlayerService : MediaSessionService() {
 
     private fun verseItem(data: Data, verseIdx: Int, recitation: VerseRecitation): MediaItem {
         val verse = data.verses[verseIdx]
-        val uri = "https://www.everyayah.com/data/${recitation.source}" +
-                String.format(Locale.US, "%03d%03d.mp3", verse.suraNum, verse.num)
+        val uri = verseAudioUrl(recitation.source, verse.suraNum, verse.num)
 
         return MediaItem.Builder()
             .setMediaId(verse.id.toString())

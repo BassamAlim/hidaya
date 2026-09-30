@@ -56,6 +56,7 @@ import bassamalim.hidaya.features.remembrances.reader.RemembranceReaderScreen
 import bassamalim.hidaya.features.remembrances.remembrancesMenu.RemembrancesMenuScreen
 import bassamalim.hidaya.features.settings.SettingsScreen
 import bassamalim.hidaya.features.tv.TvScreen
+import bassamalim.hidaya.features.verseGuess.VerseGuessScreen
 
 @Composable
 fun Navigation(navigator: Navigator, thenTo: Screen? = null, shouldOnboard: Boolean = false) {
@@ -236,6 +237,15 @@ fun NavGraph(navController: NavHostController, startDest: Screen) {
             popExitTransition = outToTop
         ) {
             QuizLobbyScreen(hiltViewModel())
+        }
+
+        composable<Screen.VerseGuess>(
+            enterTransition = inFromBottom,
+            exitTransition = outToBottom,
+            popEnterTransition = inFromTop,
+            popExitTransition = outToTop
+        ) {
+            VerseGuessScreen(hiltViewModel())
         }
 
         composable<Screen.QuizResult>(

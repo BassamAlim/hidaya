@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -69,6 +70,11 @@ fun MoreScreen(viewModel: MoreViewModel, snackBarHostState: SnackbarHostState) {
             title = stringResource(R.string.quiz_title),
             icon = Icons.AutoMirrored.Default.FactCheck,
             onClick = viewModel::onQuizClick
+        ),
+        FeatureItem(
+            title = stringResource(R.string.verse_guess_title),
+            icon = Icons.Default.TravelExplore,
+            onClick = viewModel::onVerseGuessClick
         ),
         FeatureItem(
             title = stringResource(R.string.hadeeth_books),

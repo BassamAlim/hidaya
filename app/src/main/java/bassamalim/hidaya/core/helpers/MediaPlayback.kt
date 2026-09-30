@@ -27,8 +27,8 @@ import bassamalim.hidaya.core.data.repositories.UserRepository
 import bassamalim.hidaya.core.enums.PlaybackStatus
 import bassamalim.hidaya.core.utils.report
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.Locale
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
 
@@ -90,6 +90,11 @@ fun Context.mediaNotificationProvider(
  */
 fun Context.mediaArtworkUri(): Uri =
     "${ContentResolver.SCHEME_ANDROID_RESOURCE}://$packageName/${R.drawable.media_artwork}".toUri()
+
+/** Where everyayah.com serves one verse, for a verse recitation's [source] folder. */
+fun verseAudioUrl(source: String, suraNum: Int, verseNum: Int) =
+    "https://www.everyayah.com/data/${source.removeSuffix("/")}/" +
+            String.format(Locale.US, "%03d%03d.mp3", suraNum, verseNum)
 
 fun Player.playbackStatus() = when {
     playerError != null -> PlaybackStatus.ERROR
@@ -179,8 +184,7 @@ class ListeningTimeRecorder(
         val elapsed = SystemClock.elapsedRealtime() - since
 
         scope.launch {
-            val old = userRepository.getRecitationsRecord().first()
-            userRepository.setRecitationsRecord(old + elapsed)
+            userRepository.addRecitationsTime(elapsed)
         }
     }
 

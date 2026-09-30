@@ -318,4 +318,42 @@
     <string name="location_screen_title">Location</string>
     <string name="prayer_settings_hint">Pick what your local mosque follows; the defaults suit most people</string>
     <string name="continue_action">Continue</string>
+    <string name="verse_guess_title">Where\'s the verse?</string>
+    <string name="verse_location">%1$s %2$s · Page %3$s</string>
+    <string name="verse_map_hint">Tap a box to pick a verse, or hold and slide</string>
+    <string name="verse_map_scroll_position">Juz %1$s · %2$s</string>
+    <string name="whole_quran">Whole Quran</string>
+    <string name="verse_guess_description">Listen to three consecutive verses, then find where they are in the mushaf</string>
+    <string name="verse_guess_rules">Each round is worth up to %1$s points. The closer you land, the more you score</string>
+    <string name="verse_guess_scope">Verses from</string>
+    <string name="start_game">Start</string>
+    <string name="verse_guess_round_number">Round %1$s</string>
+    <string name="verse_guess_score">%1$s points</string>
+    <string name="verse_guess_points">+%1$s</string>
+    <string name="verse_range_location">%1$s %2$s–%3$s · Page %4$s</string>
+    <string name="verse_guess_answer">Answer: %1$s</string>
+    <string name="verse_guess_your_guess">Your guess: %1$s</string>
+    <string name="verse_guess_exact">Spot on!</string>
+    <string name="verse_guess_same_page">On the same page</string>
+    <plurals name="verse_guess_pages_away">
+        <item quantity="one">%1$s page away</item>
+        <item quantity="other">%1$s pages away</item>
+    </plurals>
+    <string name="open_in_quran">Open in the Quran</string>
+    <string name="next_round">Next round</string>
+    <string name="verse_audio_error">Couldn\'t play the recitation. Check your internet connection</string>
+    <string name="replay">Replay</string>
+    <string name="show_verse_text">Show the verses\' text</string>
+    <string name="hide_verse_text">Hide the verses\' text</string>
+    <string name="verse_guess_session">%1$s this session</string>
+    <string name="verse_guess_total_points">Total points</string>
+    <string name="verse_guess_rounds_played">Rounds</string>
+    <string name="verse_guess_recent_average">Last %1$s rounds\' average</string>
+    <string name="verse_guess_best_streak">Best streak</string>
+    <plurals name="verse_guess_streak">
+        <item quantity="one">%1$s in a row</item>
+        <item quantity="other">%1$s in a row</item>
+    </plurals>
+    <string name="verse_guess_rank_points">Points</string>
+    <string name="verse_guess_rank_streak">Streak</string>
 </resources>
