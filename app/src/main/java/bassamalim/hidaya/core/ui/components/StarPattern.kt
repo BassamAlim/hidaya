@@ -39,7 +39,7 @@ fun Modifier.starPattern(
     val cols = ceil(size.width / cell).toInt()
     for (row in 0..rows) {
         for (col in 0..cols) {
-            path.addStar(Offset(col * cell, row * cell), starRadius)
+            path.addEightPointStar(Offset(col * cell, row * cell), starRadius)
         }
     }
 
@@ -56,7 +56,8 @@ fun Modifier.starPattern(
     }
 }
 
-private fun Path.addStar(center: Offset, radius: Float) {
+/** The app's star motif (Rub el Hizb) as one outline, its points at [radius] from [center]. */
+fun Path.addEightPointStar(center: Offset, radius: Float) {
     val innerRadius = radius * STAR_INNER_RATIO
     for (i in 0 until 16) {
         val angle = (i * PI / 8 - PI / 2).toFloat()

@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import bassamalim.hidaya.R
+import bassamalim.hidaya.core.ui.theme.Positive
 import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
 import kotlinx.coroutines.flow.collectLatest
@@ -119,7 +120,7 @@ fun VerseMapItem.locationText(suraNames: List<String>) =
  * finger; sliding near the top or bottom edge scrolls the map. The rail on the right edge
  * jumps anywhere, with a tick at every juz.
  *
- * Once [answer] is set, the map scrolls to it and highlights it, and selection is locked.
+ * Once [answer] is set, the map scrolls to it and marks it correct, and selection is locked.
  */
 @Composable
 fun VerseMap(
@@ -184,7 +185,7 @@ fun VerseMap(
         val isLocked = answer != null
         val colors = MaterialTheme.colorScheme
         val railMarkers = listOfNotNull(
-            answer?.let { RailMarker(verseRows[it.first], colors.tertiary) },
+            answer?.let { RailMarker(verseRows[it.first], Positive) },
             selectedIndex?.let { RailMarker(verseRows[it], colors.primary) }
         )
 
@@ -567,7 +568,7 @@ private fun VerseMapLine(
                     // Selected and answer boxes grow to the full line height
                     val color = when {
                         cell.index == selectedIndex -> colors.primary
-                        answer != null && cell.index in answer -> colors.tertiary
+                        answer != null && cell.index in answer -> Positive
                         else -> null
                     }
                     val inset = if (color != null) 0f else verticalGap

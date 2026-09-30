@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -75,7 +76,8 @@ import androidx.compose.ui.unit.sp
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.enums.PlaybackStatus
 import bassamalim.hidaya.core.ui.components.MyCard
-import bassamalim.hidaya.core.ui.components.drawEightPointStar
+import bassamalim.hidaya.core.ui.components.addEightPointStar
+import bassamalim.hidaya.core.ui.theme.Positive
 import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
 import bassamalim.hidaya.core.ui.theme.hafs_smart
@@ -184,20 +186,25 @@ private fun ClipText(
     // overlapping glyphs, and a translucent color would darken where they overlap
     fun dimmed(color: Color) = color.copy(alpha = DIMMED_ALPHA).compositeOver(background)
 
+    // The recited verse takes the reader's tracked-verse gold, and the others step back
     val textColors = verses.indices.map { i ->
         animateColorAsState(
-            targetValue =
-                if (currentVerse == null || i == currentVerse) colors.onSurface
-                else dimmed(colors.onSurface),
+            targetValue = when (currentVerse) {
+                null -> colors.onSurface
+                i -> colors.tertiary
+                else -> dimmed(colors.onSurface)
+            },
             animationSpec = tween(EMPHASIS_MILLIS),
             label = "verse text"
         ).value
     }
     val markerColors = verses.indices.map { i ->
         animateColorAsState(
-            targetValue =
-                if (currentVerse == null || i == currentVerse) colors.primary
-                else dimmed(colors.primary),
+            targetValue = when (currentVerse) {
+                null -> colors.primary
+                i -> colors.tertiary
+                else -> dimmed(colors.primary)
+            },
             animationSpec = tween(EMPHASIS_MILLIS),
             label = "verse marker"
         ).value
@@ -221,10 +228,9 @@ private fun ClipText(
             Placeholder(0.7.em, 0.7.em, PlaceholderVerticalAlign.TextCenter)
         ) {
             Canvas(Modifier.fillMaxSize()) {
-                drawEightPointStar(
+                drawPath(
+                    path = Path().apply { addEightPointStar(center, size.minDimension / 2) },
                     color = markerColors[i],
-                    center = center,
-                    radius = size.minDimension / 2,
                     style = Stroke(width = 1.2.dp.toPx())
                 )
             }
@@ -398,7 +404,7 @@ private fun Controls(
                 style = MaterialTheme.appTypography.label,
                 color = when {
                     isError -> MaterialTheme.colorScheme.error
-                    suraName != null -> MaterialTheme.colorScheme.tertiary
+                    suraName != null -> Positive
                     else -> MaterialTheme.colorScheme.onSurface
                 },
                 maxLines = if (isError) 2 else 1,

@@ -37,6 +37,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.models.VerseGuessStats
 import bassamalim.hidaya.core.ui.components.MyCard
+import bassamalim.hidaya.core.ui.components.alignIconWithText
+import bassamalim.hidaya.core.ui.components.starPattern
 import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
 
@@ -108,7 +110,9 @@ private fun IntroCard() {
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = contentColor
         ),
-        contentPadding = PaddingValues(dims.spaceXl)
+        contentPadding = PaddingValues(dims.spaceXl),
+        // The hero card's pattern, as on Home's next prayer card
+        contentModifier = Modifier.starPattern(color = contentColor.copy(alpha = 0.12f))
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -252,16 +256,21 @@ private fun SettingRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row {
+                val valueStyle = MaterialTheme.appTypography.title
+
                 Text(
                     text = options.getOrElse(selected) { "" },
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.appTypography.title
+                    modifier = Modifier
+                        .weight(1f)
+                        .alignByBaseline(),
+                    style = valueStyle
                 )
 
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = null,
+                    modifier = alignIconWithText(valueStyle.fontSize),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

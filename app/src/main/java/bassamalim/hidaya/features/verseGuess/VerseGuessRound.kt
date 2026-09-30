@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import bassamalim.hidaya.R
+import bassamalim.hidaya.core.ui.theme.Positive
 import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
 import bassamalim.hidaya.features.verseGuess.map.VerseMap
@@ -187,7 +188,10 @@ private fun StreakChip(streak: Int, state: VerseGuessUiState, modifier: Modifier
 private fun SelectBar(selectionText: String?, onSelectClick: () -> Unit) {
     val dims = MaterialTheme.dimensions
 
-    Surface(modifier = Modifier.fillMaxWidth(), tonalElevation = dims.elevationSm) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
         Row(
             modifier = Modifier.padding(
                 horizontal = dims.screenPaddingHorizontal,
@@ -225,7 +229,10 @@ private fun RevealPanel(
 ) {
     val dims = MaterialTheme.dimensions
 
-    Surface(modifier = Modifier.fillMaxWidth(), tonalElevation = dims.elevationSm) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
         Column(
             modifier = Modifier.padding(
                 horizontal = dims.screenPaddingHorizontal,
@@ -254,7 +261,7 @@ private fun RevealPanel(
             Text(
                 text = stringResource(R.string.verse_guess_answer, clipLocationText(state, result.clipStart)),
                 style = MaterialTheme.appTypography.subtitle,
-                color = MaterialTheme.colorScheme.tertiary
+                color = Positive
             )
 
             Text(
