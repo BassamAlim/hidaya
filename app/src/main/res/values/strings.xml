@@ -323,7 +323,7 @@
     <string name="location_screen_title">الموقع</string>
     <string name="prayer_settings_hint">اختر ما يتبعه مسجدك المحلي، والإعدادات الافتراضية تناسب معظم المستخدمين</string>
     <string name="continue_action">متابعة</string>
-    <string name="verse_guess_title">أين الآية؟</string>
+    <string name="verse_guess_title">موضع الآية</string>
     <string name="verse_location">%1$s %2$s · صفحة %3$s</string>
     <string name="verse_map_hint">المس مربعًا لاختيار آية، أو اضغط مطولًا ثم اسحب</string>
     <string name="verse_map_scroll_position">جزء %1$s · %2$s</string>
@@ -378,7 +378,7 @@
     <string name="about_the_answer">عن الإجابة</string>
     <string name="current_streak">السلسلة الحالية</string>
     <string name="accuracy">نسبة الإصابة</string>
-    <string name="verse_guess_points_record">نقاط أين الآية</string>
+    <string name="verse_guess_points_record">نقاط موضع الآية</string>
     <string name="quiz_category_companions">الصحابة</string>
     <string name="quiz_category_rashidun_caliphate">زمن الخلفاء الراشدين</string>
     <string name="quiz_category_prophets_time">زمن الرسول</string>
@@ -387,4 +387,6 @@
     <string name="quiz_category_general">معلومات دينية عامة</string>
     <string name="quiz_learned_record">ما أتقنته من أسئلة الاختبار</string>
     <string name="questions_learned">ما أتقنته من الأسئلة</string>
+    <string name="quran_display_settings">إعدادات عرض القرآن</string>
+    <string name="qibla_bearing">%1$s° من الشمال</string>
 </resources>

@@ -29,6 +29,10 @@ class RemembranceCategoriesViewModel @Inject constructor(
         navigator.navigate(Screen.RemembranceReader(remembranceId))
     }
 
+    fun onMisbahaClick() {
+        navigator.navigate(Screen.Misbaha)
+    }
+
     fun onCategoryClick(categoryId: Int) {
         navigator.navigate(
             Screen.RemembrancesMenu(

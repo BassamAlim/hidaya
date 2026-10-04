@@ -7,6 +7,8 @@ data class PrayersBoardUiState(
     val loading: Boolean = true,
     val locationAvailable: Boolean = false,
     val locationName: String = "",
+    val qiblaBearing: String = "",
+    val kaabaDistance: String = "",
     val hasZoneMismatch: Boolean = false,
     val prayersData: SortedMap<Prayer, PrayerCardData> = sortedMapOf(),
     val noDateOffset: Boolean = true,

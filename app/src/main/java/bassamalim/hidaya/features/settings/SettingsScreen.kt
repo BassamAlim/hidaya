@@ -8,7 +8,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Contrast
+import androidx.compose.material.icons.filled.DisplaySettings
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Numbers
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -58,6 +61,31 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     selectedTheme = state.theme,
                     onThemeChange = viewModel::onThemeChange,
                     numeralsLanguage = state.numeralsLanguage
+                )
+            }
+
+            // Links to settings that live with their feature, so they're findable from here too
+            SettingsSection(title = stringResource(R.string.title_prayers)) {
+                LinkSetting(
+                    title = stringResource(R.string.location_screen_title),
+                    icon = Icons.Default.LocationOn,
+                    onClick = viewModel::onLocationClick
+                )
+
+                MyHorizontalDivider(Modifier.padding(horizontal = 16.dp))
+
+                LinkSetting(
+                    title = stringResource(R.string.prayer_time_settings),
+                    icon = Icons.Default.Schedule,
+                    onClick = viewModel::onPrayerTimeCalculationSettingsClick
+                )
+            }
+
+            SettingsSection(title = stringResource(R.string.title_quran)) {
+                LinkSetting(
+                    title = stringResource(R.string.quran_display_settings),
+                    icon = Icons.Default.DisplaySettings,
+                    onClick = viewModel::onQuranDisplaySettingsClick
                 )
             }
 

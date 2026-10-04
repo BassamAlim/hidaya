@@ -126,6 +126,10 @@ class QuranSurasViewModel @Inject constructor(
         data?.let { domain.trackSuraViewed(it.suraNames[suraId]) }
     }
 
+    fun onRecitationsClick() {
+        navigator.navigate(Screen.RecitationsRecitersMenu)
+    }
+
     fun onPageClick(pageNum: Int) {
         navigator.navigate(
             Screen.QuranReader(

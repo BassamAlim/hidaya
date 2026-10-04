@@ -13,6 +13,8 @@ import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import bassamalim.hidaya.features.prayers.notificationSettings.PrayerNotificationSettings
+import bassamalim.hidaya.features.qibla.kaabaDistanceKm
+import bassamalim.hidaya.features.qibla.qiblaBearing
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -33,6 +35,7 @@ import java.time.chrono.HijrahDate
 import java.time.temporal.ChronoField
 import java.util.SortedMap
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 @HiltViewModel
 class PrayersBoardViewModel @Inject constructor(
@@ -92,6 +95,14 @@ class PrayersBoardViewModel @Inject constructor(
                     nextPrayer = nextPrayer
                 ),
                 locationName = getLocationName(location),
+                qiblaBearing = translateNums(
+                    numeralsLanguage = numeralsLanguage,
+                    string = qiblaBearing(location.coordinates).roundToInt().toString()
+                ),
+                kaabaDistance = translateNums(
+                    numeralsLanguage = numeralsLanguage,
+                    string = kaabaDistanceKm(location.coordinates).roundToInt().toString()
+                ),
                 hasZoneMismatch = domain.hasZoneMismatch(location)
             )
         }
@@ -126,6 +137,10 @@ class PrayersBoardViewModel @Inject constructor(
 
     fun onLocatorClick() {
         navigator.navigate(Screen.Locator(isInitial = false))
+    }
+
+    fun onQiblaClick() {
+        navigator.navigate(Screen.Qibla)
     }
 
     fun onTimeCalculationSettingsClick() {
@@ -322,7 +337,7 @@ class PrayersBoardViewModel @Inject constructor(
             language = language
         )
         val cityName = domain.getCityName(cityId = location.ids.cityId, language = language)
-        return "$countryName, $cityName"
+        return "$cityName, $countryName"
     }
 
     private fun getDateText(newDate: LocalDate): String {

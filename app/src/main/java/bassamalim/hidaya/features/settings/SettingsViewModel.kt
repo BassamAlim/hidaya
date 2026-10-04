@@ -9,6 +9,8 @@ import bassamalim.hidaya.core.enums.Reminder
 import bassamalim.hidaya.core.enums.Theme
 import bassamalim.hidaya.core.enums.TimeFormat
 import bassamalim.hidaya.core.models.TimeOfDay
+import bassamalim.hidaya.core.nav.Navigator
+import bassamalim.hidaya.core.nav.Screen
 import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.LangUtils.translateTimeNums
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +26,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val domain: SettingsDomain
+    private val domain: SettingsDomain,
+    private val navigator: Navigator
 ): ViewModel() {
 
     private var targetReminder: Reminder.Devotional? = null
@@ -119,6 +122,18 @@ class SettingsViewModel @Inject constructor(
             }
         }
         else domain.cancelDevotionalReminder(reminder = devotion)
+    }
+
+    fun onLocationClick() {
+        navigator.navigate(Screen.Locator(isInitial = false))
+    }
+
+    fun onPrayerTimeCalculationSettingsClick() {
+        navigator.navigate(Screen.PrayerTimeCalculationSettings)
+    }
+
+    fun onQuranDisplaySettingsClick() {
+        navigator.navigate(Screen.QuranSettings)
     }
 
     fun onAthanAudioIdChange(newValue: Int) {

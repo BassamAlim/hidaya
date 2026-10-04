@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -228,6 +230,37 @@ fun SwitchSetting(
                 enabled = enabled
             )
         }
+    }
+}
+
+/** A row that opens another screen, for settings that live with their feature. */
+@Composable
+fun LinkSetting(title: String, icon: ImageVector, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier
+                .padding(end = MaterialTheme.dimensions.spaceLg)
+                .size(MaterialTheme.dimensions.iconMd),
+            tint = MaterialTheme.colorScheme.onSurface
+        )
+
+        PreferenceTitle(title, Modifier.weight(1f))
+
+        Icon(
+            imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

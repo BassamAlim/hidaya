@@ -7,15 +7,39 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
 import bassamalim.hidaya.core.data.repositories.LocationRepository
+import bassamalim.hidaya.core.models.Coordinates
 import bassamalim.hidaya.core.models.Location
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
+
+private const val KAABA_LAT = 21.4224779
+private const val KAABA_LNG = 39.8251832
+
+/** Degrees clockwise from true north to the Kaaba, in [0, 360). */
+fun qiblaBearing(coordinates: Coordinates): Float {
+    val myLatRad = Math.toRadians(coordinates.latitude)
+    val kaabaLatRad = Math.toRadians(KAABA_LAT)
+    val lngDiff = Math.toRadians(KAABA_LNG - coordinates.longitude)
+    val y = sin(lngDiff) * cos(kaabaLatRad)
+    val x = cos(myLatRad) * sin(kaabaLatRad) - (sin(myLatRad) * cos(kaabaLatRad) * cos(lngDiff))
+    return ((Math.toDegrees(atan2(y, x)) + 360) % 360).toFloat()
+}
+
+/** Great-circle (haversine) distance to the Kaaba, in kilometers. */
+fun kaabaDistanceKm(coordinates: Coordinates): Double {
+    val earthRadius = 6371.0
+    val dLat = Math.toRadians(KAABA_LAT - coordinates.latitude)
+    val dLng = Math.toRadians(KAABA_LNG - coordinates.longitude)
+    val a = sin(dLat / 2) * sin(dLat / 2) +
+            cos(Math.toRadians(coordinates.latitude)) * cos(Math.toRadians(KAABA_LAT)) *
+            sin(dLng / 2) * sin(dLng / 2)
+    return earthRadius * 2 * atan2(sqrt(a), sqrt(1 - a))
+}
 
 @Singleton
 class QiblaDomain @Inject constructor(
@@ -25,9 +49,6 @@ class QiblaDomain @Inject constructor(
 ) {
 
     var location: Location? = null
-    private val kaabaLat = 21.4224779
-    private val kaabaLng = 39.8251832
-    private val kaabaLatInRad = Math.toRadians(kaabaLat)
     private var compass: Compass? = null
     private var currentAzimuth = 0F
     private var bearing = 0F
@@ -40,7 +61,7 @@ class QiblaDomain @Inject constructor(
     ) {
         location = locationRepository.getLocation().first()
 
-        if (location != null) bearing = calculateBearing()
+        location?.let { bearing = qiblaBearing(it.coordinates) }
 
         setupCompass(
             updateAccuracy = updateAccuracy,
@@ -104,27 +125,8 @@ class QiblaDomain @Inject constructor(
         adjustNorthDial(-azimuth)
     }
 
-    fun getDistance(): Double {
-        val earthRadius = 6371.0
-        val dLon = Math.toRadians(abs(location!!.coordinates.latitude - kaabaLat))
-        val dLat = Math.toRadians(abs(location!!.coordinates.longitude - kaabaLng))
-        val a = sin(dLat / 2) * sin(dLat / 2) +
-                (cos(Math.toRadians(location!!.coordinates.latitude)) *
-                cos(Math.toRadians(kaabaLat)) * sin(dLon / 2) * sin(dLon / 2))
-        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        var distance = earthRadius * c
-        distance = (distance * 10).toInt() / 10.0
-        return distance
-    }
-
-    private fun calculateBearing(): Float {
-        val myLatRad = Math.toRadians(location!!.coordinates.latitude)
-        val lngDiff = Math.toRadians(kaabaLng - location!!.coordinates.longitude)
-        val y = sin(lngDiff) * cos(kaabaLatInRad)
-        val x = cos(myLatRad) * sin(kaabaLatInRad) -
-                (sin(myLatRad) * cos(kaabaLatInRad) * cos(lngDiff))
-        return ((Math.toDegrees(atan2(y, x)) + 360) % 360).toFloat()
-    }
+    /** Kilometers to the Kaaba, to one decimal. */
+    fun getDistance(): Double = (kaabaDistanceKm(location!!.coordinates) * 10).toInt() / 10.0
 
     suspend fun getNumeralsLanguage() = appSettingsRepository.getNumeralsLanguage().first()
 

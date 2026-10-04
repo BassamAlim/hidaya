@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,6 +62,7 @@ import bassamalim.hidaya.R
 import bassamalim.hidaya.core.enums.NotificationType
 import bassamalim.hidaya.core.enums.Prayer
 import bassamalim.hidaya.core.ui.components.LoadingScreen
+import bassamalim.hidaya.core.ui.components.MyCard
 import bassamalim.hidaya.core.ui.components.tutorial.TutorialOverlay
 import bassamalim.hidaya.core.ui.components.tutorial.TutorialShape
 import bassamalim.hidaya.core.ui.components.tutorial.TutorialStep
@@ -70,7 +72,7 @@ import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
 import java.util.SortedMap
 
-private val BoardMinHeight = 480.dp
+private val BoardMinHeight = 552.dp
 
 @Composable
 fun PrayersBoardScreen(viewModel: PrayersBoardViewModel) {
@@ -159,6 +161,12 @@ fun PrayersBoardScreen(viewModel: PrayersBoardViewModel) {
                         Modifier.tutorialTarget(tutorialState, "prayers_notification"),
                     reminderTargetModifier =
                         Modifier.tutorialTarget(tutorialState, "prayers_reminder")
+                )
+
+                QiblaCard(
+                    bearing = state.qiblaBearing,
+                    distance = state.kaabaDistance,
+                    onClick = viewModel::onQiblaClick
                 )
             }
             else {
@@ -266,6 +274,61 @@ private fun Header(
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
                 contentDescription = stringResource(R.string.report_wrong_prayer_times)
+            )
+        }
+    }
+}
+
+/** Shows the direction right on the board, with the compass a tap away. */
+@Composable
+private fun QiblaCard(bearing: String, distance: String, onClick: () -> Unit) {
+    val dims = MaterialTheme.dimensions
+
+    // Neutral, with the accent only on the badge: the board's primary color marks the next
+    // prayer, and this shouldn't compete with it
+    MyCard(
+        onClick = onClick,
+        shape = RoundedCornerShape(dims.radiusLg),
+        contentPadding = PaddingValues(horizontal = dims.spaceLg, vertical = dims.spaceMd)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(dims.iconXl)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(dims.radiusMd)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_qibla_compass),
+                    contentDescription = null,
+                    modifier = Modifier.size(dims.iconMd),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(Modifier.width(dims.spaceMd))
+
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.qibla),
+                    style = MaterialTheme.appTypography.title
+                )
+
+                Text(
+                    text = stringResource(R.string.qibla_bearing, bearing) + "  ·  " +
+                            "$distance ${stringResource(R.string.distance_unit)}",
+                    style = MaterialTheme.appTypography.label,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

@@ -18,12 +18,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,7 +51,6 @@ private val DateBarHeight = 44.dp
 fun MainScreen(viewModel: MainViewModel) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val bottomNavController = rememberNavController()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         modifier = Modifier.safeDrawingPadding(),
@@ -65,12 +61,10 @@ fun MainScreen(viewModel: MainViewModel) {
                 onDateClick = viewModel::onDateClick
             )
         },
-        bottomBar = { MyBottomNavigation(bottomNavController) },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        bottomBar = { MyBottomNavigation(bottomNavController) }
     ) { padding ->
         NavigationGraph(
             bottomNavController = bottomNavController,
-            snackbarHostState = snackbarHostState,
             padding = padding
         )
     }
@@ -132,7 +126,6 @@ private fun TopBar(hijriDate: String, gregorianDate: String, onDateClick: () -> 
 @Composable
 private fun NavigationGraph(
     bottomNavController: NavHostController,
-    snackbarHostState: SnackbarHostState,
     padding: PaddingValues
 ) {
     NavHost(
@@ -194,10 +187,7 @@ private fun NavigationGraph(
             popEnterTransition = TabPopEnter,
             popExitTransition = TabPopExit
         ) {
-            MoreScreen(
-                viewModel = hiltViewModel(),
-                snackBarHostState = snackbarHostState
-            )
+            MoreScreen(hiltViewModel())
         }
     }
 }

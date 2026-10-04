@@ -1,5 +1,6 @@
 package bassamalim.hidaya.features.quran.surasMenu
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,20 +11,24 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -72,6 +77,8 @@ import bassamalim.hidaya.core.ui.theme.dimensions
 import bassamalim.hidaya.core.ui.theme.hafs_smart
 import kotlinx.coroutines.flow.Flow
 
+private val FabClearance = 88.dp
+
 @Composable
 fun QuranSurasMenuScreen(viewModel: QuranSurasViewModel) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -97,10 +104,39 @@ fun QuranSurasMenuScreen(viewModel: QuranSurasViewModel) {
         }
     }
 
+    // Recitations need Android 8
+    val hasRecitations = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+    // Hoisted (one per tab) so the button can shrink to its icon while either list scrolls
+    val listStates = listOf(rememberLazyListState(), rememberLazyListState())
+    val isListScrolling = listStates.any { it.isScrollInProgress }
+
     Box(modifier = Modifier.fillMaxSize()) {
         MyScaffold(
             title = "",
-            topBar = {}  // override the default top bar
+            topBar = {},  // override the default top bar
+            floatingActionButton = {
+                if (hasRecitations) {
+                    ExtendedFloatingActionButton(
+                        expanded = !isListScrolling,
+                        text = {
+                            Text(
+                                text = stringResource(R.string.recitations),
+                                style = MaterialTheme.appTypography.label
+                            )
+                        },
+                        icon = {
+                            // Collapsed, the icon is all that's left to name the button
+                            Icon(
+                                imageVector = Icons.Default.Headphones,
+                                contentDescription =
+                                    if (isListScrolling) stringResource(R.string.recitations)
+                                    else null
+                            )
+                        },
+                        onClick = viewModel::onRecitationsClick
+                    )
+                }
+            }
         ) { padding ->
             TabLayout(
                 pageNames = listOf(
@@ -122,7 +158,8 @@ fun QuranSurasMenuScreen(viewModel: QuranSurasViewModel) {
                     if (hasBookmarks) {
                         BookmarksRow(
                             bookmarks = state.bookmarks,
-                            modifier = Modifier.tutorialTarget(tutorialState, "quran_bookmarks_row"),
+                            modifier =
+                                Modifier.tutorialTarget(tutorialState, "quran_bookmarks_row"),
                             onBookmarkClick = viewModel::onBookmarkClick
                         )
                     }
@@ -130,6 +167,8 @@ fun QuranSurasMenuScreen(viewModel: QuranSurasViewModel) {
             ) { page ->
                 Tab(
                     surasFlow = viewModel.getItems(page),
+                    listState = listStates[page],
+                    hasFab = hasRecitations,
                     onSuraClick = viewModel::onSuraClick,
                     onFavoriteClick = viewModel::onFavoriteClick
                 )
@@ -183,12 +222,15 @@ private fun BookmarksRow(
 @Composable
 private fun Tab(
     surasFlow: Flow<List<SuraItem>>,
+    listState: LazyListState,
+    hasFab: Boolean,
     onSuraClick: (Int) -> Unit,
     onFavoriteClick: (Int, Boolean) -> Unit
 ) {
     val suras by surasFlow.collectAsStateWithLifecycle(emptyList())
 
     MyLazyColumn(
+        state = listState,
         lazyList = {
             items(suras, key = { it.id }) { item ->
                 SuraRow(
@@ -203,6 +245,9 @@ private fun Tab(
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                 )
             }
+
+            // Lets the last sura scroll clear of the recitations button
+            if (hasFab) item { Spacer(Modifier.height(FabClearance)) }
         }
     )
 }

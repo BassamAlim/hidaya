@@ -1,5 +1,6 @@
 package bassamalim.hidaya.features.more
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,9 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Radio
@@ -30,7 +29,6 @@ import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -51,22 +49,11 @@ private val FeatureCardHeight = 140.dp
 private val FeatureIconContainerSize = 48.dp
 
 @Composable
-fun MoreScreen(viewModel: MoreViewModel, snackBarHostState: SnackbarHostState) {
+fun MoreScreen(viewModel: MoreViewModel) {
     val context = LocalContext.current
-    val unsupportedMessage = stringResource(R.string.feature_not_supported)
     val dims = MaterialTheme.dimensions
 
-    val featuresItems = listOf(
-        FeatureItem(
-            title = stringResource(R.string.recitations),
-            icon = Icons.Default.Headphones,
-            onClick = { viewModel.onRecitationsClick(snackBarHostState, unsupportedMessage) }
-        ),
-        FeatureItem(
-            title = stringResource(R.string.qibla),
-            drawableId = R.drawable.ic_qibla_compass,
-            onClick = viewModel::onQiblaClick
-        ),
+    val featuresItems = listOfNotNull(
         FeatureItem(
             title = stringResource(R.string.hadeeth_books),
             drawableId = R.drawable.ic_books,
@@ -77,16 +64,14 @@ fun MoreScreen(viewModel: MoreViewModel, snackBarHostState: SnackbarHostState) {
             icon = Icons.Default.LiveTv,
             onClick = viewModel::onTvClick
         ),
-        FeatureItem(
-            title = stringResource(R.string.quran_radio),
-            icon = Icons.Default.Radio,
-            onClick = { viewModel.onRadioClick(snackBarHostState, unsupportedMessage) }
-        ),
-        FeatureItem(
-            title = stringResource(R.string.misbaha),
-            drawableId = R.drawable.ic_prayer_beads,
-            onClick = viewModel::onMisbahaClick
-        ),
+        // The radio needs Android 8
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            FeatureItem(
+                title = stringResource(R.string.quran_radio),
+                icon = Icons.Default.Radio,
+                onClick = viewModel::onRadioClick
+            )
+        } else null,
         FeatureItem(
             title = stringResource(R.string.date_converter),
             icon = Icons.Default.CalendarMonth,
@@ -104,11 +89,6 @@ fun MoreScreen(viewModel: MoreViewModel, snackBarHostState: SnackbarHostState) {
             title = stringResource(R.string.verse_guess_title),
             icon = Icons.Default.TravelExplore,
             onClick = viewModel::onVerseGuessClick
-        ),
-        FeatureItem(
-            title = stringResource(R.string.leaderboard),
-            icon = Icons.Default.Leaderboard,
-            onClick = viewModel::onLeaderboardClick
         )
     )
 

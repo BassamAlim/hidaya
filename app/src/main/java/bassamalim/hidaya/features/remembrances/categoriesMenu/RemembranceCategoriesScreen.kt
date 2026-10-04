@@ -80,42 +80,59 @@ fun RemembranceCategoriesScreen(viewModel: RemembranceCategoriesViewModel) {
         ),
         verticalArrangement = Arrangement.spacedBy(dims.spaceMd)
     ) {
+        // Misbaha beside morning and evening, stacked
         item {
             CardPair {
                 QuickCard(
-                    title = stringResource(R.string.morning_remembrances),
-                    icon = Icons.Default.WbSunny,
+                    title = stringResource(R.string.misbaha),
+                    icon = painterResource(R.drawable.ic_prayer_beads),
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
-                    onClick = { viewModel.onRemembranceClick(MORNING_REMEMBRANCE_ID) }
+                    onClick = viewModel::onMisbahaClick
                 )
 
-                QuickCard(
-                    title = stringResource(R.string.evening_remembrances),
-                    icon = Icons.Default.Bedtime,
+                Column(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
-                    onClick = { viewModel.onRemembranceClick(EVENING_REMEMBRANCE_ID) }
-                )
+                    verticalArrangement = Arrangement.spacedBy(dims.spaceMd)
+                ) {
+                    CompactCard(
+                        title = stringResource(R.string.morning_remembrances),
+                        icon = Icons.Default.WbSunny,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        onClick = { viewModel.onRemembranceClick(MORNING_REMEMBRANCE_ID) }
+                    )
+
+                    CompactCard(
+                        title = stringResource(R.string.evening_remembrances),
+                        icon = Icons.Default.Bedtime,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        onClick = { viewModel.onRemembranceClick(EVENING_REMEMBRANCE_ID) }
+                    )
+                }
             }
         }
 
         item {
             CardPair {
-                CompactCard(
+                QuickCard(
                     title = stringResource(R.string.all_remembrances),
-                    icon = Icons.Default.ViewModule,
+                    icon = rememberVectorPainter(Icons.Default.ViewModule),
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
                     onClick = viewModel::onAllRemembrancesClick
                 )
 
-                CompactCard(
+                QuickCard(
                     title = stringResource(R.string.favorite_remembrances),
-                    icon = Icons.Default.Favorite,
+                    icon = rememberVectorPainter(Icons.Default.Favorite),
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
@@ -165,7 +182,7 @@ private fun CardPair(content: @Composable RowScope.() -> Unit) {
 @Composable
 private fun QuickCard(
     title: String,
-    icon: ImageVector,
+    icon: Painter,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -182,7 +199,7 @@ private fun QuickCard(
         contentPadding = PaddingValues(dims.spaceLg)
     ) {
         IconBadge(
-            painter = rememberVectorPainter(icon),
+            painter = icon,
             background = MaterialTheme.colorScheme.primary,
             tint = MaterialTheme.colorScheme.onPrimary
         )
@@ -210,9 +227,11 @@ private fun CompactCard(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         ),
-        contentPadding = PaddingValues(horizontal = dims.spaceLg, vertical = dims.spaceMd)
+        contentPadding = PaddingValues(horizontal = dims.spaceLg, vertical = dims.spaceMd),
+        // Stacked beside a taller card, so the row centers in whatever height it's given
+        contentModifier = Modifier.fillMaxHeight()
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
