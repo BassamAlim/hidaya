@@ -36,7 +36,6 @@
     <string name="tv_channels">Live TV</string>
     <string name="quran_channel">Quran channel</string>
     <string name="sunnah_channel">Sunnah channel</string>
-    <string name="previous">Previous</string>
     <string name="next">Next</string>
     <string name="rebuild_database">Rebuild database</string>
     <string name="about">About</string>
@@ -96,7 +95,6 @@
     <string name="sura">Sura</string>
     <string name="juz">Juz</string>
     <string name="search">Search</string>
-    <string name="question">Question</string>
     <string name="jumuah">Jumuah</string>
     <string name="passed">Passed: %1$s</string>
     <string name="remaining">Remaining: %1$s</string>
@@ -134,7 +132,6 @@
     <string name="stop_on_page_end">Stop at page end</string>
     <string name="quiz_title">Religious quiz</string>
     <string name="start_quiz">Start the quiz</string>
-    <string name="quiz_result">Quiz result</string>
     <string name="cancel">Cancel</string>
     <string name="read">Read</string>
     <string name="max_num_of_marches">Maximum number of matches</string>
@@ -167,8 +164,6 @@
     <string name="favorite_remembrances">Favorite remembrances</string>
     <string name="no_bookmarked_page">No bookmarked page</string>
     <string name="distance_unit">km</string>
-    <string name="finish_quiz">Finish quiz</string>
-    <string name="answer_all_questions">Answer all questions</string>
     <string name="your_score_is">Your score is</string>
     <string name="correct">Correct</string>
     <string name="wrong">Wrong</string>
@@ -289,7 +284,6 @@
 
     <string name="quick_quiz">Quick quiz</string>
     <string name="quick_quiz_description">Random questions from all categories</string>
-    <string name="question_progress">Question %1$s of %2$s</string>
 
     <string name="radio_live">Live</string>
     <string name="radio_connecting">Connecting…</string>
@@ -356,4 +350,22 @@
     </plurals>
     <string name="verse_guess_rank_points">Points</string>
     <string name="verse_guess_rank_streak">Streak</string>
+    <string name="games">Games</string>
+    <string name="next_question">Next question</string>
+    <string name="quiz_question_number">Question %1$s</string>
+    <string name="quiz_session">%1$s of %2$s correct this session</string>
+    <string name="correct_answer">Correct answer</string>
+    <string name="wrong_answer">Wrong answer</string>
+    <string name="about_the_answer">About the answer</string>
+    <string name="current_streak">Current streak</string>
+    <string name="accuracy">Accuracy</string>
+    <string name="verse_guess_points_record">Where\'s-the-verse points</string>
+    <string name="quiz_category_companions">The Companions</string>
+    <string name="quiz_category_rashidun_caliphate">The Rightly Guided Caliphs\' era</string>
+    <string name="quiz_category_prophets_time">The Prophet\'s time</string>
+    <string name="quiz_category_quran_suras">Suras of the Quran</string>
+    <string name="quiz_category_verse_counts">Verse counts of the Quran</string>
+    <string name="quiz_category_general">General religious knowledge</string>
+    <string name="quiz_learned_record">Quiz questions learned</string>
+    <string name="questions_learned">Questions learned</string>
 </resources>

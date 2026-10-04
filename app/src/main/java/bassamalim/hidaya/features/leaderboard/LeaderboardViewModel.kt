@@ -3,7 +3,9 @@ package bassamalim.hidaya.features.leaderboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import bassamalim.hidaya.core.enums.Language
+import bassamalim.hidaya.core.models.QuizStats
 import bassamalim.hidaya.core.models.Response
+import bassamalim.hidaya.core.utils.LangUtils.formatPercent
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +23,7 @@ class LeaderboardViewModel @Inject constructor(
 ): ViewModel() {
 
     lateinit var numeralsLanguage: Language
+    private var quizQuestionCount = 0
 
     /** (user id, value) pairs fetched so far, best first */
     private val rawRanks = mutableMapOf<RankType, List<Pair<Int, Long>>>()
@@ -37,6 +40,7 @@ class LeaderboardViewModel @Inject constructor(
     private fun initializeData() {
         viewModelScope.launch {
             numeralsLanguage = domain.getNumeralsLanguage()
+            quizQuestionCount = domain.getQuizQuestionCount()
 
             val userRecord = domain.getUserRecord()?.data
             val ranks = domain.getRanks()
@@ -98,6 +102,11 @@ class LeaderboardViewModel @Inject constructor(
                     RankType.BY_READING, RankType.BY_VERSE_GUESS_STREAK ->
                         translateNums(value.toString(), numeralsLanguage)
                     RankType.BY_LISTENING -> formatRecitationsTime(value)
+                    RankType.BY_QUIZ_LEARNED -> formatPercent(
+                        percent = QuizStats.learnedPercent(value.toInt(), quizQuestionCount),
+                        decimals = 1,
+                        numeralsLanguage = numeralsLanguage
+                    )
                     RankType.BY_VERSE_GUESS_POINTS -> translateNums(
                         String.format(Locale.US, "%,d", value),
                         numeralsLanguage

@@ -12,9 +12,11 @@ import androidx.navigation.NavHostController
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.enums.Prayer
+import bassamalim.hidaya.core.models.QuizStats
 import bassamalim.hidaya.core.models.TimeOfDay
 import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
+import bassamalim.hidaya.core.utils.LangUtils.formatPercent
 import bassamalim.hidaya.core.utils.LangUtils.translateNums
 import bassamalim.hidaya.core.utils.LangUtils.translateTimeNums
 import bassamalim.hidaya.features.main.BottomNavItem
@@ -73,8 +75,8 @@ class HomeViewModel @Inject constructor(
             isWerdDone = isWerdDone
         )
     }.combine(
-        domain.getLocalRecord()
-    ) { state, localRecord ->
+        combine(domain.getLocalRecord(), domain.getQuizQuestionCount(), ::Pair)
+    ) { state, (localRecord, quizQuestionCount) ->
         state.copy(
             quranRecord = translateNums(
                 string = localRecord.quranPages.toString(),
@@ -83,6 +85,15 @@ class HomeViewModel @Inject constructor(
             recitationsRecord = formatRecitationsTime(
                 millis = localRecord.recitationsTime,
                 language = state.language,
+                numeralsLanguage = state.numeralsLanguage
+            ),
+            verseGuessRecord = translateNums(
+                string = String.format(Locale.US, "%,d", localRecord.verseGuessPoints),
+                numeralsLanguage = state.numeralsLanguage
+            ),
+            quizLearnedRecord = formatPercent(
+                percent = QuizStats.learnedPercent(localRecord.quizLearned, quizQuestionCount),
+                decimals = 1,
                 numeralsLanguage = state.numeralsLanguage
             )
         )
@@ -168,6 +179,14 @@ class HomeViewModel @Inject constructor(
 
     fun onLeaderboardClick() {
         navigator.navigate(Screen.Leaderboard)
+    }
+
+    fun onVerseGuessClick() {
+        navigator.navigate(Screen.VerseGuess)
+    }
+
+    fun onQuizClick() {
+        navigator.navigate(Screen.QuizLobby)
     }
 
     private fun HomeUiState.withPrayers(): HomeUiState {

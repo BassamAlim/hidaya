@@ -2,6 +2,7 @@ package bassamalim.hidaya.features.leaderboard
 
 import android.app.Application
 import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
+import bassamalim.hidaya.core.data.repositories.QuizRepository
 import bassamalim.hidaya.core.data.repositories.UserRepository
 import bassamalim.hidaya.core.models.Response
 import bassamalim.hidaya.core.models.UserRecord
@@ -15,6 +16,7 @@ import javax.inject.Singleton
 class LeaderboardDomain @Inject constructor(
     app: Application,
     private val userRepository: UserRepository,
+    private val quizRepository: QuizRepository,
     private val appSettingsRepository: AppSettingsRepository
 ) {
 
@@ -48,6 +50,8 @@ class LeaderboardDomain @Inject constructor(
         }
         return ranks
     }
+
+    suspend fun getQuizQuestionCount() = quizRepository.getQuestionCount()
 
     suspend fun getNumeralsLanguage() = appSettingsRepository.getNumeralsLanguage().first()
 

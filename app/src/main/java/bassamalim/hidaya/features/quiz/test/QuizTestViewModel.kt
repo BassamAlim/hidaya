@@ -3,42 +3,44 @@ package bassamalim.hidaya.features.quiz.test
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.models.QuizFullQuestion
-import bassamalim.hidaya.core.nav.Navigator
 import bassamalim.hidaya.core.nav.Screen
-import bassamalim.hidaya.core.utils.LangUtils
-import bassamalim.hidaya.features.quiz.QuizResult
-import bassamalim.hidaya.features.quiz.QuizResultHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import androidx.navigation.toRoute
 
+/** Endless questions from one category, each revealed as soon as it's answered. */
 @HiltViewModel
 class QuizTestViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val domain: QuizTestDomain,
-    private val resultHolder: QuizResultHolder,
-    private val navigator: Navigator
+    private val domain: QuizTestDomain
 ): ViewModel() {
 
     private val category = savedStateHandle.toRoute<Screen.QuizTest>().category
 
-    val totalQuestions = 10
-    private lateinit var questions: List<QuizFullQuestion>
-    private val chosenAs = IntArray(totalQuestions) { -1 }
-    private lateinit var language: Language
-    private lateinit var numeralsLanguage: Language
+    private var language = Language.ARABIC
+    private var questionIds: List<Int> = emptyList()
+    private var question: QuizFullQuestion? = null
+    /** The next question waits on this, so the one just answered counts as seen */
+    private var saveJob: Job? = null
+    private var nextJob: Job? = null
 
     private val _uiState = MutableStateFlow(QuizTestUiState())
-    val uiState = _uiState.onStart {
+    val uiState = combine(
+        _uiState,
+        domain.observeCurrentStreak()
+    ) { state, stats ->
+        state.copy(currentStreak = stats.currentStreak)
+    }.onStart {
         initializeData()
     }.stateIn(
         scope = viewModelScope,
@@ -47,97 +49,52 @@ class QuizTestViewModel @Inject constructor(
     )
 
     private fun initializeData() {
+        if (question != null) return
+
         viewModelScope.launch {
             language = domain.getLanguage()
-            numeralsLanguage = domain.getNumeralsLanguage()
-            questions = domain.getQuizQuestions(category = category, language = language)
+            questionIds = domain.getQuestionIds(category)
+            _uiState.update { it.copy(numeralsLanguage = domain.getNumeralsLanguage()) }
 
-            _uiState.update { it.copy(
-                isLoading = false
-            )}
-
-            updateState()
+            askNext()
         }
     }
 
-    fun onPreviousQuestionClick() {
-        if (_uiState.value.questionIdx > 0)
-            ask(_uiState.value.questionIdx - 1)
+    fun onAnswerClick(index: Int) {
+        val question = question ?: return
+        if (_uiState.value.isRevealed) return
+
+        val isCorrect = question.answers[index].isCorrect
+        _uiState.update { it.copy(
+            chosenIndex = index,
+            sessionAnswered = it.sessionAnswered + 1,
+            sessionCorrect = it.sessionCorrect + if (isCorrect) 1 else 0
+        )}
+        saveJob = viewModelScope.launch { domain.addAnswer(question.id, isCorrect) }
     }
 
-    fun onNextQuestionClick() {
-        if (_uiState.value.questionIdx == totalQuestions-1) {
-            if (_uiState.value.allAnswered) endQuiz()
-        }
-        else ask(_uiState.value.questionIdx + 1)
-    }
+    fun onNextClick() {
+        if (!_uiState.value.isRevealed || nextJob?.isActive == true) return
 
-    fun onAnswerSelected(answerIndex: Int) {
-        val questionIdx = _uiState.value.questionIdx
-        chosenAs[questionIdx] = answerIndex
-
-        _uiState.update { it.copy(
-            selection = answerIndex,
-            allAnswered = !chosenAs.contains(-1),
-            answeredQuestions = chosenAs.map { chosen -> chosen != -1 }
-        )}
-        _uiState.update { it.copy(
-            nextButtonEnabled = !(it.questionIdx == totalQuestions-1 && !it.allAnswered)
-        )}
-
-        if (questionIdx != totalQuestions-1) {
-            viewModelScope.launch {
-                // Let the chosen answer show as selected before moving on
-                delay(ADVANCE_DELAY_MILLIS)
-                // Skip if the user already moved to another question meanwhile
-                if (_uiState.value.questionIdx == questionIdx) onNextQuestionClick()
-            }
+        nextJob = viewModelScope.launch {
+            saveJob?.join()
+            askNext()
         }
     }
 
-    fun onQuestionClick(questionIdx: Int) {
-        ask(questionIdx)
-    }
+    private suspend fun askNext() {
+        if (questionIds.isEmpty()) return
 
-    private fun ask(num: Int) {
+        val next = domain.getNextQuestion(questionIds, language)
+        question = next
         _uiState.update { it.copy(
-            questionIdx = num
+            isLoading = false,
+            question = next.question,
+            answers = next.answers.map { answer -> answer.text },
+            correctIndex = next.answers.indexOfFirst { answer -> answer.isCorrect },
+            chosenIndex = null,
+            description = next.description?.takeIf { d -> d.isNotBlank() }
         )}
-
-        updateState()
-    }
-
-    private fun endQuiz() {
-        resultHolder.result = QuizResult(
-            score = domain.calculateScore(questions, chosenAs),
-            questions = questions,
-            chosenAnswers = chosenAs.toList()
-        )
-
-        navigator.navigate(Screen.QuizResult) {
-            popUpTo<Screen.QuizTest> { inclusive = true }
-        }
-    }
-
-    private fun updateState() {
-        val question = questions[_uiState.value.questionIdx]
-
-        _uiState.update { it.copy(
-            titleQuestionNumber = LangUtils.translateNums(
-                numeralsLanguage = numeralsLanguage,
-                string = (it.questionIdx + 1).toString()
-            ),
-            question = question.question,
-            answers = question.answers.map { answer -> answer.text },
-            selection = chosenAs[it.questionIdx],
-            answeredQuestions = chosenAs.map { chosen -> chosen != -1 },
-            previousButtonEnabled = it.questionIdx != 0,
-            nextButtonEnabled = !(it.questionIdx == totalQuestions-1 && !it.allAnswered),
-        )}
-    }
-
-    private companion object {
-        const val ADVANCE_DELAY_MILLIS = 300L
     }
 
 }

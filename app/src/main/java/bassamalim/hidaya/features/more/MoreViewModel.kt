@@ -37,6 +37,10 @@ class MoreViewModel @Inject constructor(
         navigator.navigate(Screen.VerseGuess)
     }
 
+    fun onLeaderboardClick() {
+        navigator.navigate(Screen.Leaderboard)
+    }
+
     fun onBooksClick() {
         navigator.navigate(Screen.BooksMenu)
     }

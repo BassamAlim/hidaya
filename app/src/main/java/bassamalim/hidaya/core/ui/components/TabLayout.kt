@@ -6,12 +6,14 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
@@ -36,7 +38,7 @@ fun TabLayout(
 @Composable
 fun Tabs(pagerState: PagerState, pageNames: List<String>) {
     val scope = rememberCoroutineScope()
-    PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
+    val tabs = @Composable {
         pageNames.forEachIndexed { index, _ ->
             Tab(
                 selected = pagerState.currentPage == index,
@@ -57,6 +59,11 @@ fun Tabs(pagerState: PagerState, pageNames: List<String>) {
             )
         }
     }
+
+    // Past three, tabs scroll rather than squeeze their names onto two lines
+    if (pageNames.size > 3)
+        PrimaryScrollableTabRow(selectedTabIndex = pagerState.currentPage, edgePadding = 0.dp) { tabs() }
+    else PrimaryTabRow(selectedTabIndex = pagerState.currentPage) { tabs() }
 }
 
 @Composable

@@ -90,6 +90,16 @@ object LangUtils {
         }
     }
 
+    /** [percent] with [decimals] places, in [numeralsLanguage]'s digits and signs */
+    fun formatPercent(percent: Double, decimals: Int, numeralsLanguage: Language): String {
+        val text = translateNums(
+            String.format(Locale.US, "%.${decimals}f%%", percent),
+            numeralsLanguage
+        )
+        return if (numeralsLanguage == Language.ARABIC) text.replace('.', '٫').replace('%', '٪')
+        else text
+    }
+
     fun translateTimeNums(
         string: String,
         language: Language,

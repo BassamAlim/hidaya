@@ -20,6 +20,8 @@ data class HomeUiState(
     val isWerdDone: Boolean = false,
     val quranRecord: String = "",
     val recitationsRecord: String = "",
+    val verseGuessRecord: String = "",
+    val quizLearnedRecord: String = "",
     val isLeaderboardEnabled: Boolean = false,
     val language: Language = Language.ARABIC,
     val numeralsLanguage: Language = Language.ARABIC

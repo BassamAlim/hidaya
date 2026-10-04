@@ -37,4 +37,11 @@ class LangUtilsTest {
         assertEquals(Language.ARABIC, resolve(null))
     }
 
+    @Test
+    fun `percentages take the numerals' digits and signs`() {
+        assertEquals("24.3%", LangUtils.formatPercent(24.31, 1, Language.ENGLISH))
+        assertEquals("٢٤٫٣٪", LangUtils.formatPercent(24.31, 1, Language.ARABIC))
+        assertEquals("80%", LangUtils.formatPercent(80.0, 0, Language.ENGLISH))
+    }
+
 }

@@ -2,6 +2,7 @@ package bassamalim.hidaya.core.nav
 
 import bassamalim.hidaya.core.enums.MenuType
 import bassamalim.hidaya.core.enums.Prayer
+import bassamalim.hidaya.features.quiz.test.QuizTestDomain
 import bassamalim.hidaya.features.quran.reader.QuranTarget
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -74,11 +75,8 @@ sealed interface Screen {
     @Serializable @SerialName("quiz_lobby")
     data object QuizLobby: Screen
 
-    @Serializable @SerialName("quiz_result")
-    data object QuizResult: Screen
-
     @Serializable @SerialName("quiz_test")
-    data class QuizTest(val category: String = "all"): Screen
+    data class QuizTest(val category: String = QuizTestDomain.ALL_CATEGORIES): Screen
 
     @Serializable @SerialName("quran_reader")
     data class QuranReader(val targetType: QuranTarget, val targetValue: Int = -1): Screen

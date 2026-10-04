@@ -5,6 +5,7 @@ import bassamalim.hidaya.core.data.repositories.AnalyticsRepository
 import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
 import bassamalim.hidaya.core.data.repositories.LocationRepository
 import bassamalim.hidaya.core.data.repositories.PrayersRepository
+import bassamalim.hidaya.core.data.repositories.QuizRepository
 import bassamalim.hidaya.core.data.repositories.QuranRepository
 import bassamalim.hidaya.core.data.repositories.UserRepository
 import bassamalim.hidaya.core.enums.Prayer
@@ -14,6 +15,7 @@ import bassamalim.hidaya.core.utils.LangUtils
 import bassamalim.hidaya.core.utils.OsUtils
 import bassamalim.hidaya.core.utils.PrayerTimeUtils
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import javax.inject.Inject
@@ -25,6 +27,7 @@ class HomeDomain @Inject constructor(
     private val prayersRepository: PrayersRepository,
     private val locationRepository: LocationRepository,
     private val quranRepository: QuranRepository,
+    private val quizRepository: QuizRepository,
     private val userRepository: UserRepository,
     private val appSettingsRepository: AppSettingsRepository,
     private val analyticsRepository: AnalyticsRepository
@@ -106,6 +109,8 @@ class HomeDomain @Inject constructor(
     fun isWerdDone() = quranRepository.isWerdDone()
 
     fun getLocalRecord() = userRepository.getLocalRecord()
+
+    fun getQuizQuestionCount() = flow { emit(quizRepository.getQuestionCount()) }
 
     fun getLocation() = locationRepository.getLocation()
 

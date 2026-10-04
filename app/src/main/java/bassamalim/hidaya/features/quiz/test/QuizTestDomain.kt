@@ -2,54 +2,47 @@ package bassamalim.hidaya.features.quiz.test
 
 import bassamalim.hidaya.core.data.repositories.AppSettingsRepository
 import bassamalim.hidaya.core.data.repositories.QuizRepository
+import bassamalim.hidaya.core.data.repositories.UserRepository
 import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.models.QuizFullQuestion
 import bassamalim.hidaya.core.utils.LangUtils
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class QuizTestDomain @Inject constructor(
     private val quizRepository: QuizRepository,
+    private val userRepository: UserRepository,
     private val appSettingsRepository: AppSettingsRepository
 ) {
-
-    fun calculateScore(questions: List<QuizFullQuestion>, chosenAs: IntArray): Int {
-        var score = 0
-        questions.forEachIndexed { i, q ->
-            if (q.answers[chosenAs[i]].isCorrect) score++
-        }
-        return score
-    }
 
     fun getLanguage() = LangUtils.getAppLanguage()
 
     suspend fun getNumeralsLanguage() = appSettingsRepository.getNumeralsLanguage().first()
 
-    suspend fun getQuizQuestions(category: String, language: Language): List<QuizFullQuestion> {
-        val ids = getRandomIds(category)
-        return getFullQuestions(ids = ids, language = language)
+    suspend fun getQuestionIds(category: String) =
+        if (category == ALL_CATEGORIES) quizRepository.getAllQuestionIds()
+        else quizRepository.getCategoryQuestionIds(category)
+
+    fun observeCurrentStreak() = userRepository.getQuizStats()
+
+    /**
+     * A random question from [ids] the user hasn't been asked yet. Once they've all been asked,
+     * they're forgotten and the category starts over.
+     */
+    suspend fun getNextQuestion(ids: List<Int>, language: Language): QuizFullQuestion {
+        val seenIds = userRepository.getQuizStats().first().seenIds
+        val id = ids.filter { it !in seenIds }.randomOrNull()
+            ?: ids.random().also { userRepository.forgetQuizQuestions(ids) }
+
+        val question = quizRepository.getFullQuestions(intArrayOf(id), language).single()
+        return question.copy(answers = question.answers.shuffled())
     }
 
-    private suspend fun getRandomIds(category: String): List<Int> {
-        val ids = if (category == "all") quizRepository.getAllQuestionIds().toMutableList()
-        else quizRepository.getCategoryQuestionIds(category).toMutableList()
-        ids.shuffle()
-        return ids.subList(0, 10)
-    }
+    suspend fun addAnswer(questionId: Int, isCorrect: Boolean) =
+        userRepository.addQuizAnswer(questionId, isCorrect)
 
-    private suspend fun getFullQuestions(
-        ids: List<Int>,
-        language: Language
-    ): List<QuizFullQuestion> {
-        val questions = quizRepository.getFullQuestions(
-            questionIds = ids.toIntArray(),
-            language = language
-        )
-        return questions.map { question ->
-            question.copy(answers = question.answers.shuffled())
-        }
+    companion object {
+        const val ALL_CATEGORIES = "all"
     }
 
 }

@@ -33,10 +33,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.models.VerseGuessStats
+import bassamalim.hidaya.core.ui.components.LeaderboardButton
 import bassamalim.hidaya.core.ui.components.MyCard
+import bassamalim.hidaya.core.ui.components.MySectionHeader
+import bassamalim.hidaya.core.ui.components.MyStatTile
 import bassamalim.hidaya.core.ui.components.alignIconWithText
 import bassamalim.hidaya.core.ui.components.starPattern
 import bassamalim.hidaya.core.ui.theme.appTypography
@@ -48,6 +50,7 @@ internal fun VerseGuessSetup(
     onScopeChange: (juz: Int) -> Unit,
     onReciterChange: (reciterId: Int) -> Unit,
     onStartClick: () -> Unit,
+    onLeaderboardClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val dims = MaterialTheme.dimensions
@@ -64,7 +67,14 @@ internal fun VerseGuessSetup(
     ) {
         IntroCard()
 
-        if (state.progress.roundsPlayed > 0) StatsGrid(state)
+        if (state.progress.roundsPlayed > 0) Column {
+            MySectionHeader(
+                title = stringResource(R.string.your_progress),
+                trailing = { LeaderboardButton(onClick = onLeaderboardClick) }
+            )
+
+            StatsGrid(state)
+        }
         else Text(
             text = stringResource(
                 R.string.verse_guess_rules,
@@ -162,13 +172,13 @@ private fun StatsGrid(state: VerseGuessUiState) {
 
     Column(verticalArrangement = Arrangement.spacedBy(dims.spaceSm)) {
         Row(horizontalArrangement = Arrangement.spacedBy(dims.spaceSm)) {
-            StatTile(
+            MyStatTile(
                 value = formatNumber(progress.totalPoints, numerals),
                 label = stringResource(R.string.verse_guess_total_points),
                 isHighlighted = true,
                 modifier = Modifier.weight(1f)
             )
-            StatTile(
+            MyStatTile(
                 value = formatNumber(progress.roundsPlayed, numerals),
                 label = stringResource(R.string.verse_guess_rounds_played),
                 modifier = Modifier.weight(1f)
@@ -176,7 +186,7 @@ private fun StatsGrid(state: VerseGuessUiState) {
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(dims.spaceSm)) {
-            StatTile(
+            MyStatTile(
                 value = progress.recentAverage?.let { formatNumber(it, numerals) } ?: "–",
                 label = stringResource(
                     R.string.verse_guess_recent_average,
@@ -184,52 +194,12 @@ private fun StatsGrid(state: VerseGuessUiState) {
                 ),
                 modifier = Modifier.weight(1f)
             )
-            StatTile(
+            MyStatTile(
                 value = formatNumber(progress.bestStreak, numerals),
                 label = stringResource(R.string.verse_guess_best_streak),
                 modifier = Modifier.weight(1f)
             )
         }
-    }
-}
-
-@Composable
-private fun StatTile(
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier,
-    isHighlighted: Boolean = false
-) {
-    val dims = MaterialTheme.dimensions
-    val contentColor =
-        if (isHighlighted) MaterialTheme.colorScheme.onSecondaryContainer
-        else MaterialTheme.colorScheme.onSurface
-
-    MyCard(
-        modifier = modifier,
-        shape = RoundedCornerShape(dims.radiusLg),
-        colors = CardDefaults.cardColors(
-            containerColor =
-                if (isHighlighted) MaterialTheme.colorScheme.secondaryContainer
-                else MaterialTheme.colorScheme.surfaceContainerLow,
-            contentColor = contentColor
-        ),
-        contentPadding = PaddingValues(horizontal = dims.spaceLg, vertical = dims.spaceMd)
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.appTypography.headline,
-            color = contentColor,
-            maxLines = 1
-        )
-
-        Text(
-            text = label,
-            style = MaterialTheme.appTypography.caption,
-            color = if (isHighlighted) contentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
     }
 }
 

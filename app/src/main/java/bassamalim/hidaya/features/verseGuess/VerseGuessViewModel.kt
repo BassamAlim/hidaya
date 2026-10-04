@@ -164,6 +164,10 @@ class VerseGuessViewModel @Inject constructor(
         navigator.navigate(Screen.QuranReader(targetType = QuranTarget.VERSE, targetValue = item.id))
     }
 
+    fun onLeaderboardClick() {
+        navigator.navigate(Screen.Leaderboard)
+    }
+
     /** Leaving a game goes back to its setup rather than off the screen. */
     fun onBackPressed() {
         player.stop()

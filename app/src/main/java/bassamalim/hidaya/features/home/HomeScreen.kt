@@ -28,7 +28,6 @@ import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -55,9 +54,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.ui.components.AnalogClock
+import bassamalim.hidaya.core.ui.components.LeaderboardButton
 import bassamalim.hidaya.core.ui.components.MyCard
 import bassamalim.hidaya.core.ui.components.MySectionHeader
-import bassamalim.hidaya.core.ui.components.alignIconWithText
 import bassamalim.hidaya.core.ui.components.starPattern
 import bassamalim.hidaya.core.ui.theme.Positive
 import bassamalim.hidaya.core.ui.theme.appTypography
@@ -119,8 +118,12 @@ fun HomeScreen(viewModel: HomeViewModel, bottomNavController: NavHostController)
         ProgressSection(
             quranPagesRecord = state.quranRecord,
             recitationsRecord = state.recitationsRecord,
+            verseGuessRecord = state.verseGuessRecord,
+            quizLearnedRecord = state.quizLearnedRecord,
             isLeaderboardEnabled = state.isLeaderboardEnabled,
-            onLeaderboardClick = viewModel::onLeaderboardClick
+            onLeaderboardClick = viewModel::onLeaderboardClick,
+            onVerseGuessClick = viewModel::onVerseGuessClick,
+            onQuizClick = viewModel::onQuizClick
         )
     }
 }
@@ -390,8 +393,12 @@ private fun RemembranceCard(isMorning: Boolean, onClick: () -> Unit) {
 private fun ProgressSection(
     quranPagesRecord: String,
     recitationsRecord: String,
+    verseGuessRecord: String,
+    quizLearnedRecord: String,
     isLeaderboardEnabled: Boolean,
-    onLeaderboardClick: () -> Unit
+    onLeaderboardClick: () -> Unit,
+    onVerseGuessClick: () -> Unit,
+    onQuizClick: () -> Unit
 ) {
     val dims = MaterialTheme.dimensions
 
@@ -399,26 +406,7 @@ private fun ProgressSection(
         MySectionHeader(
             title = stringResource(R.string.your_progress),
             trailing = if (isLeaderboardEnabled) {
-                {
-                    TextButton(onClick = onLeaderboardClick) {
-                        val labelStyle = MaterialTheme.appTypography.label
-
-                        Icon(
-                            imageVector = Icons.Default.Leaderboard,
-                            contentDescription = null,
-                            modifier = alignIconWithText(labelStyle.fontSize)
-                                .size(dims.iconSm)
-                        )
-
-                        Spacer(Modifier.width(dims.spaceXs))
-
-                        Text(
-                            text = stringResource(R.string.leaderboard),
-                            modifier = Modifier.alignByBaseline(),
-                            style = labelStyle
-                        )
-                    }
-                }
+                { LeaderboardButton(onClick = onLeaderboardClick) }
             } else null
         )
 
@@ -442,12 +430,47 @@ private fun ProgressSection(
                     .fillMaxHeight()
             )
         }
+
+        Spacer(Modifier.height(dims.spaceMd))
+
+        // The games' records, each opening its game
+        Row(
+            modifier = Modifier.height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(dims.spaceMd)
+        ) {
+            StatTile(
+                value = verseGuessRecord,
+                label = stringResource(R.string.verse_guess_points_record),
+                onClick = onVerseGuessClick,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            )
+
+            StatTile(
+                value = quizLearnedRecord,
+                label = stringResource(R.string.quiz_learned_record),
+                onClick = onQuizClick,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            )
+        }
     }
 }
 
 @Composable
-private fun StatTile(value: String, label: String, modifier: Modifier = Modifier) {
-    MyCard(modifier = modifier, shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg)) {
+private fun StatTile(
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
+) {
+    MyCard(
+        modifier = modifier,
+        onClick = onClick,
+        shape = RoundedCornerShape(MaterialTheme.dimensions.radiusLg)
+    ) {
         Text(
             text = value,
             style = MaterialTheme.appTypography.h1.copy(fontWeight = FontWeight.Bold),

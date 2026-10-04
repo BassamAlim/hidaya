@@ -30,11 +30,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
+import bassamalim.hidaya.core.enums.Language
+import bassamalim.hidaya.core.ui.components.LeaderboardButton
 import bassamalim.hidaya.core.ui.components.MyCard
 import bassamalim.hidaya.core.ui.components.MyScaffold
 import bassamalim.hidaya.core.ui.components.MySectionHeader
+import bassamalim.hidaya.core.ui.components.MyStatTile
 import bassamalim.hidaya.core.ui.theme.appTypography
 import bassamalim.hidaya.core.ui.theme.dimensions
+import bassamalim.hidaya.core.utils.LangUtils.formatPercent
+import bassamalim.hidaya.core.utils.LangUtils.translateNums
+
+/**
+ * Display names for the categories, keyed by the database's Arabic name. The database's English
+ * column holds identifiers and is blank for some questions, so the Arabic name is the key.
+ */
+private val categoryNames = mapOf(
+    "الصحابة" to R.string.quiz_category_companions,
+    "زمن الخلفاء الراشدين" to R.string.quiz_category_rashidun_caliphate,
+    "زمن الرسول" to R.string.quiz_category_prophets_time,
+    "سور القرآن" to R.string.quiz_category_quran_suras,
+    "عدد آيات القرآن" to R.string.quiz_category_verse_counts,
+    "معلومات دينية عامة" to R.string.quiz_category_general
+)
 
 @Composable
 fun QuizLobbyScreen(viewModel: QuizLobbyViewModel) {
@@ -58,12 +76,26 @@ fun QuizLobbyScreen(viewModel: QuizLobbyViewModel) {
         ) {
             QuickQuizCard(onStartClick = viewModel::onStartQuizClick)
 
+            if (state.progress.answered > 0) {
+                Spacer(Modifier.height(dims.spaceSm))
+
+                MySectionHeader(
+                    title = stringResource(R.string.your_progress),
+                    trailing = { LeaderboardButton(onClick = viewModel::onLeaderboardClick) }
+                )
+
+                StatsGrid(progress = state.progress, numeralsLanguage = state.numeralsLanguage)
+            }
+
             Spacer(Modifier.height(dims.spaceSm))
 
             MySectionHeader(title = stringResource(R.string.quiz_categories))
 
             state.quizCategories.forEach { category ->
-                CategoryRow(name = category, onClick = { viewModel.onCategoryClick(category) })
+                CategoryRow(
+                    name = categoryNames[category]?.let { stringResource(it) } ?: category,
+                    onClick = { viewModel.onCategoryClick(category) }
+                )
             }
         }
     }
@@ -125,6 +157,43 @@ private fun QuickQuizCard(onStartClick: () -> Unit) {
             Text(
                 text = stringResource(R.string.start_quiz),
                 style = MaterialTheme.appTypography.button
+            )
+        }
+    }
+}
+
+/** How much of the bank is learned and the accuracy, then the current and best streaks. */
+@Composable
+private fun StatsGrid(progress: QuizProgress, numeralsLanguage: Language) {
+    val dims = MaterialTheme.dimensions
+    fun format(value: Int) = translateNums(value.toString(), numeralsLanguage)
+
+    Column(verticalArrangement = Arrangement.spacedBy(dims.spaceSm)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(dims.spaceSm)) {
+            MyStatTile(
+                value = formatPercent(progress.learnedPercent, 1, numeralsLanguage),
+                label = stringResource(R.string.questions_learned),
+                isHighlighted = true,
+                modifier = Modifier.weight(1f)
+            )
+            MyStatTile(
+                value = progress.accuracyPercent
+                    ?.let { formatPercent(it.toDouble(), 0, numeralsLanguage) } ?: "–",
+                label = stringResource(R.string.accuracy),
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(dims.spaceSm)) {
+            MyStatTile(
+                value = format(progress.currentStreak),
+                label = stringResource(R.string.current_streak),
+                modifier = Modifier.weight(1f)
+            )
+            MyStatTile(
+                value = format(progress.bestStreak),
+                label = stringResource(R.string.verse_guess_best_streak),
+                modifier = Modifier.weight(1f)
             )
         }
     }

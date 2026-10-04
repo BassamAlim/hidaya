@@ -36,7 +36,6 @@
     <string name="tv_channels">بث مباشر</string>
     <string name="quran_channel">القرآن الكريم</string>
     <string name="sunnah_channel">السنة النبوية</string>
-    <string name="previous">السابق</string>
     <string name="next">التالي</string>
     <string name="rebuild_database">إعادة بناء قاعدة البيانات</string>
     <string name="about">حول التطبيق</string>
@@ -97,7 +96,6 @@
     <string name="sura">سُورَة</string>
     <string name="juz">جزء</string>
     <string name="search">ابحث</string>
-    <string name="question">سؤال</string>
     <string name="jumuah">جمعة</string>
     <string name="passed">مرت: %1$s</string>
     <string name="remaining">متبقي: %1$s</string>
@@ -136,7 +134,6 @@
     <string name="welcome_message" translatable="false">أهلا بك في تطبيق هِداية \n Welcome to Hidaya app</string>
     <string name="quiz_title">اختبر معلوماتك</string>
     <string name="start_quiz">ابدأ الاختبار</string>
-    <string name="quiz_result">نتيجة الاختبار</string>
     <string name="cancel">إلغاء</string>
     <string name="read">قراءة</string>
     <string name="max_num_of_marches">اقصى عدد من النتائج</string>
@@ -173,8 +170,6 @@
     <string name="favorite_remembrances">الأذكار المفضلة</string>
     <string name="no_bookmarked_page">لا توجد صفحة محفوظة</string>
     <string name="distance_unit">كم</string>
-    <string name="finish_quiz">إنهاء الإختبار</string>
-    <string name="answer_all_questions">أجب على جميع الاسئلة</string>
     <string name="your_score_is">نتيجتك هي</string>
     <string name="correct">صحيح</string>
     <string name="wrong">خطأ</string>
@@ -300,7 +295,6 @@
 
     <string name="quick_quiz">اختبار سريع</string>
     <string name="quick_quiz_description">أسئلة عشوائية من كل التصنيفات</string>
-    <string name="question_progress">السؤال %1$s من %2$s</string>
 
     <string name="radio_live">مباشر</string>
     <string name="radio_connecting">جارٍ الاتصال…</string>
@@ -375,4 +369,22 @@
     </plurals>
     <string name="verse_guess_rank_points">النقاط</string>
     <string name="verse_guess_rank_streak">سلسلة الإصابات</string>
+    <string name="games">الألعاب</string>
+    <string name="next_question">السؤال التالي</string>
+    <string name="quiz_question_number">السؤال %1$s</string>
+    <string name="quiz_session">%1$s صحيحة من %2$s في هذه الجلسة</string>
+    <string name="correct_answer">الإجابة الصحيحة</string>
+    <string name="wrong_answer">إجابة خاطئة</string>
+    <string name="about_the_answer">عن الإجابة</string>
+    <string name="current_streak">السلسلة الحالية</string>
+    <string name="accuracy">نسبة الإصابة</string>
+    <string name="verse_guess_points_record">نقاط أين الآية</string>
+    <string name="quiz_category_companions">الصحابة</string>
+    <string name="quiz_category_rashidun_caliphate">زمن الخلفاء الراشدين</string>
+    <string name="quiz_category_prophets_time">زمن الرسول</string>
+    <string name="quiz_category_quran_suras">سور القرآن</string>
+    <string name="quiz_category_verse_counts">عدد آيات القرآن</string>
+    <string name="quiz_category_general">معلومات دينية عامة</string>
+    <string name="quiz_learned_record">ما أتقنته من أسئلة الاختبار</string>
+    <string name="questions_learned">ما أتقنته من الأسئلة</string>
 </resources>

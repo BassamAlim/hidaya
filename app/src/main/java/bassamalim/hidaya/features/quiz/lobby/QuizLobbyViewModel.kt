@@ -7,6 +7,7 @@ import bassamalim.hidaya.core.nav.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -20,7 +21,13 @@ class QuizLobbyViewModel @Inject constructor(
 ): ViewModel() {
 
     private val _uiState = MutableStateFlow(QuizLobbyUiState())
-    val uiState = _uiState.onStart {
+    val uiState = combine(
+        _uiState,
+        domain.observeProgress(),
+        domain.getNumeralsLanguage()
+    ) { state, progress, numeralsLanguage ->
+        state.copy(progress = progress, numeralsLanguage = numeralsLanguage)
+    }.onStart {
         initializeData()
     }.stateIn(
         scope = viewModelScope,
@@ -45,6 +52,10 @@ class QuizLobbyViewModel @Inject constructor(
         navigator.navigate(Screen.QuizTest(category = category))
 
         domain.trackQuizCategoryViewed(category)
+    }
+
+    fun onLeaderboardClick() {
+        navigator.navigate(Screen.Leaderboard)
     }
 
 }

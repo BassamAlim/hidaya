@@ -54,6 +54,24 @@ class UserRepository @Inject constructor(
             )
         }
 
+    fun getQuizStats() = userPreferencesDataSource.getQuizStats()
+
+    /** Adds a quiz answer to the local stats and the record synced for ranking. */
+    suspend fun addQuizAnswer(questionId: Int, isCorrect: Boolean) =
+        userPreferencesDataSource.updateQuiz { stats, record ->
+            val newStats = stats.afterAnswer(questionId, isCorrect)
+            // Counted up rather than taken from the set's size, so a reinstall, which empties
+            // the set but syncs back the count, doesn't stall the count until the set catches up
+            val isNewlyLearned = newStats.learnedIds.size > stats.learnedIds.size
+            newStats to record.copy(quizLearned = record.quizLearned + if (isNewlyLearned) 1 else 0)
+        }
+
+    /** Lets [questionIds] be asked again, once a category has run out. */
+    suspend fun forgetQuizQuestions(questionIds: Collection<Int>) =
+        userPreferencesDataSource.updateQuiz { stats, record ->
+            stats.copy(seenIds = stats.seenIds - questionIds.toSet()) to record
+        }
+
     suspend fun getRemoteRecord(deviceId: String): Response<UserRecord>? {
         if (!OsUtils.isNetworkAvailable(app)) return null
 
@@ -89,7 +107,8 @@ class UserRepository @Inject constructor(
                 quranPages = max(local.quranPages, remote.quranPages),
                 recitationsTime = max(local.recitationsTime, remote.recitationsTime),
                 verseGuessPoints = max(local.verseGuessPoints, remote.verseGuessPoints),
-                verseGuessBestStreak = max(local.verseGuessBestStreak, remote.verseGuessBestStreak)
+                verseGuessBestStreak = max(local.verseGuessBestStreak, remote.verseGuessBestStreak),
+                quizLearned = max(local.quizLearned, remote.quizLearned)
             )
         }
         if (merged != remote) setRemoteRecord(deviceId, merged)
@@ -106,7 +125,8 @@ class UserRepository @Inject constructor(
                         "reading_record" to record.quranPages,
                         "listening_record" to record.recitationsTime,
                         "verse_guess_points" to record.verseGuessPoints,
-                        "verse_guess_streak" to record.verseGuessBestStreak
+                        "verse_guess_streak" to record.verseGuessBestStreak,
+                        "quiz_learned" to record.quizLearned
                     ),
                     SetOptions.merge()
                 )
@@ -150,6 +170,7 @@ class UserRepository @Inject constructor(
                     "listening_record" to localRecord.recitationsTime,
                     "verse_guess_points" to localRecord.verseGuessPoints,
                     "verse_guess_streak" to localRecord.verseGuessBestStreak,
+                    "quiz_learned" to localRecord.quizLearned,
                     "created_at" to System.currentTimeMillis()
                 ))
 
@@ -219,9 +240,10 @@ class UserRepository @Inject constructor(
             userId = getLong("user_id")?.toInt() ?: return null,
             quranPages = getLong("reading_record")?.toInt() ?: return null,
             recitationsTime = getLong("listening_record") ?: return null,
-            // Records from before the game have neither field
+            // Records from before the games lack their fields
             verseGuessPoints = getLong("verse_guess_points") ?: 0L,
-            verseGuessBestStreak = getLong("verse_guess_streak")?.toInt() ?: 0
+            verseGuessBestStreak = getLong("verse_guess_streak")?.toInt() ?: 0,
+            quizLearned = getLong("quiz_learned")?.toInt() ?: 0
         )
     }
 

@@ -42,6 +42,7 @@ fun VerseGuessScreen(viewModel: VerseGuessViewModel) {
                 onScopeChange = viewModel::onScopeChange,
                 onReciterChange = viewModel::onReciterChange,
                 onStartClick = viewModel::onStartClick,
+                onLeaderboardClick = viewModel::onLeaderboardClick,
                 modifier = modifier
             )
             VerseGuessPhase.ROUND -> VerseGuessRound(

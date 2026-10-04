@@ -117,12 +117,14 @@ private fun UsersList(
         pageNames = listOf(
             stringResource(R.string.by_reading),
             stringResource(R.string.by_listening),
-            stringResource(R.string.verse_guess_title)
+            stringResource(R.string.verse_guess_title),
+            stringResource(R.string.quiz_title)
         )
     ) { page ->
         when (page) {
             0 -> Page(RankType.BY_READING)
             1 -> Page(RankType.BY_LISTENING)
+            3 -> Page(RankType.BY_QUIZ_LEARNED)
             else -> {
                 var rankBy by rememberSaveable { mutableStateOf(RankType.BY_VERSE_GUESS_POINTS) }
 
@@ -251,7 +253,8 @@ private fun ItemCard(
         Text(
             text = when (rankType) {
                 RankType.BY_READING -> "${item.value} ${stringResource(R.string.pages)}"
-                RankType.BY_LISTENING, RankType.BY_VERSE_GUESS_STREAK -> item.value
+                RankType.BY_LISTENING, RankType.BY_VERSE_GUESS_STREAK,
+                RankType.BY_QUIZ_LEARNED -> item.value
                 RankType.BY_VERSE_GUESS_POINTS ->
                     stringResource(R.string.verse_guess_score, item.value)
             },

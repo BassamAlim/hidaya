@@ -16,11 +16,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import bassamalim.hidaya.core.ui.inFromBottom
-import bassamalim.hidaya.core.ui.inFromLeft
-import bassamalim.hidaya.core.ui.inFromRight
 import bassamalim.hidaya.core.ui.inFromTop
 import bassamalim.hidaya.core.ui.outToBottom
-import bassamalim.hidaya.core.ui.outToLeft
 import bassamalim.hidaya.core.ui.outToTop
 import bassamalim.hidaya.features.about.AboutScreen
 import bassamalim.hidaya.features.books.bookChaptersMenu.BookChaptersScreen
@@ -42,7 +39,6 @@ import bassamalim.hidaya.features.prayers.notificationSettings.PrayerNotificatio
 import bassamalim.hidaya.features.prayers.timeCalculationSettings.PrayerTimeCalculationSettingsDialog
 import bassamalim.hidaya.features.qibla.QiblaScreen
 import bassamalim.hidaya.features.quiz.lobby.QuizLobbyScreen
-import bassamalim.hidaya.features.quiz.result.QuizResultScreen
 import bassamalim.hidaya.features.quiz.test.QuizTestScreen
 import bassamalim.hidaya.features.quran.reader.QuranReaderScreen
 import bassamalim.hidaya.features.quran.settings.QuranSettingsDialog
@@ -246,15 +242,6 @@ fun NavGraph(navController: NavHostController, startDest: Screen) {
             popExitTransition = outToTop
         ) {
             VerseGuessScreen(hiltViewModel())
-        }
-
-        composable<Screen.QuizResult>(
-            enterTransition = inFromLeft,
-            exitTransition = outToLeft,
-            popEnterTransition = inFromRight,
-            popExitTransition = outToBottom
-        ) {
-            QuizResultScreen(hiltViewModel())
         }
 
         composable<Screen.QuizTest>(

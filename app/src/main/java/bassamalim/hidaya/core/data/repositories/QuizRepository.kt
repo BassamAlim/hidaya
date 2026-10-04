@@ -24,6 +24,10 @@ class QuizRepository @Inject constructor(
         quizQuestionsDao.getAllIds()
     }
 
+    suspend fun getQuestionCount() = withContext(dispatcher) {
+        quizQuestionsDao.getCount()
+    }
+
     suspend fun getCategoryQuestionIds(category: String) = withContext(dispatcher) {
         quizQuestionsDao.getCategoryIds(category)
     }

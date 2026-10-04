@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
 import bassamalim.hidaya.core.data.dataSources.preferences.objects.UserPreferences
 import bassamalim.hidaya.core.models.Location
+import bassamalim.hidaya.core.models.QuizStats
 import bassamalim.hidaya.core.models.UserRecord
 import bassamalim.hidaya.core.models.VerseGuessStats
 import bassamalim.hidaya.core.utils.report
@@ -46,6 +47,15 @@ class UserPreferencesDataSource(
         dataStore.updateData {
             val (stats, record) = transform(it.verseGuessStats, it.userRecord)
             it.copy(verseGuessStats = stats, userRecord = record)
+        }
+    }
+
+    fun getQuizStats() = flow.map { it.quizStats }
+    /** Atomic across both, since an answer updates the local stats and the synced record. */
+    suspend fun updateQuiz(transform: (QuizStats, UserRecord) -> Pair<QuizStats, UserRecord>) {
+        dataStore.updateData {
+            val (stats, record) = transform(it.quizStats, it.userRecord)
+            it.copy(quizStats = stats, userRecord = record)
         }
     }
 

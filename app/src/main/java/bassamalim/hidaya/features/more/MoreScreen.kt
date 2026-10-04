@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Radio
@@ -67,16 +68,6 @@ fun MoreScreen(viewModel: MoreViewModel, snackBarHostState: SnackbarHostState) {
             onClick = viewModel::onQiblaClick
         ),
         FeatureItem(
-            title = stringResource(R.string.quiz_title),
-            icon = Icons.AutoMirrored.Default.FactCheck,
-            onClick = viewModel::onQuizClick
-        ),
-        FeatureItem(
-            title = stringResource(R.string.verse_guess_title),
-            icon = Icons.Default.TravelExplore,
-            onClick = viewModel::onVerseGuessClick
-        ),
-        FeatureItem(
             title = stringResource(R.string.hadeeth_books),
             drawableId = R.drawable.ic_books,
             onClick = viewModel::onBooksClick
@@ -100,6 +91,24 @@ fun MoreScreen(viewModel: MoreViewModel, snackBarHostState: SnackbarHostState) {
             title = stringResource(R.string.date_converter),
             icon = Icons.Default.CalendarMonth,
             onClick = viewModel::onDateConverterClick
+        )
+    )
+
+    val gamesItems = listOf(
+        FeatureItem(
+            title = stringResource(R.string.quiz_title),
+            icon = Icons.AutoMirrored.Default.FactCheck,
+            onClick = viewModel::onQuizClick
+        ),
+        FeatureItem(
+            title = stringResource(R.string.verse_guess_title),
+            icon = Icons.Default.TravelExplore,
+            onClick = viewModel::onVerseGuessClick
+        ),
+        FeatureItem(
+            title = stringResource(R.string.leaderboard),
+            icon = Icons.Default.Leaderboard,
+            onClick = viewModel::onLeaderboardClick
         )
     )
 
@@ -142,6 +151,8 @@ fun MoreScreen(viewModel: MoreViewModel, snackBarHostState: SnackbarHostState) {
         verticalArrangement = Arrangement.spacedBy(dims.spaceXl)
     ) {
         FeatureSection(title = stringResource(R.string.features), items = featuresItems)
+
+        FeatureSection(title = stringResource(R.string.games), items = gamesItems)
 
         FeatureSection(title = stringResource(R.string.app_and_support), items = settingsItems)
     }

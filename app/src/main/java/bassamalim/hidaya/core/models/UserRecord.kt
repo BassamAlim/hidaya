@@ -14,5 +14,7 @@ data class UserRecord(
     /** Lifetime points in the where's-the-verse game */
     val verseGuessPoints: Long = 0L,
     /** Most exact guesses in a row in the where's-the-verse game */
-    val verseGuessBestStreak: Int = 0
+    val verseGuessBestStreak: Int = 0,
+    /** Different quiz questions ever answered correctly */
+    val quizLearned: Int = 0
 )

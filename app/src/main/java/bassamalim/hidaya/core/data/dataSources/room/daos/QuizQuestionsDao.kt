@@ -13,6 +13,9 @@ interface QuizQuestionsDao {
     @Query("SELECT id FROM quiz_questions")
     fun getAllIds(): List<Int>
 
+    @Query("SELECT COUNT(*) FROM quiz_questions")
+    fun getCount(): Int
+
     @Query("SELECT id FROM quiz_questions WHERE type_ar = :category OR type_en = :category")
     fun getCategoryIds(category: String): List<Int>
 
