@@ -7,11 +7,9 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
@@ -32,40 +30,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.enums.DownloadState
 import bassamalim.hidaya.core.enums.PlaybackStatus
-
-@Composable
-fun MyIconButton(
-    iconId: Int,
-    modifier: Modifier = Modifier,
-    description: String = "",
-    iconSize: Dp = 24.dp,
-    iconColor: Color = LocalContentColor.current,
-    enabled: Boolean = true,
-    innerPadding: PaddingValues = PaddingValues(0.dp),
-    onClick: () -> Unit
-) {
-    IconButton(
-        onClick = { if (enabled) onClick() },
-        modifier = modifier,
-        enabled = enabled
-    ) {
-        Icon(
-            painter = painterResource(iconId),
-            contentDescription = description,
-            modifier = Modifier
-                .size(iconSize)
-                .padding(innerPadding),
-            tint = iconColor
-        )
-    }
-}
 
 @Composable
 fun MyIconButton(
@@ -117,7 +87,7 @@ fun MyFilledTonalIconButton(
 fun MyBackButton(onClick: (() -> Unit)? = null) {
     val context = LocalContext.current
 
-    MyIconButton(Icons.AutoMirrored.Default.ArrowBackIos) {
+    MyIconButton(Icons.AutoMirrored.Default.ArrowBack) {
         if (onClick == null)
             (context as ComponentActivity).onBackPressedDispatcher.onBackPressed()
         else

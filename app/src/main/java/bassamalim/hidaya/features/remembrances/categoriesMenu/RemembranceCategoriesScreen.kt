@@ -20,11 +20,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Mood
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Mosque
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Thunderstorm
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -58,14 +64,14 @@ private data class CategoryItem(
 )
 
 private val categoryItems = listOf(
-    CategoryItem(0, R.string.day_and_night_remembrances, R.drawable.ic_day_and_night),
-    CategoryItem(1, R.string.prayers_remembrances, R.drawable.ic_praying),
-    CategoryItem(2, R.string.quran_remembrances, R.drawable.ic_quran),
-    CategoryItem(3, R.string.actions_remembrances, R.drawable.ic_moving),
-    CategoryItem(4, R.string.events_remembrances, R.drawable.ic_events),
-    CategoryItem(5, R.string.emotion_remembrances, R.drawable.ic_emotions),
-    CategoryItem(6, R.string.places_remembrances, imageVector = Icons.AutoMirrored.Default.Logout),
-    CategoryItem(7, R.string.title_more, R.drawable.ic_duaa_light_hands)
+    CategoryItem(0, R.string.day_and_night_remembrances, imageVector = Icons.Default.WbTwilight),
+    CategoryItem(1, R.string.prayers_remembrances, imageVector = Icons.Default.Mosque),
+    CategoryItem(2, R.string.quran_remembrances, R.drawable.ic_bar_quran),
+    CategoryItem(3, R.string.actions_remembrances, imageVector = Icons.AutoMirrored.Default.DirectionsWalk),
+    CategoryItem(4, R.string.events_remembrances, imageVector = Icons.Default.Thunderstorm),
+    CategoryItem(5, R.string.emotion_remembrances, imageVector = Icons.Default.Mood),
+    CategoryItem(6, R.string.places_remembrances, imageVector = Icons.Default.Place),
+    CategoryItem(7, R.string.title_more, imageVector = Icons.Default.MoreHoriz)
 )
 
 @Composable

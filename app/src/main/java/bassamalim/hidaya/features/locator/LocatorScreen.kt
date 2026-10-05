@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Update
@@ -41,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -121,7 +121,7 @@ fun LocatorScreen(viewModel: LocatorViewModel) {
 
             Column(verticalArrangement = Arrangement.spacedBy(dims.spaceMd)) {
                 Point(Icons.Default.AccessTime, stringResource(R.string.location_point_prayers))
-                Point(Icons.Default.Explore, stringResource(R.string.location_point_qibla))
+                Point(ImageVector.vectorResource(R.drawable.ic_qibla_compass), stringResource(R.string.location_point_qibla))
                 Point(Icons.Default.Update, stringResource(R.string.location_point_background))
                 Point(Icons.Default.Lock, stringResource(R.string.location_point_privacy))
             }

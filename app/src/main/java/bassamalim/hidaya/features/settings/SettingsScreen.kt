@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.DisplaySettings
 import androidx.compose.material.icons.filled.LocationOn
@@ -243,7 +242,7 @@ private fun AthanSettings(athanAudioId: Int, onAthanAudioIdChange: (Int) -> Unit
                 .mapIndexed { i, _ -> i+1 }.toTypedArray(),
             entries = stringArrayResource(R.array.athan_voices_entries),
             title = stringResource(R.string.athan_voice),
-            icon = Icons.Default.Campaign,
+            icon = R.drawable.ic_athan,
             onSelection = onAthanAudioIdChange
         )
     }

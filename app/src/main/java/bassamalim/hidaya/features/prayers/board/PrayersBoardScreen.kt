@@ -23,17 +23,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.AddAlert
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.NotificationsPaused
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -50,6 +49,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -265,14 +266,14 @@ private fun Header(
 
         IconButton(onClick = onSettingsClick, modifier = settingsModifier) {
             Icon(
-                imageVector = Icons.Outlined.Settings,
+                imageVector = Icons.Default.Settings,
                 contentDescription = stringResource(R.string.prayer_time_settings)
             )
         }
 
         IconButton(onClick = onHelpClick, modifier = helpModifier) {
             Icon(
-                imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                imageVector = Icons.AutoMirrored.Default.Help,
                 contentDescription = stringResource(R.string.report_wrong_prayer_times)
             )
         }
@@ -482,7 +483,7 @@ private fun PrayerRow(
         IconButton(onClick = onNotificationClick, modifier = notificationModifier) {
             Icon(
                 imageVector = when (data.notificationType) {
-                    NotificationType.ATHAN -> Icons.Default.Campaign
+                    NotificationType.ATHAN -> ImageVector.vectorResource(R.drawable.ic_athan)
                     NotificationType.NOTIFICATION -> Icons.Default.Notifications
                     NotificationType.SILENT -> Icons.Default.NotificationsPaused
                     NotificationType.OFF -> Icons.Default.NotificationsOff

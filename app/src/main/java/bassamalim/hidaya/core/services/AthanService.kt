@@ -129,7 +129,7 @@ class AthanService : Service() {
 
     private suspend fun createFullNotification(reminder: Reminder): Notification {
         return NotificationCompat.Builder(this, channelId).apply {
-            setSmallIcon(R.drawable.small_launcher_foreground)
+            setSmallIcon(R.drawable.ic_notification)
             setTicker(resources.getString(R.string.app_name))
 
             setContentTitle(getTitle(reminder))
@@ -203,7 +203,7 @@ class AthanService : Service() {
 
     private fun createBasicNotification(reminder: Reminder): Notification {
         return NotificationCompat.Builder(this, channelId).apply {
-            setSmallIcon(R.drawable.small_launcher_foreground)
+            setSmallIcon(R.drawable.ic_notification)
             setTicker(resources.getString(R.string.app_name))
             setContentTitle(getBasicTitle(reminder))
             setContentText(getBasicSubtitle(reminder))

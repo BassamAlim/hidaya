@@ -153,7 +153,7 @@ fun TvScreen(viewModel: TvViewModel) {
                     ) {
                         ChannelCard(
                             text = stringResource(R.string.quran_channel),
-                            painter = painterResource(R.mipmap.ic_quran_channel),
+                            painter = painterResource(R.drawable.ic_quran_channel),
                             isSelected = state.selectedChannel == TvChannel.QURAN,
                             modifier = Modifier
                                 .weight(1f)
@@ -163,7 +163,7 @@ fun TvScreen(viewModel: TvViewModel) {
 
                         ChannelCard(
                             text = stringResource(R.string.sunnah_channel),
-                            painter = painterResource(R.mipmap.ic_sunnah_channel),
+                            painter = painterResource(R.drawable.ic_sunnah_channel),
                             isSelected = state.selectedChannel == TvChannel.SUNNAH,
                             modifier = Modifier
                                 .weight(1f)

@@ -81,7 +81,7 @@ fun Context.mediaNotificationProvider(
         .setChannelId(channelId)
         .setChannelName(channelName)
         .build()
-        .apply { setSmallIcon(R.drawable.small_launcher_foreground) }
+        .apply { setSmallIcon(R.drawable.ic_notification) }
 }
 
 /**

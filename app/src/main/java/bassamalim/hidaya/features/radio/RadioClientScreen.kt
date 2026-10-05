@@ -27,6 +27,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,7 +60,6 @@ import androidx.compose.ui.unit.min
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bassamalim.hidaya.R
 import bassamalim.hidaya.core.enums.PlaybackStatus
-import bassamalim.hidaya.core.ui.components.MultiDrawableImage
 import bassamalim.hidaya.core.ui.components.MyCircularProgressIndicator
 import bassamalim.hidaya.core.ui.components.MyScaffold
 import bassamalim.hidaya.core.ui.theme.appTypography
@@ -300,19 +303,21 @@ private fun OrbitalButton(
             }
             else {
                 val isPlaying = playbackState == PlaybackStatus.PLAYING
-                MultiDrawableImage(
-                    drawables = listOf(
-                        (if (isPlaying) R.drawable.ic_radio_pause_container
-                        else R.drawable.ic_radio_play_container)
-                                to MaterialTheme.colorScheme.primaryContainer,
-                        (if (isPlaying) R.drawable.ic_radio_pause_primary
-                        else R.drawable.ic_radio_play_primary)
-                                to MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    modifier = Modifier.size(PlayButtonSize),
-                    innerModifier = Modifier.fillMaxSize(),
-                    contentDescription = stringResource(R.string.play_pause_btn_description)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(PlayButtonSize)
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector =
+                            if (isPlaying) Icons.Default.Pause
+                            else Icons.Default.PlayArrow,
+                        contentDescription = stringResource(R.string.play_pause_btn_description),
+                        modifier = Modifier.size(PlayButtonSize / 2),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
         }
     }

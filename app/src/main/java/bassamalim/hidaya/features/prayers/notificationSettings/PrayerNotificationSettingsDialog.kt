@@ -9,7 +9,6 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.NotificationsPaused
@@ -24,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -76,7 +76,7 @@ private fun NotificationTypesRadioGroup(
         if (prayer != Prayer.SUNRISE) {
             NotificationTypeOption(
                 name = stringResource(R.string.athan_speaker),
-                icon = Icons.Default.Campaign,
+                icon = ImageVector.vectorResource(R.drawable.ic_athan),
                 isSelected = selection == NotificationType.ATHAN,
                 onSelection = { onSelect(NotificationType.ATHAN) }
             )

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -68,8 +69,7 @@ fun BooksMenuScreen(viewModel: BooksMenuViewModel) {
             floatingActionButton = {
                 val noDownloadedBooksMessage = stringResource(R.string.no_downloaded_books)
                 MyFloatingActionButton(
-                    iconId = R.drawable.ic_quran_search,
-//                imageVector = Icons.Default.FindInPage,
+                    imageVector = Icons.AutoMirrored.Default.ManageSearch,
                     description = stringResource(R.string.search_in_books),
                     modifier = Modifier.tutorialTarget(tutorialState, "books_search"),
                     onClick = {

@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <!-- Minaret -->
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M7.5,21.5v-1.5h9v1.5z M9,20v-9h6v9z M7.75,9.5h8.5V11h-8.5z M10,9.5V7h4v2.5z M10,7c0,-1.7 0.9,-2.8 2,-3.4c1.1,0.6 2,1.7 2,3.4z M11.65,3.7V1.8h0.7v1.9z" />
+  <!-- The call spreading out from the balcony -->
+  <path
+      android:strokeColor="@android:color/white"
+      android:strokeWidth="1.5"
+      android:strokeLineCap="round"
+      android:pathData="M5.5,8c-0.9,1.2 -0.9,3.8 0,5 M3,6.5c-1.8,2.3 -1.8,5.7 0,8 M18.5,8c0.9,1.2 0.9,3.8 0,5 M21,6.5c1.8,2.3 1.8,5.7 0,8" />
+</vector>

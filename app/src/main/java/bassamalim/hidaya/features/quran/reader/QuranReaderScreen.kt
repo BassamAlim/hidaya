@@ -27,6 +27,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.DisplaySettings
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,9 +48,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -328,9 +332,12 @@ private fun BottomBar(
             Row {
                 // Skip to previous button
                 MyIconButton(
-                    iconId = R.drawable.ic_skip_previous,
+                    // The two glyphs mirror each other, so swapping them flips the icon in RTL
+                    imageVector =
+                        if (LocalLayoutDirection.current == LayoutDirection.Rtl) Icons.Default.SkipNext
+                        else Icons.Default.SkipPrevious,
                     description = stringResource(R.string.rewind_btn_description),
-                    iconSize = 40.dp,
+                    iconModifier = Modifier.size(40.dp),
                     onClick = onPreviousVerseClick
                 )
 
@@ -346,9 +353,11 @@ private fun BottomBar(
 
                 // Skip to next button
                 MyIconButton(
-                    iconId = R.drawable.ic_skip_next,
+                    imageVector =
+                        if (LocalLayoutDirection.current == LayoutDirection.Rtl) Icons.Default.SkipPrevious
+                        else Icons.Default.SkipNext,
                     description = stringResource(R.string.fast_forward_btn_description),
-                    iconSize = 40.dp,
+                    iconModifier = Modifier.size(40.dp),
                     onClick = onNextVerseClick
                 )
             }

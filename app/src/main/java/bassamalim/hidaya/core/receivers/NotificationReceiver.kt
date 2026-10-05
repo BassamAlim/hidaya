@@ -197,7 +197,7 @@ class NotificationReceiver : BroadcastReceiver() {
         notificationType: NotificationType
     ): Notification {
         return NotificationCompat.Builder(context, channelId).apply {
-            setSmallIcon(R.drawable.small_launcher_foreground)
+            setSmallIcon(R.drawable.ic_notification)
             setTicker(context.resources.getString(R.string.app_name))
 
             setContentTitle(getTitle(context, reminder))

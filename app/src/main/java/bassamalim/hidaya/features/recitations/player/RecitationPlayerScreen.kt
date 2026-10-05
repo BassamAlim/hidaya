@@ -23,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +47,8 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
@@ -319,12 +323,15 @@ private fun TransportControls(
         horizontalArrangement = Arrangement.spacedBy(dims.spaceXl, Alignment.CenterHorizontally)
     ) {
         MyIconButton(
-            iconId = R.drawable.ic_skip_previous,
+            // The two glyphs mirror each other, so swapping them flips the icon in RTL
+            imageVector =
+                if (LocalLayoutDirection.current == LayoutDirection.Rtl) Icons.Default.SkipNext
+                else Icons.Default.SkipPrevious,
             description = stringResource(R.string.previous_track_btn_description),
             modifier = Modifier.size(SkipButtonSize),
-            iconSize = dims.iconXl,
+            iconModifier = Modifier.size(dims.iconXl),
             iconColor = MaterialTheme.colorScheme.onSurface,
-            enabled = isEnabled,
+            isEnabled = isEnabled,
             onClick = onPreviousTrackClick
         )
 
@@ -344,12 +351,14 @@ private fun TransportControls(
         }
 
         MyIconButton(
-            iconId = R.drawable.ic_skip_next,
+            imageVector =
+                if (LocalLayoutDirection.current == LayoutDirection.Rtl) Icons.Default.SkipPrevious
+                else Icons.Default.SkipNext,
             description = stringResource(R.string.next_track_btn_description),
             modifier = Modifier.size(SkipButtonSize),
-            iconSize = dims.iconXl,
+            iconModifier = Modifier.size(dims.iconXl),
             iconColor = MaterialTheme.colorScheme.onSurface,
-            enabled = isEnabled,
+            isEnabled = isEnabled,
             onClick = onNextTrackClick
         )
     }

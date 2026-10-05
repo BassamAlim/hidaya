@@ -511,7 +511,7 @@ class PrayersNotificationService : Service() {
             .setContentIntent(pendingIntent)
             .setContentTitle(title)
 //            .setContentText(content)
-            .setSmallIcon(R.drawable.small_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setStyle(
                 NotificationCompat
                     .BigTextStyle()
