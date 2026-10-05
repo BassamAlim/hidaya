@@ -178,8 +178,6 @@
     <string name="your_position">مركزك</string>
     <string name="user">مستخدم</string>
     <string name="pages">صفحة</string>
-    <string name="by_reading">حسب القراءة</string>
-    <string name="by_listening">حسب الاستماع</string>
     <string name="error_fetching_data">حدث خطأ أثناء جلب البيانات</string>
     <string name="jumuah_title">صلاة الجمعة</string>
     <string name="jumuah_subtitle">حان موعد الأذان الثاني لصلاة الجمعة</string>
@@ -334,8 +332,6 @@
         <item quantity="many">%1$s إصابة متتالية</item>
         <item quantity="other">%1$s إصابة متتالية</item>
     </plurals>
-    <string name="verse_guess_rank_points">النقاط</string>
-    <string name="verse_guess_rank_streak">سلسلة الإصابات</string>
     <string name="games">الألعاب</string>
     <string name="next_question">السؤال التالي</string>
     <string name="quiz_question_number">السؤال %1$s</string>
@@ -356,4 +352,11 @@
     <string name="questions_learned">ما أتقنته من الأسئلة</string>
     <string name="quran_display_settings">إعدادات عرض القرآن</string>
     <string name="qibla_bearing">%1$s° من الشمال</string>
+    <string name="rank_reading">القراءة</string>
+    <string name="rank_listening">الاستماع</string>
+    <string name="rank_quiz">الأسئلة</string>
+    <string name="rank_by_reading_desc">الترتيب حسب عدد صفحات القرآن المقروءة</string>
+    <string name="rank_by_listening_desc">الترتيب حسب وقت الاستماع إلى التلاوات</string>
+    <string name="rank_by_verse_guess_points_desc">الترتيب حسب مجموع نقاط موضع الآية</string>
+    <string name="rank_by_quiz_learned_desc">الترتيب حسب عدد أسئلة الاختبار المتقنة</string>
 </resources>

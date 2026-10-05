@@ -99,7 +99,7 @@ class LeaderboardViewModel @Inject constructor(
             RankItem(
                 userId = translateNums(userId.toString(), numeralsLanguage),
                 value = when (rankType) {
-                    RankType.BY_READING, RankType.BY_VERSE_GUESS_STREAK ->
+                    RankType.BY_READING ->
                         translateNums(value.toString(), numeralsLanguage)
                     RankType.BY_LISTENING -> formatRecitationsTime(value)
                     RankType.BY_QUIZ_LEARNED -> formatPercent(

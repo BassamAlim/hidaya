@@ -2,23 +2,32 @@ package bassamalim.hidaya.features.leaderboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.FactCheck
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,10 +48,8 @@ import bassamalim.hidaya.core.enums.Language
 import bassamalim.hidaya.core.ui.components.ErrorScreen
 import bassamalim.hidaya.core.ui.components.LoadingScreen
 import bassamalim.hidaya.core.ui.components.MyCard
-import bassamalim.hidaya.core.ui.components.MyColumn
 import bassamalim.hidaya.core.ui.components.MyScaffold
 import bassamalim.hidaya.core.ui.components.PaginatedLazyColumn
-import bassamalim.hidaya.core.ui.components.TabLayout
 import bassamalim.hidaya.core.ui.theme.Bronze
 import bassamalim.hidaya.core.ui.theme.Gold
 import bassamalim.hidaya.core.ui.theme.Silver
@@ -78,6 +86,21 @@ fun LeaderboardScreen(viewModel: LeaderboardViewModel) {
     }
 }
 
+/** The tile for each ranking: a short name and an icon. */
+private val RankType.titleRes get() = when (this) {
+    RankType.BY_READING -> R.string.rank_reading
+    RankType.BY_LISTENING -> R.string.rank_listening
+    RankType.BY_VERSE_GUESS_POINTS -> R.string.verse_guess_title
+    RankType.BY_QUIZ_LEARNED -> R.string.rank_quiz
+}
+
+private val RankType.icon get() = when (this) {
+    RankType.BY_READING -> Icons.AutoMirrored.Default.MenuBook
+    RankType.BY_LISTENING -> Icons.Default.Headphones
+    RankType.BY_VERSE_GUESS_POINTS -> Icons.Default.TravelExplore
+    RankType.BY_QUIZ_LEARNED -> Icons.AutoMirrored.Default.FactCheck
+}
+
 @Composable
 private fun UsersList(
     userId: String,
@@ -88,75 +111,101 @@ private fun UsersList(
     loadMoreItems: (RankType) -> Unit,
     numeralsLanguage: Language
 ) {
-    @Composable
-    fun Page(rankBy: RankType, header: @Composable () -> Unit = {}) {
-        MyColumn {
-            header()
+    var rankBy by rememberSaveable { mutableStateOf(RankType.BY_READING) }
 
-            UserRankCard(
-                userId = userId,
-                userRank = userRankMap[rankBy] ?: "--",
-                userRankInt = userRankIntMap[rankBy] ?: -1
-            )
+    Column(Modifier.fillMaxSize()) {
+        RankSelector(selected = rankBy, onSelect = { rankBy = it })
 
-            // Keyed so switching rankings on a page starts the new one from its top
-            key(rankBy) {
-                UsersList(
-                    items = ranksMap[rankBy] ?: emptyList(),
-                    rankType = rankBy,
-                    listState = rememberLazyListState(),
-                    loadMoreItems = { loadMoreItems(rankBy) },
-                    isLoading = isLoadingItems[rankBy] ?: false,
-                    numeralsLanguage = numeralsLanguage
-                )
-            }
-        }
-    }
-
-    TabLayout(
-        pageNames = listOf(
-            stringResource(R.string.by_reading),
-            stringResource(R.string.by_listening),
-            stringResource(R.string.verse_guess_title),
-            stringResource(R.string.quiz_title)
-        )
-    ) { page ->
-        when (page) {
-            0 -> Page(RankType.BY_READING)
-            1 -> Page(RankType.BY_LISTENING)
-            3 -> Page(RankType.BY_QUIZ_LEARNED)
-            else -> {
-                var rankBy by rememberSaveable { mutableStateOf(RankType.BY_VERSE_GUESS_POINTS) }
-
-                Page(rankBy) {
-                    VerseGuessRankSwitch(selected = rankBy, onSelect = { rankBy = it })
+        // Says what the numbers below measure, which the tile name alone doesn't
+        Text(
+            text = stringResource(
+                when (rankBy) {
+                    RankType.BY_READING -> R.string.rank_by_reading_desc
+                    RankType.BY_LISTENING -> R.string.rank_by_listening_desc
+                    RankType.BY_VERSE_GUESS_POINTS -> R.string.rank_by_verse_guess_points_desc
+                    RankType.BY_QUIZ_LEARNED -> R.string.rank_by_quiz_learned_desc
                 }
-            }
+            ),
+            modifier = Modifier.padding(
+                start = MaterialTheme.dimensions.spaceLg,
+                end = MaterialTheme.dimensions.spaceLg,
+                top = MaterialTheme.dimensions.spaceMd
+            ),
+            style = MaterialTheme.appTypography.caption,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        UserRankCard(
+            userId = userId,
+            userRank = userRankMap[rankBy] ?: "--",
+            userRankInt = userRankIntMap[rankBy] ?: -1
+        )
+
+        // Keyed so switching rankings starts the new one from its top
+        key(rankBy) {
+            UsersList(
+                items = ranksMap[rankBy] ?: emptyList(),
+                rankType = rankBy,
+                listState = rememberLazyListState(),
+                loadMoreItems = { loadMoreItems(rankBy) },
+                isLoading = isLoadingItems[rankBy] ?: false,
+                numeralsLanguage = numeralsLanguage
+            )
         }
     }
 }
 
-/** The where's-the-verse page ranks by lifetime points or by best streak. */
+/** Equal tiles, icon over name, so every ranking is visible and none scrolls out of view. */
 @Composable
-private fun VerseGuessRankSwitch(selected: RankType, onSelect: (RankType) -> Unit) {
+private fun RankSelector(selected: RankType, onSelect: (RankType) -> Unit) {
     val dims = MaterialTheme.dimensions
-    val options = listOf(
-        RankType.BY_VERSE_GUESS_POINTS to stringResource(R.string.verse_guess_rank_points),
-        RankType.BY_VERSE_GUESS_STREAK to stringResource(R.string.verse_guess_rank_streak)
-    )
 
-    SingleChoiceSegmentedButtonRow(
-        Modifier
+    Row(
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(start = dims.spaceLg, end = dims.spaceLg, top = dims.spaceLg)
+            .height(IntrinsicSize.Min)
+            .padding(start = dims.spaceLg, end = dims.spaceLg, top = dims.spaceMd),
+        horizontalArrangement = Arrangement.spacedBy(dims.spaceSm)
     ) {
-        options.forEachIndexed { index, (rankType, label) ->
-            SegmentedButton(
-                selected = rankType == selected,
+        RankType.entries.forEach { rankType ->
+            val isSelected = rankType == selected
+
+            Surface(
+                selected = isSelected,
                 onClick = { onSelect(rankType) },
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size)
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                shape = RoundedCornerShape(dims.radiusMd),
+                color =
+                    if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor =
+                    if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                    else MaterialTheme.colorScheme.onSurfaceVariant
             ) {
-                Text(text = label, style = MaterialTheme.appTypography.button)
+                Column(
+                    modifier = Modifier.padding(horizontal = dims.spaceXs, vertical = dims.spaceSm),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = rankType.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(dims.iconMd)
+                    )
+
+                    Spacer(Modifier.height(dims.spaceXs))
+
+                    Text(
+                        text = stringResource(rankType.titleRes),
+                        style = MaterialTheme.appTypography.label.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        ),
+                        textAlign = TextAlign.Center,
+                        maxLines = 2
+                    )
+                }
             }
         }
     }
@@ -168,7 +217,12 @@ private fun UserRankCard(userId: String, userRank: String, userRankInt: Int) {
     val contentColor = MaterialTheme.colorScheme.onPrimaryContainer
 
     MyCard(
-        modifier = Modifier.padding(dims.spaceLg),
+        modifier = Modifier.padding(
+            start = dims.spaceLg,
+            end = dims.spaceLg,
+            top = dims.spaceSm,
+            bottom = dims.spaceLg
+        ),
         shape = RoundedCornerShape(dims.radiusLg),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -253,8 +307,7 @@ private fun ItemCard(
         Text(
             text = when (rankType) {
                 RankType.BY_READING -> "${item.value} ${stringResource(R.string.pages)}"
-                RankType.BY_LISTENING, RankType.BY_VERSE_GUESS_STREAK,
-                RankType.BY_QUIZ_LEARNED -> item.value
+                RankType.BY_LISTENING, RankType.BY_QUIZ_LEARNED -> item.value
                 RankType.BY_VERSE_GUESS_POINTS ->
                     stringResource(R.string.verse_guess_score, item.value)
             },

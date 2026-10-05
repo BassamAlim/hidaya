@@ -185,8 +185,6 @@
     <string name="your_position">Your Position</string>
     <string name="user">User</string>
     <string name="pages">Pages</string>
-    <string name="by_reading">By reading</string>
-    <string name="by_listening">By listening</string>
     <string name="error_fetching_data">Error fetching data</string>
     <string name="jumuah_title">Friday prayer</string>
     <string name="jumuah_subtitle">It\'s friday prayer second athan time</string>
@@ -348,8 +346,6 @@
         <item quantity="one">%1$s in a row</item>
         <item quantity="other">%1$s in a row</item>
     </plurals>
-    <string name="verse_guess_rank_points">Points</string>
-    <string name="verse_guess_rank_streak">Streak</string>
     <string name="games">Games</string>
     <string name="next_question">Next question</string>
     <string name="quiz_question_number">Question %1$s</string>
@@ -370,4 +366,11 @@
     <string name="questions_learned">Questions learned</string>
     <string name="quran_display_settings">Quran display settings</string>
     <string name="qibla_bearing">%1$s° from north</string>
+    <string name="rank_reading">Reading</string>
+    <string name="rank_listening">Listening</string>
+    <string name="rank_quiz">Questions</string>
+    <string name="rank_by_reading_desc">Ranked by Quran pages read</string>
+    <string name="rank_by_listening_desc">Ranked by time spent listening to recitations</string>
+    <string name="rank_by_verse_guess_points_desc">Ranked by total Locate-the-verse points</string>
+    <string name="rank_by_quiz_learned_desc">Ranked by quiz questions learned</string>
 </resources>
