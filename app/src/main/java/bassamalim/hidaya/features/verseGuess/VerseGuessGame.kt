@@ -1,11 +1,14 @@
 package bassamalim.hidaya.features.verseGuess
 
+import bassamalim.hidaya.core.Globals
 import bassamalim.hidaya.features.verseGuess.map.VerseMapItem
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 import kotlin.random.Random
 
+/** A whole-Quran round's maximum; smaller scopes get less, see [roundMaxPoints] */
 const val MAX_ROUND_POINTS = 5000
 /** Each round plays this many consecutive verses, all from one sura. */
 const val CLIP_LENGTH = 3
@@ -52,10 +55,18 @@ fun pickClipStart(items: List<VerseMapItem>, random: Random, recent: Collection<
 fun distanceInPages(guess: Double, clip: List<Double>) = clip.minOf { abs(it - guess) }
 
 /**
- * Full points for a guess on the clip, falling off exponentially with distance. The falloff
- * scales with the scope, so a juz and the whole Quran are equally demanding.
+ * A round's maximum, by the square root of the scope's share of the mushaf: about 910 for a
+ * juz against 5000 for the whole Quran. Without it, replaying one memorized juz would earn
+ * full points as fast as the whole Quran does.
+ */
+fun roundMaxPoints(scopePages: Int) =
+    (MAX_ROUND_POINTS * sqrt(scopePages.toDouble() / Globals.NUM_OF_QURAN_PAGES)).roundToInt()
+
+/**
+ * The scope's maximum for a guess on the clip, falling off exponentially with distance. The
+ * falloff scales with the scope, so precision is judged relative to how much there is to search.
  */
 fun roundPoints(distancePages: Double, scopePages: Int): Int {
     val falloff = maxOf(scopePages * FALLOFF_SCOPE_SHARE, MIN_FALLOFF_PAGES)
-    return (MAX_ROUND_POINTS * exp(-distancePages / falloff)).roundToInt()
+    return (roundMaxPoints(scopePages) * exp(-distancePages / falloff)).roundToInt()
 }

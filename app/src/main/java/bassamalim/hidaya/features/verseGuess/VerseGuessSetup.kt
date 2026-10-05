@@ -78,7 +78,7 @@ internal fun VerseGuessSetup(
         else Text(
             text = stringResource(
                 R.string.verse_guess_rules,
-                formatNumber(MAX_ROUND_POINTS, state.numeralsLanguage)
+                formatNumber(roundMaxPoints(state.scopePages), state.numeralsLanguage)
             ),
             style = MaterialTheme.appTypography.body,
             color = MaterialTheme.colorScheme.onSurfaceVariant

@@ -65,4 +65,7 @@ data class VerseGuessUiState(
     val result: RoundResult? = null
 ) {
     val isRevealed get() = result != null
+    /** Pages the scope spans, which sets how points are scored */
+    val scopePages get() =
+        if (items.isEmpty()) 0 else items.last().pageNum - items.first().pageNum + 1
 }

@@ -142,12 +142,11 @@ class VerseGuessViewModel @Inject constructor(
             guess = position(guess),
             clip = (clipStart until clipStart + CLIP_LENGTH).map(::position)
         )
-        val scopePages = state.items.last().pageNum - state.items.first().pageNum + 1
         val result = RoundResult(
             clipStart = clipStart,
             guessIndex = guess,
             distancePages = distance,
-            points = roundPoints(distance, scopePages)
+            points = roundPoints(distance, state.scopePages)
         )
 
         _uiState.update { it.copy(result = result, sessionPoints = it.sessionPoints + result.points) }

@@ -100,4 +100,12 @@ class VerseGuessGameTest {
         assertTrue(roundPoints(5.0, scopePages = 20) < roundPoints(5.0, scopePages = 604))
     }
 
+    @Test
+    fun `a juz round is worth less than a whole-Quran round`() {
+        assertEquals(MAX_ROUND_POINTS, roundMaxPoints(scopePages = 604))
+        assertEquals(910, roundMaxPoints(scopePages = 20))
+        // Replaying a memorized juz perfectly earns less than a so-so whole-Quran guess
+        assertTrue(roundPoints(0.0, scopePages = 20) < roundPoints(15.0, scopePages = 604))
+    }
+
 }
