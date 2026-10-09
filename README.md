@@ -1,9 +1,24 @@
-# Hidaya
+<p align="center">
+  <img src="app/src/main/ic_launcher-playstore.png" alt="Hidaya logo" width="128">
+</p>
 
-Hidaya is a feature-rich Islamic Android app with 18,000+ installs, offering prayer times, Quran with tafseer and audio recitations, qibla direction, hadith collections, athkar, and more. Originally built in Java/XML and later fully migrated to Kotlin and Jetpack Compose.
+<h1 align="center">Hidaya · هداية</h1>
 
-Get it from Google Play:
-https://play.google.com/store/apps/details?id=bassamalim.hidaya
+<p align="center">
+  A feature-rich Islamic Android app: prayer times, Quran with tafseer and recitations, qibla, hadith, athkar, and more.
+</p>
+
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=bassamalim.hidaya"><img src="https://img.shields.io/badge/Google_Play-Download-414141?logo=googleplay&logoColor=white" alt="Get it on Google Play"></a>
+  <a href="https://github.com/BassamAlim/hidaya/actions/workflows/ci.yml"><img src="https://github.com/BassamAlim/hidaya/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <img src="https://img.shields.io/badge/Kotlin-Jetpack_Compose-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin + Jetpack Compose">
+  <img src="https://img.shields.io/badge/minSdk-23-3DDC84?logo=android&logoColor=white" alt="minSdk 23">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue" alt="License: GPL v3"></a>
+</p>
+
+Hidaya has 18,000+ installs and works fully offline for its core features. It was originally built in Java/XML and later fully migrated to Kotlin and Jetpack Compose.
+
+**Download:** [Google Play](https://play.google.com/store/apps/details?id=bassamalim.hidaya) · [Latest dev build (APK)](https://github.com/BassamAlim/hidaya/releases/download/dev-latest/hidaya-dev.apk)
 
 
 ## Features
@@ -12,13 +27,16 @@ https://play.google.com/store/apps/details?id=bassamalim.hidaya
 - Quran with Tafseer (interpretation) and audio Recitations
 - Qibla direction with Compass
 - Audio Recitations with more than 200 Reciters
-- Islamic quiz to test your information with more than 700 questions
+- Islamic quiz with more than 700 questions, instant feedback, and an endless mode
+- Games such as "Where's the verse?", with a global leaderboard
+- Digital misbaha (tasbeeh counter)
 - Hadeeth books such as Saheeh al-Bokhari and Saheeh Muslim
 - Live tv feed of Quran channel and Sunnah channel
 - Quran radio station
 - Date converter between Hijri and Gregorian dates
 - Quran searcher and books searcher
 - Get daily reminder notifications for: morning remembrances, evening remembrances, daily werd page of quran, and surat al-kahf on friday
+- Home-screen widgets for the next prayer and the day's prayer times
 - Available in Arabic and English
 - Choose between many themes
 - and much more
@@ -58,7 +76,7 @@ https://play.google.com/store/apps/details?id=bassamalim.hidaya
 
 ## Tech & Architecture
 
-**Stack:** Kotlin, Jetpack Compose (Material 2), Hilt, Room, DataStore, Coroutines & Flow, Firebase, GitHub Actions
+**Stack:** Kotlin, Jetpack Compose (Material 3), Hilt, Room, DataStore, Coroutines & Flow, Firebase, GitHub Actions
 
 **Structure.** The codebase is feature-sliced. Shared infrastructure lives under `core/`; every screen lives in its own package under `features/` and follows the same four-part pattern:
 
@@ -79,7 +97,20 @@ https://play.google.com/store/apps/details?id=bassamalim.hidaya
 - Two home-screen app widgets showing next prayer and the daily prayer board.
 - Full Arabic and English localisation with RTL layout, plus light/dark themes and Android 11+ dynamic colour.
 
-**CI.** GitHub Actions workflows for build/check on push and for release packaging.
+**CI.** GitHub Actions: build/check on every push to `main` and `dev`, a debug APK published to a rolling `dev-latest` pre-release on every push to `dev`, and tag-triggered signed releases to Google Play and Samsung Galaxy Store.
+
+
+## Building
+
+Requirements: JDK 21 and the Android SDK (target SDK 36, min SDK 23).
+
+```bash
+git clone https://github.com/BassamAlim/hidaya.git
+cd hidaya
+./gradlew assembleDebug
+```
+
+Firebase features need your own `app/google-services.json`. Release signing is configured through a `.env` file (see `app/build.gradle`).
 
 
 ## License
